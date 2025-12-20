@@ -1,0 +1,24 @@
+dist/
+node_modules/
+
+# Output/artifacts
+downloads/
+*_materials/
+*_transcription.*
+*.wav
+*.ts
+*.m3u8
+
+# Secrets
+.session.json
+session.json
+.env
+*.log
+
+# Optional local tool/cache dirs
+whisper.cpp/
+.tools/
+
+# Legacy debug dumps
+debug_*.json
+debug_*.html

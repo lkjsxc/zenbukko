@@ -1,0 +1,14 @@
+services:
+  zenbukko:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: zenbukko:local
+    working_dir: /app
+    volumes:
+      - ./downloads:/data/downloads
+      - ${HOME}/.config/zenbukko:/data/zenbukko-config:ro
+    environment:
+      ZENBUKKO_SESSION_PATH: /data/zenbukko-config/session.json
+      OUTPUT_DIR: /data/downloads
+      PUPPETEER_HEADLESS: "true"

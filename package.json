@@ -1,0 +1,40 @@
+{
+  "name": "zenbukko-new",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Zenbukko rewrite (Node 22 + TypeScript)",
+  "type": "module",
+  "bin": {
+    "zenbukko": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "type-check": "tsc -p tsconfig.json --noEmit",
+    "dev": "tsx src/index.ts",
+    "cli": "node dist/index.js",
+    "build:docker": "docker compose build zenbukko",
+    "ci:docker": "docker compose build zenbukko",
+    "lint": "eslint .",
+    "format": "prettier -w ."
+  },
+  "dependencies": {
+    "cheerio": "1.0.0-rc.12",
+    "commander": "^13.0.0",
+    "dotenv": "^16.4.5",
+    "ffmpeg-static": "^5.2.0",
+    "puppeteer": "^23.11.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@typescript-eslint/eslint-plugin": "^8.18.0",
+    "@typescript-eslint/parser": "^8.18.0",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}
