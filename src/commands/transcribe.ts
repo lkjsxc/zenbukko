@@ -63,6 +63,7 @@ export async function transcribeCommand(params: {
     params.logger.info(`Extracting audio via ffmpeg -> ${audioPath}`);
 
     await runProcess(ffmpegPath, [
+      '-nostdin',
       '-y',
       '-i',
       inputAbs,

@@ -5,8 +5,6 @@ import { loadConfig } from './config.js';
 import { Logger } from './utils/log.js';
 import { authCommand } from './commands/auth.js';
 import { listCoursesCommand } from './commands/listCourses.js';
-import { resolveLecture1Command } from './commands/resolveLecture1.js';
-import { downloadLecture1Command } from './commands/downloadLecture1.js';
 import { downloadCommand } from './commands/download.js';
 import { setupWhisperCommand } from './commands/setupWhisper.js';
 import { transcribeCommand } from './commands/transcribe.js';
@@ -51,89 +49,6 @@ program
   });
 
 program
-  .command('resolve-lecture1')
-  .description('Resolve Lecture 1 (first chapter + first lesson) to a download-ready HLS URL')
-  .option('--course-id <id>', 'Course ID', (v) => Number(v))
-  .option('--course-query <text>', 'Course title substring to search via browser')
-  .action(async (cmd) => {
-    const cfg = loadConfig();
-    const opts = program.opts();
-    const sessionPath = (opts.session as string | undefined) ?? cfg.sessionPath;
-    const headless = (opts.headless as boolean | undefined) ?? cfg.puppeteerHeadless;
-    const logLevel = (opts.logLevel as typeof cfg.logLevel | undefined) ?? cfg.logLevel;
-    const logger = new Logger(logLevel);
-
-    const args: {
-      sessionPath: string;
-      headless: boolean;
-      logger: Logger;
-      courseId?: number;
-      courseQuery?: string;
-    } = { sessionPath, headless, logger };
-
-    if (typeof cmd.courseId === 'number' && Number.isFinite(cmd.courseId)) {
-      args.courseId = cmd.courseId as number;
-    }
-    if (typeof cmd.courseQuery === 'string' && cmd.courseQuery.trim()) {
-      args.courseQuery = cmd.courseQuery as string;
-    }
-
-    await resolveLecture1Command(args);
-  });
-
-program
-  .command('download-lecture1')
-  .description('Download Lecture 1 (first chapter + first lesson) as a .ts file')
-  .requiredOption('--course-id <id>', 'Course ID', (v) => Number(v))
-  .option('--transcribe', 'Transcribe after download (writes *_transcription.txt next to the media file)', false)
-  .option('--transcribe-language <code>', 'Language code to force during transcription (e.g. ja, en)')
-  .option(
-    '--no-speech-thold <n>',
-    'whisper.cpp no-speech threshold (lower can reduce [BLANK_AUDIO], e.g. 0.2)',
-    (v) => Number(v),
-  )
-  .option('--no-materials', 'Do not download materials (references/handouts)')
-  .action(async (cmd) => {
-    const cfg = loadConfig();
-    const opts = program.opts();
-    const sessionPath = (opts.session as string | undefined) ?? cfg.sessionPath;
-    const outputDir = (opts.output as string | undefined) ?? cfg.outputDir;
-    const headless = (opts.headless as boolean | undefined) ?? cfg.puppeteerHeadless;
-    const logLevel = (opts.logLevel as typeof cfg.logLevel | undefined) ?? cfg.logLevel;
-    const logger = new Logger(logLevel);
-
-    const args: {
-      sessionPath: string;
-      outputDir: string;
-      headless: boolean;
-      courseId: number;
-      transcribe: boolean;
-      transcribeLanguage?: string;
-      noSpeechThreshold?: number;
-      materials: boolean;
-      logger: Logger;
-    } = {
-      sessionPath,
-      outputDir,
-      headless,
-      courseId: cmd.courseId as number,
-      transcribe: Boolean(cmd.transcribe),
-      materials: Boolean(cmd.materials),
-      logger,
-    };
-
-    if (cmd.transcribeLanguage) {
-      args.transcribeLanguage = String(cmd.transcribeLanguage);
-    }
-
-    if (typeof cmd.noSpeechThold === 'number' && Number.isFinite(cmd.noSpeechThold)) {
-      args.noSpeechThreshold = cmd.noSpeechThold as number;
-    }
-
-    await downloadLecture1Command(args);
-  });
-
-program
   .command('download')
   .description('Download lessons for a course (HLS -> .ts)')
   .requiredOption('--course-id <id>', 'Course ID', (v) => Number(v))
@@ -141,9 +56,22 @@ program
     acc.push(Number(v));
     return acc;
   }, [])
+  .option('--lesson-id <id>', 'Lesson ID to include (repeatable)', (v, acc: number[]) => {
+    acc.push(Number(v));
+    return acc;
+  }, [])
   .option('--max-concurrency <n>', 'Max API concurrency when resolving lesson URLs', (v) => Number(v), 6)
   .option('--first-lecture-only', 'Only download the first resolved lesson', false)
   .option('--transcribe', 'Transcribe after each download (writes *_transcription.txt next to the media file)', false)
+  .option('--transcribe-model <name>', 'Whisper model name', 'base')
+  .option('--transcribe-format <fmt>', 'txt|srt|vtt', 'txt')
+  .option('--transcribe-language <code>', 'Language code to force during transcription (e.g. ja, en)', 'ja')
+  .option(
+    '--no-speech-thold <n>',
+    'whisper.cpp no-speech threshold (lower can reduce [BLANK_AUDIO], e.g. 0.2)',
+    (v) => Number(v),
+  )
+  .option('--max-seconds <n>', 'Only transcribe the first N seconds (useful for very large files)', (v) => Number(v))
   .option('--materials', 'Download lesson materials (writes an offline-openable index.html)', false)
   .action(async (cmd) => {
     const cfg = loadConfig();
@@ -154,14 +82,21 @@ program
     const logger = new Logger(logLevel);
 
     const chapters = Array.isArray(cmd.chapter) && cmd.chapter.length > 0 ? (cmd.chapter as number[]) : undefined;
+    const lessonIds = Array.isArray(cmd.lessonId) && cmd.lessonId.length > 0 ? (cmd.lessonId as number[]) : undefined;
     const args: {
       sessionPath: string;
       outputDir: string;
       courseId: number;
       chapters?: number[];
+      lessonIds?: number[];
       maxConcurrency: number;
       firstLectureOnly: boolean;
       transcribe: boolean;
+      transcribeModel: string;
+      transcribeFormat: 'txt' | 'srt' | 'vtt';
+      transcribeLanguage?: string;
+      noSpeechThreshold?: number;
+      maxSeconds?: number;
       materials: boolean;
       logger: Logger;
     } = {
@@ -169,12 +104,24 @@ program
       outputDir,
       courseId: cmd.courseId as number,
       maxConcurrency: Number(cmd.maxConcurrency ?? 6),
-      firstLectureOnly: Boolean(cmd.firstLectureOnly),
+      firstLectureOnly: Boolean(cmd.firstLectureOnly) && !(lessonIds && lessonIds.length > 0),
       transcribe: Boolean(cmd.transcribe),
+      transcribeModel: String(cmd.transcribeModel ?? 'base'),
+      transcribeFormat: String(cmd.transcribeFormat ?? 'txt') as 'txt' | 'srt' | 'vtt',
       materials: Boolean(cmd.materials),
       logger,
     };
     if (chapters) args.chapters = chapters;
+    if (lessonIds) args.lessonIds = lessonIds;
+    if (typeof cmd.transcribeLanguage === 'string' && cmd.transcribeLanguage.trim()) {
+      args.transcribeLanguage = String(cmd.transcribeLanguage);
+    }
+    if (typeof cmd.noSpeechThold === 'number' && Number.isFinite(cmd.noSpeechThold)) {
+      args.noSpeechThreshold = cmd.noSpeechThold as number;
+    }
+    if (typeof cmd.maxSeconds === 'number' && Number.isFinite(cmd.maxSeconds)) {
+      args.maxSeconds = cmd.maxSeconds as number;
+    }
     await downloadCommand(args);
   });
 

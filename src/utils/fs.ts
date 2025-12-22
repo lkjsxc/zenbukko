@@ -14,6 +14,15 @@ export async function fileExists(filePath: string): Promise<boolean> {
   }
 }
 
+export async function readTextFileIfExists(filePath: string): Promise<string | null> {
+  try {
+    const data = await fs.readFile(filePath, 'utf8');
+    return data;
+  } catch {
+    return null;
+  }
+}
+
 export function safeBasename(name: string): string {
   const replaced = name
     .normalize('NFKC')

@@ -10,7 +10,7 @@ export type NormalizedChapterDetails = {
   sections: Array<{
     id: number;
     title?: string;
-    kind: 'lesson' | 'other';
+    kind: 'lesson' | 'movie' | 'other';
   }>;
 };
 
@@ -18,6 +18,17 @@ export type NormalizedLessonV1 = {
   title?: string;
   videoUrl: string;
   references: Array<{ title?: string; contentUrl: string }>;
+  parts?: Array<{
+    title?: string;
+    videoUrl: string;
+    references: Array<{ title?: string; contentUrl: string }>;
+  }>;
+};
+
+export type NormalizedMovieV2 = {
+  title?: string;
+  videoUrl: string;
+  referencePageUrls: string[];
 };
 
 const CourseDetailsLegacySchema = z.object({
@@ -129,7 +140,12 @@ export function parseChapterDetails(input: unknown): NormalizedChapterDetails {
     sections: sections.map((s) => ({
       id: s.id,
       ...(s.title ? { title: s.title } : {}),
-      kind: s.resource_type === 'lesson' ? 'lesson' : 'other',
+      kind:
+        s.resource_type === 'lesson'
+          ? 'lesson'
+          : s.resource_type === 'movie'
+            ? 'movie'
+            : 'other',
     })),
   };
 }
@@ -170,8 +186,126 @@ const LessonV1CurrentSchema = z.object({
         }),
       )
       .optional(),
+
+    // On-demand lessons sometimes contain multiple "video + references" pairs.
+    // The exact field name varies; support a few common patterns.
+    contents: z
+      .array(
+        z.object({
+          title: z.string().optional(),
+          video_url: z.string().url().optional(),
+          archive: z
+            .object({
+              url: z
+                .object({
+                  hls: z.string().url().optional(),
+                })
+                .optional(),
+            })
+            .optional(),
+          references: z
+            .array(
+              z.object({
+                title: z.string().optional(),
+                content_url: z.string().min(1),
+              }),
+            )
+            .optional(),
+        }),
+      )
+      .optional(),
+    units: z
+      .array(
+        z.object({
+          title: z.string().optional(),
+          video_url: z.string().url().optional(),
+          archive: z
+            .object({
+              url: z
+                .object({
+                  hls: z.string().url().optional(),
+                })
+                .optional(),
+            })
+            .optional(),
+          references: z
+            .array(
+              z.object({
+                title: z.string().optional(),
+                content_url: z.string().min(1),
+              }),
+            )
+            .optional(),
+        }),
+      )
+      .optional(),
+    items: z
+      .array(
+        z.object({
+          title: z.string().optional(),
+          video_url: z.string().url().optional(),
+          archive: z
+            .object({
+              url: z
+                .object({
+                  hls: z.string().url().optional(),
+                })
+                .optional(),
+            })
+            .optional(),
+          references: z
+            .array(
+              z.object({
+                title: z.string().optional(),
+                content_url: z.string().min(1),
+              }),
+            )
+            .optional(),
+        }),
+      )
+      .optional(),
   }),
 });
+
+const MovieV2Schema = z.object({
+  title: z.string().optional(),
+  videos: z
+    .array(
+      z.object({
+        files: z
+          .object({
+            hls: z.object({ url: z.string().url() }).optional(),
+          })
+          .optional(),
+      }),
+    )
+    .optional(),
+  references: z
+    .array(
+      z.object({
+        content_urls: z.array(z.string().url()).optional(),
+      }),
+    )
+    .optional(),
+});
+
+export function parseMovieV2(input: unknown): NormalizedMovieV2 {
+  const m = MovieV2Schema.parse(input);
+  const videoUrl = m.videos?.[0]?.files?.hls?.url;
+  if (!videoUrl) {
+    throw new Error('Could not find an HLS URL in movie response (expected videos[0].files.hls.url).');
+  }
+
+  const referencePageUrls = (m.references ?? [])
+    .flatMap((r) => r.content_urls ?? [])
+    .filter((u) => typeof u === 'string' && u.trim().length > 0);
+
+  return {
+    ...(m.title ? { title: m.title } : {}),
+    videoUrl,
+    referencePageUrls,
+  };
+}
 
 export function parseLessonV1(input: unknown): NormalizedLessonV1 {
   const legacy = LessonV1LegacySchema.safeParse(input);
@@ -187,8 +321,56 @@ export function parseLessonV1(input: unknown): NormalizedLessonV1 {
   }
 
   const current = LessonV1CurrentSchema.parse(input);
-  const videoUrl =
-    current.lesson.video_url ?? current.lesson.archive?.url?.hls;
+
+  const normalizeRefs = (
+    refs: ReadonlyArray<{ title?: string | undefined; content_url: string }>,
+  ): Array<{ title?: string; contentUrl: string }> =>
+    refs.map((r) => ({
+      ...(r.title ? { title: r.title } : {}),
+      contentUrl: r.content_url,
+    }));
+
+  const lessonRefsRaw = current.lesson.references ?? [];
+
+  const partsSource =
+    (Array.isArray(current.lesson.contents) && current.lesson.contents.length > 0
+      ? current.lesson.contents
+      : Array.isArray(current.lesson.units) && current.lesson.units.length > 0
+        ? current.lesson.units
+        : Array.isArray(current.lesson.items) && current.lesson.items.length > 0
+          ? current.lesson.items
+          : null);
+
+  if (partsSource) {
+    const parts = partsSource
+      .map((p) => {
+        const videoUrl = p.video_url ?? p.archive?.url?.hls;
+        if (!videoUrl) return null;
+        const rawRefs = p.references ?? lessonRefsRaw;
+        const refs = normalizeRefs(rawRefs);
+        return {
+          ...(p.title ? { title: p.title } : {}),
+          videoUrl,
+          references: refs,
+        };
+      })
+      .filter((x): x is NonNullable<typeof x> => Boolean(x));
+
+    if (parts.length > 0) {
+      const firstPart = parts[0];
+      if (!firstPart) {
+        throw new Error('Unexpected empty parts array after filtering video URLs.');
+      }
+      return {
+        ...(current.lesson.title ? { title: current.lesson.title } : {}),
+        videoUrl: firstPart.videoUrl,
+        references: firstPart.references,
+        parts,
+      };
+    }
+  }
+
+  const videoUrl = current.lesson.video_url ?? current.lesson.archive?.url?.hls;
   if (!videoUrl) {
     throw new Error('Could not find an HLS URL in lesson response (expected lesson.video_url or lesson.archive.url.hls).');
   }
@@ -196,9 +378,6 @@ export function parseLessonV1(input: unknown): NormalizedLessonV1 {
   return {
     ...(current.lesson.title ? { title: current.lesson.title } : {}),
     videoUrl,
-    references: (current.lesson.references ?? []).map((r) => ({
-      ...(r.title ? { title: r.title } : {}),
-      contentUrl: r.content_url,
-    })),
+    references: normalizeRefs(lessonRefsRaw),
   };
 }
