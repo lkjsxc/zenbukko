@@ -28,7 +28,7 @@ export function loadConfig(): AppConfig {
   const env = EnvSchema.parse(process.env);
 
   const sessionPath = env.ZENBUKKO_SESSION_PATH ?? getDefaultSessionPath();
-  const outputDir = env.OUTPUT_DIR ? path.resolve(env.OUTPUT_DIR) : path.resolve('downloads');
+  const outputDir = env.OUTPUT_DIR ? path.resolve(env.OUTPUT_DIR) : path.resolve('data', 'downloads');
   const logLevel = env.LOG_LEVEL ?? 'info';
   const puppeteerHeadless = env.PUPPETEER_HEADLESS ?? false;
 

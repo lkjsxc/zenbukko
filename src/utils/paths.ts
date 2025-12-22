@@ -8,5 +8,7 @@ export function getDefaultConfigDir(): string {
 }
 
 export function getDefaultSessionPath(): string {
-  return path.join(getDefaultConfigDir(), 'zenbukko', 'session.json');
+  // Store session under ./data by default.
+  // This matches the Docker Compose workflow where ./data is bind-mounted.
+  return path.resolve('data', 'session.json');
 }

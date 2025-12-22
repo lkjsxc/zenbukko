@@ -6,9 +6,8 @@ services:
     image: zenbukko:local
     working_dir: /app
     volumes:
-      - ./downloads:/data/downloads
-      - ${HOME}/.config/zenbukko:/data/zenbukko-config:ro
+      - ./data:/data
     environment:
-      ZENBUKKO_SESSION_PATH: /data/zenbukko-config/session.json
+      ZENBUKKO_SESSION_PATH: /data/session.json
       OUTPUT_DIR: /data/downloads
       PUPPETEER_HEADLESS: "true"

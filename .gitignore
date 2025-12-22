@@ -2,14 +2,4 @@ dist/
 node_modules/
 
 # Output/artifacts
-downloads/
-
-# Secrets
-.session.json
-session.json
-.env
-*.log
-
-# Optional local tool/cache dirs
-whisper.cpp/
-.tools/
+data/
