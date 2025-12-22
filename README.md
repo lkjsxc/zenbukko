@@ -249,4 +249,4 @@ Then re-run Docker Compose commands.
 
 ## License
 
-MIT
+Apache License 2.0. See [LICENSE](LICENSE).
