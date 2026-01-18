@@ -61,6 +61,20 @@ What this does:
 - Writes outputs to `./data/downloads/` on your host.
 - Reuses your host session file (mounted read-only into the container).
 
+### 5 Download all on-demand courses (bulk)
+
+Download all on-demand courses visible to your account. This can take a long time and use a lot of disk.
+
+```bash
+docker compose run --rm zenbukko download-all --materials --transcribe
+```
+
+Notes:
+
+- Zenbukko identifies “on-demand” courses based on the course list UI (tab/labels). This is best-effort.
+- Transcription language defaults to Japanese (`--transcribe-language ja`).
+- The command is resumable: existing media/transcripts are skipped.
+
 ## Commands
 
 Global options (apply to all commands):
@@ -147,6 +161,22 @@ Behavior notes:
 - If a media file already exists and is non-empty, download is skipped.
 - If a transcript exists, it is skipped (for `txt`, Zenbukko will re-transcribe if the content looks empty or is `[BLANK_AUDIO]`).
 
+### `download-all`
+
+Download all on-demand courses (HLS → `.ts`). Optionally download materials and transcribe.
+
+```bash
+docker compose run --rm zenbukko download-all --materials --transcribe
+```
+
+Options (subset of `download`):
+
+- `--max-concurrency <n>`: max API concurrency when resolving lesson URLs.
+- `--transcribe`, `--transcribe-model <name>`, `--transcribe-format <fmt>`.
+- `--transcribe-language <code>`: defaults to `ja`.
+- `--no-speech-thold <n>`, `--max-seconds <n>`.
+- `--materials`.
+
 ### `transcribe`
 
 Transcribe a local media file (uses `ffmpeg` to extract audio when needed).
@@ -182,7 +212,7 @@ Course/chapter structure:
 ```text
 data/downloads/
   course-<COURSE_ID>/
-    chapter-<CHAPTER_ID>/
+    01/
       01/
         lesson-<LESSON_ID>.ts
         lesson-<LESSON_ID>_transcription.txt
@@ -192,10 +222,13 @@ data/downloads/
       02/
         ...
       chapter-<CHAPTER_ID>_transcription.md
+    02/
+      ...
 ```
 
 Notes:
 
+- Chapter folders are sequential numbers (`01`, `02`, `03`, ...) based on the course chapter order.
 - Lessons are placed into per-chapter numeric directories: `01`, `02`, `03`, ...
 - If a lesson has multiple video parts, files are suffixed with `_part-<n>`.
 - The chapter-level aggregated transcript is only generated when:

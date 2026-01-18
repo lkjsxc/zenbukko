@@ -27,6 +27,102 @@ export async function downloadCommand(params: {
 }): Promise<{ downloaded: Array<{ lesson: CourseLesson; outFilePath: string }> }> {
   const pad2 = (n: number): string => String(n).padStart(2, '0');
 
+  const isDir = async (p: string): Promise<boolean> =>
+    fs
+      .stat(p)
+      .then((s) => s.isDirectory())
+      .catch(() => false);
+
+  const moveDirContentsBestEffort = async (srcDir: string, dstDir: string): Promise<boolean> => {
+    // Returns true if srcDir can be removed (emptied), false if we had to leave anything behind.
+    await fs.mkdir(dstDir, { recursive: true });
+
+    const entries = await fs.readdir(srcDir, { withFileTypes: true });
+    let fullyMoved = true;
+
+    for (const ent of entries) {
+      const src = path.join(srcDir, ent.name);
+      const dst = path.join(dstDir, ent.name);
+
+      if (ent.isDirectory()) {
+        const dstIsDir = await isDir(dst);
+        if (!dstIsDir) {
+          // Destination doesn't exist (or is not a directory) -> fast move.
+          try {
+            await fs.rename(src, dst);
+            continue;
+          } catch {
+            // Fall through to recursive merge.
+          }
+        }
+
+        const childFullyMoved = await moveDirContentsBestEffort(src, dst);
+        if (childFullyMoved) {
+          await fs.rmdir(src).catch(() => {
+            fullyMoved = false;
+          });
+        } else {
+          fullyMoved = false;
+        }
+        continue;
+      }
+
+      // Files/symlinks: move if there's no conflict.
+      const dstExists = await fs
+        .stat(dst)
+        .then(() => true)
+        .catch(() => false);
+      if (dstExists) {
+        fullyMoved = false;
+        continue;
+      }
+
+      try {
+        await fs.rename(src, dst);
+      } catch {
+        fullyMoved = false;
+      }
+    }
+
+    return fullyMoved;
+  };
+
+  const migrateLegacyChapterDir = async (courseDir: string, chapterId: number, chapterDirName: string): Promise<void> => {
+    const legacyName = `chapter-${chapterId}`;
+    const legacyPath = path.join(courseDir, legacyName);
+    const numericPath = path.join(courseDir, chapterDirName);
+
+    const legacyExists = await isDir(legacyPath);
+    if (!legacyExists) return;
+
+    const numericExists = await isDir(numericPath);
+    if (!numericExists) {
+      try {
+        await fs.rename(legacyPath, numericPath);
+        params.logger.info(`Renamed legacy chapter folder: ${legacyName} -> ${chapterDirName}`);
+        return;
+      } catch (e) {
+        params.logger.warn(
+          `Failed to rename legacy chapter folder (${legacyName} -> ${chapterDirName}); will attempt merge: ${e instanceof Error ? e.message : String(e)}`,
+        );
+      }
+    }
+
+    // Merge legacy contents into numeric folder best-effort.
+    await fs.mkdir(numericPath, { recursive: true });
+    const fullyMoved = await moveDirContentsBestEffort(legacyPath, numericPath);
+    if (fullyMoved) {
+      await fs.rmdir(legacyPath).catch(() => {
+        params.logger.warn(`Legacy chapter folder not empty after merge, leaving in place: ${legacyPath}`);
+      });
+      params.logger.info(`Merged legacy chapter folder into numeric folder: ${legacyName} -> ${chapterDirName}`);
+    } else {
+      params.logger.warn(
+        `Partially merged legacy chapter folder into numeric folder (some conflicts left behind): ${legacyName} -> ${chapterDirName}`,
+      );
+    }
+  };
+
   type ChapterMarkdownLesson = {
     lessonIndex: number;
     lessonId: number;
@@ -60,6 +156,35 @@ export async function downloadCommand(params: {
   }
 
   const structure = await client.resolveCourseLessons(resolveArgs);
+
+  // Chapter directories are stored as sequential numbers (01, 02, ...) based on
+  // the *full course chapter order*.
+  //
+  // Why not based on the resolved chapter subset?
+  // - If you download a subset now and another subset later, stable numbering prevents collisions.
+  // - It also ensures we don't fall back to `chapter-<id>` if the resolved lesson list is ever out of sync.
+  const courseChapters = await client.getCourseChapters(params.courseId);
+  const chapterPadWidth = Math.max(2, String(courseChapters.chapters.length).length);
+  const padChapter = (n: number): string => String(n).padStart(chapterPadWidth, '0');
+  const chapterIndexById = new Map<number, number>();
+  for (const [idx, chapter] of courseChapters.chapters.entries()) {
+    chapterIndexById.set(chapter.id, idx + 1);
+  }
+
+  const chapterDirNameForId = (chapterId: number): string => {
+    const index = chapterIndexById.get(chapterId);
+    if (!index) {
+      // Keep downloads working even if the chapter list is incomplete.
+      // Prefer a numeric folder name over `chapter-<id>` so layout stays consistent.
+      const fallbackIndex = chapterIndexById.size + 1;
+      chapterIndexById.set(chapterId, fallbackIndex);
+      params.logger.warn(
+        `Chapter ID ${chapterId} was not found in course chapter list; using fallback numeric folder ${padChapter(fallbackIndex)}`,
+      );
+      return padChapter(fallbackIndex);
+    }
+    return padChapter(index);
+  };
 
   const lessons = (() => {
     if (params.lessonIds && params.lessonIds.length > 0) {
@@ -100,7 +225,10 @@ export async function downloadCommand(params: {
 
   const coursePart = safeBasename(`course-${structure.courseId}`);
 
-  params.logger.info(`Resolved ${lessons.length} lesson(s) across ${structure.chapters.length} chapter(s).`);
+  const selectedChapterIds = new Set<number>(structure.chapters.map((c) => c.id));
+  params.logger.info(
+    `Resolved ${lessons.length} lesson(s) across ${selectedChapterIds.size} selected chapter(s) (${courseChapters.chapters.length} total chapter(s) in course).`,
+  );
 
   const headers: Record<string, string> = {
     'user-agent': session.userAgent ?? 'zenbukko/2.0',
@@ -113,12 +241,21 @@ export async function downloadCommand(params: {
   const downloaded: Array<{ lesson: CourseLesson; outFilePath: string }> = [];
 
   const chapterLessonIndex = new Map<number, number>();
+  const migratedChapters = new Set<number>();
+
+  const courseDir = path.join(params.outputDir, coursePart);
+  await fs.mkdir(courseDir, { recursive: true });
 
   for (const lesson of lessons) {
-    const chapterPart = `chapter-${lesson.chapterId}`;
+    const chapterDirName = chapterDirNameForId(lesson.chapterId);
     const lessonPart = `lesson-${lesson.lessonId}`;
 
-    const chapterDir = path.join(params.outputDir, coursePart, chapterPart);
+    if (!migratedChapters.has(lesson.chapterId)) {
+      migratedChapters.add(lesson.chapterId);
+      await migrateLegacyChapterDir(courseDir, lesson.chapterId, chapterDirName);
+    }
+
+    const chapterDir = path.join(courseDir, chapterDirName);
     const lessonIndex = (chapterLessonIndex.get(lesson.chapterId) ?? 0) + 1;
     chapterLessonIndex.set(lesson.chapterId, lessonIndex);
 
@@ -266,8 +403,9 @@ export async function downloadCommand(params: {
       params.logger.warn('Skipping chapter aggregated markdown: only supported for --transcribe-format txt');
     } else {
       for (const [chapterId, lessonsByIndex] of chapterMarkdown) {
+        const chapterDirName = chapterDirNameForId(chapterId);
         const chapterPart = `chapter-${chapterId}`;
-        const chapterDir = path.join(params.outputDir, coursePart, chapterPart);
+        const chapterDir = path.join(courseDir, chapterDirName);
         const outMdPath = path.join(chapterDir, `${chapterPart}_transcription.md`);
 
         const lessonIndexes = [...lessonsByIndex.keys()].sort((a, b) => a - b);
@@ -280,7 +418,6 @@ export async function downloadCommand(params: {
           const title = (entry.lessonTitle ?? `lesson-${entry.lessonId}`).replaceAll(/\s+/g, ' ').trim();
           const transcriptTexts: string[] = [];
           for (const p of entry.transcriptPaths) {
-            // eslint-disable-next-line no-await-in-loop
             const text = (await readTextFileIfExists(p)) ?? '';
             const normalized = text.trim();
             if (normalized) transcriptTexts.push(normalized);

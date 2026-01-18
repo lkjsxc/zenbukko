@@ -8,6 +8,7 @@ import { listCoursesCommand } from './commands/listCourses.js';
 import { downloadCommand } from './commands/download.js';
 import { setupWhisperCommand } from './commands/setupWhisper.js';
 import { transcribeCommand } from './commands/transcribe.js';
+import { downloadAllCommand } from './commands/downloadAll.js';
 
 const program = new Command();
 
@@ -123,6 +124,66 @@ program
       args.maxSeconds = cmd.maxSeconds as number;
     }
     await downloadCommand(args);
+  });
+
+program
+  .command('download-all')
+  .description('Download all on-demand courses (HLS -> .ts). Optionally download materials and transcribe.')
+  .option('--max-concurrency <n>', 'Max API concurrency when resolving lesson URLs', (v) => Number(v), 6)
+  .option('--transcribe', 'Transcribe after each download (writes *_transcription.txt next to the media file)', false)
+  .option('--transcribe-model <name>', 'Whisper model name', 'base')
+  .option('--transcribe-format <fmt>', 'txt|srt|vtt', 'txt')
+  .option('--transcribe-language <code>', 'Language code to force during transcription (e.g. ja, en)', 'ja')
+  .option(
+    '--no-speech-thold <n>',
+    'whisper.cpp no-speech threshold (lower can reduce [BLANK_AUDIO], e.g. 0.2)',
+    (v) => Number(v),
+  )
+  .option('--max-seconds <n>', 'Only transcribe the first N seconds (useful for very large files)', (v) => Number(v))
+  .option('--materials', 'Download lesson materials (writes an offline-openable index.html)', false)
+  .action(async (cmd) => {
+    const cfg = loadConfig();
+    const opts = program.opts();
+    const sessionPath = (opts.session as string | undefined) ?? cfg.sessionPath;
+    const outputDir = (opts.output as string | undefined) ?? cfg.outputDir;
+    const headless = (opts.headless as boolean | undefined) ?? cfg.puppeteerHeadless;
+    const logLevel = (opts.logLevel as typeof cfg.logLevel | undefined) ?? cfg.logLevel;
+    const logger = new Logger(logLevel);
+
+    const argsBase: {
+      sessionPath: string;
+      outputDir: string;
+      headless: boolean;
+      maxConcurrency: number;
+      transcribe: boolean;
+      transcribeModel: string;
+      transcribeFormat: 'txt' | 'srt' | 'vtt';
+      materials: boolean;
+      logger: Logger;
+    } = {
+      sessionPath,
+      outputDir,
+      headless,
+      maxConcurrency: Number(cmd.maxConcurrency ?? 6),
+      transcribe: Boolean(cmd.transcribe),
+      transcribeModel: String(cmd.transcribeModel ?? 'base'),
+      transcribeFormat: String(cmd.transcribeFormat ?? 'txt') as 'txt' | 'srt' | 'vtt',
+      materials: Boolean(cmd.materials),
+      logger,
+    };
+
+    const args = {
+      ...argsBase,
+      ...(typeof cmd.transcribeLanguage === 'string' && cmd.transcribeLanguage.trim()
+        ? { transcribeLanguage: String(cmd.transcribeLanguage) }
+        : {}),
+      ...(typeof cmd.noSpeechThold === 'number' && Number.isFinite(cmd.noSpeechThold)
+        ? { noSpeechThreshold: cmd.noSpeechThold as number }
+        : {}),
+      ...(typeof cmd.maxSeconds === 'number' && Number.isFinite(cmd.maxSeconds) ? { maxSeconds: cmd.maxSeconds as number } : {}),
+    };
+
+    await downloadAllCommand(args);
   });
 
 program
