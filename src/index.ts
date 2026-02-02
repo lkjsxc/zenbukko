@@ -64,7 +64,7 @@ program
   .option('--max-concurrency <n>', 'Max API concurrency when resolving lesson URLs', (v) => Number(v), 6)
   .option('--first-lecture-only', 'Only download the first resolved lesson', false)
   .option('--transcribe', 'Transcribe after each download (writes *_transcription.txt next to the media file)', false)
-  .option('--transcribe-model <name>', 'Whisper model name', 'base')
+  .option('--transcribe-model <name>', 'Whisper model name', 'large-v3-turbo')
   .option('--transcribe-format <fmt>', 'txt|srt|vtt', 'txt')
   .option('--transcribe-language <code>', 'Language code to force during transcription (e.g. ja, en)', 'ja')
   .option(
@@ -131,7 +131,7 @@ program
   .description('Download all on-demand courses (HLS -> .ts). Optionally download materials and transcribe.')
   .option('--max-concurrency <n>', 'Max API concurrency when resolving lesson URLs', (v) => Number(v), 6)
   .option('--transcribe', 'Transcribe after each download (writes *_transcription.txt next to the media file)', false)
-  .option('--transcribe-model <name>', 'Whisper model name', 'base')
+  .option('--transcribe-model <name>', 'Whisper model name', 'large-v3-turbo')
   .option('--transcribe-format <fmt>', 'txt|srt|vtt', 'txt')
   .option('--transcribe-language <code>', 'Language code to force during transcription (e.g. ja, en)', 'ja')
   .option(
@@ -189,7 +189,11 @@ program
 program
   .command('setup-whisper')
   .description('Clone and build whisper.cpp, and download a model')
-  .option('--model <name>', 'Whisper model name (tiny|base|small|medium|large)', 'base')
+  .option(
+    '--model <name>',
+    'Whisper model name (e.g. tiny|base|small|medium|large-v3|large-v3-turbo)',
+    'large-v3-turbo',
+  )
   .option('--force', 'Reinstall whisper.cpp even if it already exists', false)
   .action(async (cmd) => {
     const cfg = loadConfig();
@@ -208,7 +212,7 @@ program
   .command('transcribe')
   .description('Transcribe a media file using whisper.cpp (uses ffmpeg to extract audio when needed)')
   .requiredOption('--input <path>', 'Input media file path')
-  .option('--model <name>', 'Whisper model name', 'base')
+  .option('--model <name>', 'Whisper model name', 'large-v3-turbo')
   .option('--language <code>', 'Language code (optional)')
   .option(
     '--no-speech-thold <n>',

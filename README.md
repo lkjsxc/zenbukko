@@ -34,6 +34,12 @@ Tip: run commands from the repo root so the session ends up at `./data/session.j
 docker compose build zenbukko
 ```
 
+GPU (NVIDIA) build (RTX 3070 etc):
+
+```bash
+docker compose --profile gpu build zenbukko-gpu
+```
+
 ### 3 List courses
 
 Once you have a session file at `./data/session.json`, you can list the courses available to your account.
@@ -54,6 +60,12 @@ docker compose run --rm zenbukko list-courses --format json
 
 ```bash
 docker compose run --rm zenbukko download --course-id <COURSE_ID> --materials --transcribe
+```
+
+GPU (NVIDIA) run:
+
+```bash
+docker compose --profile gpu run --rm zenbukko-gpu download --course-id <COURSE_ID> --materials --transcribe
 ```
 
 What this does:
@@ -150,7 +162,7 @@ docker compose run --rm zenbukko download --course-id <COURSE_ID> --first-lectur
 
 Transcription options:
 
-- `--transcribe-model <name>`: Whisper model name (default: `base`).
+-- `--transcribe-model <name>`: Whisper model name (default: `large-v3-turbo`).
 - `--transcribe-format <fmt>`: `txt|srt|vtt` (default: `txt`).
 - `--transcribe-language <code>`: language code to force (default: `ja`).
 - `--no-speech-thold <n>`: whisper.cpp no-speech threshold (lower can reduce `[BLANK_AUDIO]`, e.g. `0.2`).
@@ -182,7 +194,7 @@ Options (subset of `download`):
 Transcribe a local media file (uses `ffmpeg` to extract audio when needed).
 
 ```bash
-docker compose run --rm zenbukko transcribe --input /data/downloads/<path>.ts --model base --format txt --language ja
+docker compose run --rm zenbukko transcribe --input /data/downloads/<path>.ts --model large-v3-turbo --format txt --language ja
 ```
 
 Options:
@@ -198,10 +210,10 @@ Options:
 Clone/build `whisper.cpp` and download a model.
 
 ```bash
-docker compose run --rm zenbukko setup-whisper --model base
+docker compose run --rm zenbukko setup-whisper --model large-v3-turbo
 ```
 
-Note: the Docker image in this repo runs `setup-whisper --model base` at build time, so transcription works out of the box in Docker.
+Note: the Docker image in this repo runs `setup-whisper` at build time, so transcription works out of the box in Docker.
 
 ## Output layout
 

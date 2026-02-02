@@ -59,9 +59,10 @@ COPY src ./src
 
 RUN npm run build
 
-# Optional: cache whisper.cpp build + base model into image.
+# Optional: cache whisper.cpp build + model into image.
 # This makes transcription "just work" without running setup-whisper each time.
-RUN node dist/index.js setup-whisper --model base
+RUN node dist/index.js setup-whisper --model large-v3-turbo
+
 
 # Avoid creating root-owned files in bind mounts (e.g. ./new/downloads)
 USER node

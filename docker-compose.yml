@@ -11,3 +11,37 @@ services:
       ZENBUKKO_SESSION_PATH: /data/session.json
       OUTPUT_DIR: /data/downloads
       PUPPETEER_HEADLESS: "true"
+
+  zenbukko-gpu:
+    profiles: ["gpu"]
+    build:
+      context: .
+      dockerfile: Dockerfile.gpu
+    image: zenbukko:local-gpu
+    working_dir: /app
+    volumes:
+      - ./data:/data
+    environment:
+      ZENBUKKO_SESSION_PATH: /data/session.json
+      OUTPUT_DIR: /data/downloads
+      PUPPETEER_HEADLESS: "true"
+
+      # NVIDIA Container Toolkit settings
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility,video
+
+      # whisper.cpp CUDA build/runtime hints
+      ZENBUKKO_WHISPER_CUDA: "1"
+      # RTX 3070 = compute capability 8.6
+      ZENBUKKO_CMAKE_CUDA_ARCHITECTURES: "86"
+
+    # More widely supported GPU request syntax
+    gpus: all
+
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

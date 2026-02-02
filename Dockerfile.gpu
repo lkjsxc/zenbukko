@@ -1,0 +1,86 @@
+# syntax=docker/dockerfile:1
+
+# GPU-enabled build/runtime image for Zenbukko + whisper.cpp (CUDA)
+# Tested target: RTX 3070 (compute capability 8.6)
+
+ARG CUDA_VERSION=12.4.1
+ARG CUDA_OS=ubuntu22.04
+
+FROM nvidia/cuda:${CUDA_VERSION}-devel-${CUDA_OS} AS build
+
+ARG NODE_VERSION=22.13.1
+ARG WHISPER_MODEL=large-v3-turbo
+# RTX 30xx = 86
+ARG CMAKE_CUDA_ARCHITECTURES=86
+
+WORKDIR /app
+
+# System deps for puppeteer, ffmpeg, and building whisper.cpp with CUDA
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    git \
+    python3 \
+    make \
+    g++ \
+    cmake \
+    pkg-config \
+    xz-utils \
+  ffmpeg \
+  && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js from official tarball (keeps us on CUDA base images)
+RUN curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" \
+  | tar -xJ -C /usr/local --strip-components=1
+
+ENV PUPPETEER_SKIP_DOWNLOAD=1
+
+COPY package.json package-lock.json* ./
+RUN npm ci
+
+COPY tsconfig.json ./
+COPY src ./src
+
+RUN npm run build
+
+# Build whisper.cpp w/ CUDA and cache the selected model in the image
+ENV ZENBUKKO_WHISPER_CUDA=1
+ENV ZENBUKKO_CMAKE_CUDA_ARCHITECTURES=${CMAKE_CUDA_ARCHITECTURES}
+
+# During docker build, the NVIDIA driver library (libcuda.so.1) is not present.
+# Link against CUDA's stub library so the build can succeed; at runtime the
+# real libcuda is provided by the host via NVIDIA Container Toolkit.
+ENV LIBRARY_PATH=/usr/local/cuda/lib64/stubs:${LIBRARY_PATH}
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64/stubs:${LD_LIBRARY_PATH}
+RUN ln -sf /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/libcuda.so \
+  && ln -sf /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/libcuda.so.1
+
+RUN node dist/index.js setup-whisper --model ${WHISPER_MODEL}
+
+
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-${CUDA_OS} AS runtime
+
+ARG NODE_VERSION=22.13.1
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    xz-utils \
+  ffmpeg \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" \
+  | tar -xJ -C /usr/local --strip-components=1
+
+ENV PUPPETEER_SKIP_DOWNLOAD=1
+
+COPY --from=build /app /app
+
+RUN useradd -m -u 1000 node \
+  && chown -R node:node /app
+
+USER node
+
+ENTRYPOINT ["node", "dist/index.js"]
