@@ -1,8 +1,8 @@
 {
-  "name": "zenbukko-new",
+  "name": "course-archive-toolkit",
   "version": "2.0.0",
   "private": true,
-  "description": "Zenbukko rewrite (Node 22 + TypeScript)",
+  "description": "Local course archive and transcription toolkit (Node 22 + TypeScript)",
   "type": "module",
   "bin": {
     "zenbukko": "dist/index.js"
@@ -12,20 +12,26 @@
     "type-check": "tsc -p tsconfig.json --noEmit",
     "dev": "tsx src/index.ts",
     "cli": "node dist/index.js",
+    "web": "node dist/index.js web",
     "build:docker": "docker compose build zenbukko",
     "ci:docker": "docker compose build zenbukko",
     "lint": "eslint .",
+    "test": "node --import tsx --test tests/**/*.test.ts",
+    "check:lines": "tsx scripts/check-lines.ts",
     "format": "prettier -w ."
   },
   "dependencies": {
+    "@google/genai": "^1.51.0",
     "cheerio": "1.0.0-rc.12",
     "commander": "^13.0.0",
     "dotenv": "^16.4.5",
+    "express": "^5.2.1",
     "ffmpeg-static": "^5.2.0",
     "puppeteer": "^23.11.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/express": "^5.0.6",
     "@types/node": "^22.10.0",
     "@typescript-eslint/eslint-plugin": "^8.18.0",
     "@typescript-eslint/parser": "^8.18.0",
