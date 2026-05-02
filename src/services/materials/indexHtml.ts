@@ -1,10 +1,5 @@
 import path from 'node:path';
-
-export type MaterialsManifest = {
-  generatedAt: string;
-  referencePages: Array<{ url: string; file: string }>;
-  assets: Array<{ sourcePageUrl: string; url: string; file: string }>;
-};
+import type { MaterialsManifest } from './types.js';
 
 export function renderMaterialsIndexHtml(manifest: MaterialsManifest): string {
   const referenceLinks = manifest.referencePages
@@ -17,6 +12,10 @@ export function renderMaterialsIndexHtml(manifest: MaterialsManifest): string {
     .join('\n');
   const otherLinks = others
     .map((a) => `<li><a href="${escapeHtml(a.file)}">${escapeHtml(path.basename(a.file))}</a> <span class="muted">(${escapeHtml(a.url)})</span></li>`)
+    .join('\n');
+  const pdfLinks = (manifest.pdfs ?? [])
+    .filter((p) => p.status === 'ready')
+    .map((p) => `<li><a href="${escapeHtml(p.pdfFile)}">${escapeHtml(path.basename(p.pdfFile))}</a> <span class="muted">(${escapeHtml(p.sourceFile)})</span></li>`)
     .join('\n');
 
   return `<!doctype html>
@@ -39,6 +38,7 @@ export function renderMaterialsIndexHtml(manifest: MaterialsManifest): string {
     <h1>Lesson materials</h1>
     <div class="muted">Generated at ${escapeHtml(manifest.generatedAt)}. Offline-openable.</div>
     <h2>Reference pages</h2><ul>${referenceLinks || '<li class="muted">(none)</li>'}</ul>
+    <h2>OCR PDFs</h2><ul>${pdfLinks || '<li class="muted">(none)</li>'}</ul>
     <h2>Files</h2><ul>${otherLinks || '<li class="muted">(none)</li>'}</ul>
     <h2>Images</h2>${imageHtml || '<div class="muted">(none)</div>'}
     <hr /><div class="muted">Manifest: <a href="materials_manifest.json"><code>materials_manifest.json</code></a></div>

@@ -1,10 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileExists, readTextFileIfExists } from '../utils/fs.js';
-
-type MaterialsManifest = {
-  assets?: Array<{ file: string }>;
-};
+import type { MaterialsManifest } from './materials/types.js';
 
 export async function discoverPdfFiles(inputDir: string): Promise<string[]> {
   const fromManifests = await discoverFromMaterialsManifests(inputDir);
@@ -20,11 +17,25 @@ async function discoverFromMaterialsManifests(inputDir: string): Promise<string[
     if (!raw) continue;
     const parsed = JSON.parse(raw) as MaterialsManifest;
     const baseDir = path.dirname(manifestPath);
-    for (const asset of parsed.assets ?? []) {
-      if (!asset.file.toLowerCase().endsWith('.pdf')) continue;
-      const pdfPath = path.resolve(baseDir, asset.file);
+    for (const pdfFile of pdfFilesFromMaterialsManifest(parsed)) {
+      const pdfPath = path.resolve(baseDir, pdfFile);
       if (await fileExists(pdfPath)) pdfs.add(pdfPath);
     }
+  }
+  return [...pdfs].sort((a, b) => a.localeCompare(b));
+}
+
+export function pdfFilesFromMaterialsManifest(manifest: MaterialsManifest): string[] {
+  const pdfs = new Set<string>();
+  for (const entry of manifest.pdfs ?? []) {
+    if (entry.status === 'ready') pdfs.add(entry.pdfFile);
+  }
+  for (const page of manifest.referencePages ?? []) {
+    if (page.ocrEligible && page.pdfFile) pdfs.add(page.pdfFile);
+  }
+  for (const asset of manifest.assets ?? []) {
+    if (asset.ocrEligible && asset.pdfFile) pdfs.add(asset.pdfFile);
+    else if (asset.file.toLowerCase().endsWith('.pdf')) pdfs.add(asset.file);
   }
   return [...pdfs].sort((a, b) => a.localeCompare(b));
 }

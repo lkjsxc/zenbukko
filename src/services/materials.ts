@@ -3,7 +3,9 @@ import fs from 'node:fs/promises';
 import { ensureDir, safeBasename } from '../utils/fs.js';
 import { downloadUrlToFile } from '../downloader/httpFile.js';
 import { candidateMaterialUrls, legacyAssetFilename, stableAssetFilename } from './materials/assets.js';
-import { renderMaterialsIndexHtml, type MaterialsManifest } from './materials/indexHtml.js';
+import { renderMaterialsIndexHtml } from './materials/indexHtml.js';
+import { normalizeMaterialsToPdfs } from './materials/pdf.js';
+import type { MaterialsManifest } from './materials/types.js';
 
 export async function downloadLessonMaterials(params: {
   referencePageUrls: string[];
@@ -54,6 +56,8 @@ export async function downloadLessonMaterials(params: {
       addAsset(manifest, pageUrl, fileUrl, params.outDir, stablePath);
     }
   }
+
+  await normalizeMaterialsToPdfs({ outDir: params.outDir, manifest, logger: params.logger });
 
   const manifestPath = path.join(params.outDir, 'materials_manifest.json');
   await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2), 'utf8');
