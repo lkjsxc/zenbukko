@@ -9,6 +9,7 @@ Zenbukko is a local-first Node 22 TypeScript application with CLI, web, download
 - [`overview.md`](overview.md): runtime shape and process model.
 - [`data-flow.md`](data-flow.md): request-to-output flow.
 - [`module-map.md`](module-map.md): source module responsibilities.
+- [`pipelines/`](pipelines/README.md): cross-module workflow contracts.
 
 ## Invariants
 

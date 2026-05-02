@@ -10,3 +10,4 @@ Stable contracts for configuration, HTTP APIs, file layout, and troubleshooting.
 - [`web-api.md`](web-api.md): local HTTP API.
 - [`file-layout.md`](file-layout.md): persistent data paths.
 - [`troubleshooting.md`](troubleshooting.md): common failures.
+- [`schemas/`](schemas/README.md): JSON manifest and settings schemas.

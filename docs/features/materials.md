@@ -1,25 +1,18 @@
-# Materials
+# Materials Legacy Pointer
 
 ## Purpose
 
-Download lesson reference pages and linked material assets for offline study.
+This file is retained as a short pointer. The authoritative material specification is [`materials/`](materials/README.md).
 
-## Inputs
+## Required Behavior
 
-- Reference page URLs from resolved lessons or movies.
-- Authenticated request headers.
+- Download lesson reference pages and linked material assets.
+- Convert supported saved material sources into PDFs under `pdf/`.
+- Record conversion outcomes in `materials_manifest.json`.
+- Feed OCR from normalized PDF entries, not arbitrary source assets.
 
-## Outputs
+## Files
 
-- Saved reference HTML pages.
-- Downloaded assets under `assets/` with stable hashed file names.
-- `materials_manifest.json`.
-- Offline `index.html`.
-
-## Invariants
-
-Existing stable files are reused. Legacy top-level material files are recognized to avoid duplicate downloads.
-
-## Failure Behavior
-
-Individual reference pages or assets may fail without aborting the entire course when the surrounding workflow can continue.
+- [`materials/pipeline.md`](materials/pipeline.md)
+- [`materials/pdf-normalization.md`](materials/pdf-normalization.md)
+- [`materials/manifest.md`](materials/manifest.md)

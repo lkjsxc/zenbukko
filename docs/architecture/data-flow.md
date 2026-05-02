@@ -23,14 +23,18 @@ Show how requests move through Zenbukko and where persistent artifacts are writt
 5. Jobs call the same workflow functions as the CLI.
 6. Logs stream through Server-Sent Events.
 
-## OCR Flow
+## Materials And OCR Flow
 
-1. PDF discovery prefers `materials_manifest.json` assets and falls back to recursive PDF search.
-2. Planning skips existing Markdown unless `force` is set.
-3. `auto` mode selects Batch for multi-PDF/background work and Flex for single or recovery work.
-4. Batch uploads PDFs to the Gemini Files API and sends inline batch requests using file URIs.
-5. Failed Batch items retry through Flex unless Standard is explicitly selected.
-6. Markdown and `materials_ocr_manifest.json` are written next to source materials.
+1. Material pages are saved as HTML.
+2. Linked assets are downloaded under `assets/`.
+3. Supported saved sources are normalized into PDFs under `pdf/`.
+4. `materials_manifest.json` records source files, PDF files, conversion status, and OCR eligibility.
+5. PDF discovery prefers manifest `pdfs` entries and falls back to recursive PDF search.
+6. Planning skips existing Markdown unless `force` is set.
+7. `auto` mode selects Batch for multi-PDF/background work and Flex for single or recovery work.
+8. Batch uploads PDFs to the Gemini Files API and sends inline batch requests using file URIs.
+9. Failed Batch items retry through Flex unless Standard is explicitly selected.
+10. Markdown and `materials_ocr_manifest.json` are written next to source materials.
 
 ## Invariants
 
