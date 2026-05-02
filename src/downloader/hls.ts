@@ -54,13 +54,9 @@ export async function downloadHlsToFile(m3u8Url: URL, opts: HlsDownloadOptions):
       if (!reader) {
         throw new Error('Expected a web ReadableStream body with getReader().');
       }
-      // eslint-disable-next-line no-constant-condition
       while (true) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const { value, done } = await reader.read();
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         if (done) break;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const chunk: Uint8Array = value;
         if (!writeStream.write(Buffer.from(chunk))) {
           await once(writeStream, 'drain');

@@ -3,7 +3,7 @@ import tsparser from '@typescript-eslint/parser';
 
 export default [
   {
-    ignores: ['data/**', 'dist/**'],
+    ignores: ['data/**', 'dist/**', 'whisper.cpp/**'],
   },
   {
     files: ['**/*.ts'],

@@ -59,6 +59,11 @@ RUN ln -sf /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/libcuda.
 
 RUN node dist/index.js setup-whisper --backend both --model "$WHISPER_MODEL"
 
+COPY eslint.config.js ./
+COPY scripts ./scripts
+COPY tests ./tests
+COPY docs ./docs
+
 
 FROM nvidia/cuda:${CUDA_VERSION}-runtime-${CUDA_OS} AS runtime
 

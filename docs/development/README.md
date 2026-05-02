@@ -10,3 +10,4 @@ Keep implementation changes reviewable and aligned with documentation.
 - [`tests.md`](tests.md): test coverage expectations.
 - [`commits.md`](commits.md): commit sequence guidance.
 - [`verification.md`](verification.md): local and Docker verification.
+- [`verification-results.md`](verification-results.md): latest verification notes.

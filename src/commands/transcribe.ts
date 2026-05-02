@@ -6,7 +6,6 @@ import { runProcess } from '../utils/process.js';
 import { resolveModelPath, resolveWhisperBinary, getWhisperDir } from '../whisper/whisperPaths.js';
 import { which } from '../utils/which.js';
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import ffmpegStatic from 'ffmpeg-static';
 
 async function resolveFfmpegPath(): Promise<string> {

@@ -36,6 +36,7 @@ export async function scrapeMyCoursesDetailed(params: {
 }): Promise<CourseListItemDetailed[]> {
   const browser = await puppeteer.launch({
     headless: params.headless,
+    ...(process.env.PUPPETEER_EXECUTABLE_PATH ? { executablePath: process.env.PUPPETEER_EXECUTABLE_PATH } : {}),
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
 
@@ -106,9 +107,7 @@ export async function scrapeMyCoursesDetailed(params: {
 
     for (const tab of effectiveTabs) {
       const url = `${baseUrl}?tab=${encodeURIComponent(tab.tabId)}`;
-      // eslint-disable-next-line no-await-in-loop
       await page.goto(url, { waitUntil: 'networkidle2' });
-      // eslint-disable-next-line no-await-in-loop
       const html = await page.content();
       const $ = cheerio.load(html);
 

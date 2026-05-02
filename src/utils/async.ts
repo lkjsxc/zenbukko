@@ -8,7 +8,6 @@ export async function mapBatched<T, R>(
   const results: R[] = [];
   for (let i = 0; i < items.length; i += batchSize) {
     const batch = items.slice(i, i + batchSize);
-    // eslint-disable-next-line no-await-in-loop
     const batchResults = await Promise.all(batch.map((item, idx) => fn(item, i + idx)));
     results.push(...batchResults);
   }

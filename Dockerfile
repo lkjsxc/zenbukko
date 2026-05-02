@@ -64,6 +64,11 @@ RUN npm run build
 # Cache CPU whisper.cpp build + model into image.
 RUN node dist/index.js setup-whisper --backend cpu --model "$WHISPER_MODEL"
 
+COPY eslint.config.js ./
+COPY scripts ./scripts
+COPY tests ./tests
+COPY docs ./docs
+
 
 # Avoid creating root-owned files in bind mounts (e.g. ./new/downloads)
 USER node
