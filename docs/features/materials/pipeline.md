@@ -12,14 +12,15 @@ Define how lesson material pages become durable local artifacts.
 
 ## Steps
 
-1. Fetch each reference page and save it as `reference_*.html`.
-2. Extract likely material URLs from `href`, `src`, and absolute URL text.
-3. Download each material into `assets/` with a stable hash-based file name.
-4. Build an in-memory `materials_manifest.json` model.
-5. Normalize supported reference pages and assets into PDFs under `pdf/`.
-6. Write `materials_manifest.json` with source files, PDF outputs, and conversion status.
-7. Write `index.html` for offline inspection.
-8. If OCR is requested, discover PDFs from the manifest and run Gemini OCR.
+1. Build the selected lesson work list before downloading media.
+2. For each selected lesson, fetch reference pages and save them as `reference_*.html`.
+3. Extract likely material URLs from `href`, `src`, and absolute URL text.
+4. Download each material into `assets/` with a stable hash-based file name.
+5. Build an in-memory `materials_manifest.json` model.
+6. Normalize supported reference pages and assets into PDFs under `pdf/`.
+7. Write `materials_manifest.json` with source files, PDF outputs, and conversion status.
+8. Write `index.html` for offline inspection.
+9. After all selected lesson material directories are present, continue with media, transcription, and OCR.
 
 ## Outputs
 
@@ -32,3 +33,9 @@ Define how lesson material pages become durable local artifacts.
 ## Failure Behavior
 
 Reference page fetch failures are recorded through logs and do not stop unrelated lessons. Unsupported asset formats remain in `assets/`, receive a skipped conversion status, and are not sent to OCR.
+
+## Invariants
+
+- Material capture must not be blocked by OCR or transcription for a previous lesson.
+- The first visible success signal for a large job is the full set of selected lesson material directories.
+- OCR consumes the material directories after capture, so slow Gemini or Whisper work cannot hide missing later materials.

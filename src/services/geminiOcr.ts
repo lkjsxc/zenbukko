@@ -1,13 +1,13 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { GoogleGenAI } from '@google/genai';
-import { readTextFileIfExists } from '../utils/fs.js';
 import { batchOcrPdfs } from './geminiOcrBatch.js';
 import { discoverPdfFiles } from './geminiOcrDiscovery.js';
 import { flexOcrPdf } from './geminiOcrFlex.js';
 import { normalizeMarkdown } from './geminiOcrMarkdown.js';
-import { outputName, planOcrTasks, type OcrMode, type OcrServiceTier, type OcrTask } from './geminiOcrPlan.js';
+import { planOcrTasks, type OcrMode, type OcrServiceTier, type OcrTask } from './geminiOcrPlan.js';
 import { refreshMaterialsPdfsInTree } from './materials/refresh.js';
+import { writeAggregate } from './geminiOcrAggregate.js';
 
 const MAX_PDF_BYTES = 50 * 1024 * 1024;
 
@@ -151,21 +151,6 @@ async function writeTaskMarkdown(
 ): Promise<void> {
   await fs.writeFile(task.markdownPath, normalizeMarkdown(text), 'utf8');
   results.push({ pdfPath: task.pdfPath, markdownPath: task.markdownPath, status: 'written', mode, ...(batchJobName ? { batchJobName } : {}) });
-}
-
-async function writeAggregate(inputDir: string, results: OcrPdfResult[], logger: { info: (message: string) => void }): Promise<string | undefined> {
-  const paths = results.filter((r) => r.markdownPath && (r.status === 'written' || r.status === 'skipped')).map((r) => r.markdownPath!).sort();
-  if (paths.length === 0) return undefined;
-  const sections = [];
-  for (const mdPath of paths) {
-    const body = ((await readTextFileIfExists(mdPath)) ?? '').trim();
-    if (body) sections.push(`# ${outputName(mdPath.replace(/_ocr\.md$/i, '.pdf'))}\n\n${body}`);
-  }
-  const aggregatePath = path.join(inputDir, 'materials_ocr.md');
-  const aggregate = sections.join('\n\n');
-  await fs.writeFile(aggregatePath, aggregate + (aggregate.endsWith('\n') ? '' : '\n'), 'utf8');
-  logger.info(`OCR aggregate written: ${path.relative(process.cwd(), aggregatePath)}`);
-  return aggregatePath;
 }
 
 async function writeManifest(inputDir: string, manifest: Record<string, unknown>): Promise<string> {

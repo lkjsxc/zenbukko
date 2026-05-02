@@ -3,9 +3,10 @@ import { ServiceTier, createPartFromUri, type GoogleGenAI } from '@google/genai'
 import type { OcrServiceTier } from './geminiOcrPlan.js';
 
 const DEFAULT_PROMPT = [
-  'You are transcribing university lecture screenshots into one accurate Markdown document.',
-  'Do not summarize. Transcribe all visible course content faithfully in page order.',
-  'Use exactly one H1 for the whole document, then H2 for slide titles. Do not repeat the same H2 for consecutive slides with the same title.',
+  'You are transcribing one university lecture slide or one page of lecture material into Markdown.',
+  'Do not summarize. Transcribe all visible course content faithfully.',
+  'Do not use H1 headings. The aggregate document adds one H1 later.',
+  'Begin with H2 for the visible slide title. Do not invent a document title.',
   'Use H3 only for visually independent section labels, not ordinary bold list items.',
   'Preserve lists, tables, code blocks, formulas, quotes, and problem/answer structure.',
   'Represent meaningful photos, diagrams, and graphs with short bold Markdown notes.',

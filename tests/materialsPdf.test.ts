@@ -20,7 +20,7 @@ test('generatedPdfRelativePath is stable and isolated under pdf directory', () =
   assert.match(first, /^pdf\/notes_[a-f0-9]{10}\.pdf$/);
 });
 
-test('pdfFilesFromMaterialsManifest prefers ready normalized pdf entries', () => {
+test('pdfFilesFromMaterialsManifest prefers asset pdf entries and preserves order', () => {
   const manifest: MaterialsManifest = {
     generatedAt: '2026-05-02T00:00:00.000Z',
     referencePages: [{ url: 'https://example.test/ref', file: 'reference.html', pdfFile: 'pdf/reference.pdf', ocrEligible: true }],
@@ -34,5 +34,5 @@ test('pdfFilesFromMaterialsManifest prefers ready normalized pdf entries', () =>
     ],
   };
 
-  assert.deepEqual(pdfFilesFromMaterialsManifest(manifest), ['assets/file.pdf', 'pdf/image.pdf', 'pdf/reference.pdf']);
+  assert.deepEqual(pdfFilesFromMaterialsManifest(manifest), ['assets/file.pdf', 'pdf/image.pdf']);
 });

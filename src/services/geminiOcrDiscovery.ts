@@ -26,18 +26,31 @@ async function discoverFromMaterialsManifests(inputDir: string): Promise<string[
 }
 
 export function pdfFilesFromMaterialsManifest(manifest: MaterialsManifest): string[] {
-  const pdfs = new Set<string>();
+  const pdfs: string[] = [];
+  const seen = new Set<string>();
+  const referencePdfs = new Set((manifest.referencePages ?? []).map((p) => p.pdfFile).filter((p): p is string => Boolean(p)));
+  const hasAssetPdfs = (manifest.assets ?? []).some((a) => a.ocrEligible && a.pdfFile);
   for (const entry of manifest.pdfs ?? []) {
-    if (entry.status === 'ready') pdfs.add(entry.pdfFile);
+    if (entry.status !== 'ready') continue;
+    if (hasAssetPdfs && referencePdfs.has(entry.pdfFile)) continue;
+    addPdf(pdfs, seen, entry.pdfFile);
   }
-  for (const page of manifest.referencePages ?? []) {
-    if (page.ocrEligible && page.pdfFile) pdfs.add(page.pdfFile);
+  if (!hasAssetPdfs) {
+    for (const page of manifest.referencePages ?? []) {
+      if (page.ocrEligible && page.pdfFile) addPdf(pdfs, seen, page.pdfFile);
+    }
   }
   for (const asset of manifest.assets ?? []) {
-    if (asset.ocrEligible && asset.pdfFile) pdfs.add(asset.pdfFile);
-    else if (asset.file.toLowerCase().endsWith('.pdf')) pdfs.add(asset.file);
+    if (asset.ocrEligible && asset.pdfFile) addPdf(pdfs, seen, asset.pdfFile);
+    else if (asset.file.toLowerCase().endsWith('.pdf')) addPdf(pdfs, seen, asset.file);
   }
-  return [...pdfs].sort((a, b) => a.localeCompare(b));
+  return pdfs;
+}
+
+function addPdf(pdfs: string[], seen: Set<string>, pdfFile: string): void {
+  if (seen.has(pdfFile)) return;
+  seen.add(pdfFile);
+  pdfs.push(pdfFile);
 }
 
 async function discoverRecursivePdfs(inputDir: string): Promise<string[]> {

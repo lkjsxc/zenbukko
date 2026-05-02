@@ -11,8 +11,9 @@ Show how requests move through Zenbukko and where persistent artifacts are writt
 3. Command handlers call shared workflow functions.
 4. Workflow functions load session data through `SessionStore`.
 5. NNN clients resolve course structure and signed media/material URLs.
-6. Downloaders write files to `outputDir`.
-7. Optional transcription, cleanup, and OCR run after relevant files exist.
+6. The downloader builds a full in-memory lesson work list before slow per-lesson work starts.
+7. If materials are enabled, all selected lesson materials are fetched and normalized first.
+8. Media download, transcription, cleanup, and OCR run only after the material capture phase.
 
 ## Web Flow
 
@@ -25,16 +26,18 @@ Show how requests move through Zenbukko and where persistent artifacts are writt
 
 ## Materials And OCR Flow
 
-1. Material pages are saved as HTML.
+1. For every selected lesson, material pages are saved as HTML before transcription or OCR begins.
 2. Linked assets are downloaded under `assets/`.
 3. Supported saved sources are normalized into PDFs under `pdf/`.
 4. `materials_manifest.json` records source files, PDF files, conversion status, and OCR eligibility.
-5. PDF discovery prefers manifest `pdfs` entries and falls back to recursive PDF search.
-6. Planning skips existing Markdown unless `force` is set.
-7. `auto` mode selects Batch for multi-PDF/background work and Flex for single or recovery work.
-8. Batch uploads PDFs to the Gemini Files API and sends inline batch requests using file URIs.
-9. Failed Batch items retry through Flex unless Standard is explicitly selected.
-10. Markdown and `materials_ocr_manifest.json` are written next to source materials.
+5. After all selected material directories exist, media and transcription may run.
+6. OCR runs against the collected material directories after material capture has completed.
+7. PDF discovery prefers manifest asset PDF entries and avoids duplicate reference-page PDFs when per-asset PDFs exist.
+8. Planning skips existing Markdown unless `force` is set.
+9. `auto` mode selects Batch for multi-PDF/background work and Flex for single or recovery work.
+10. Batch uploads PDFs to the Gemini Files API and sends inline batch requests using file URIs.
+11. Failed Batch items retry through Flex unless Standard is explicitly selected.
+12. Markdown and `materials_ocr_manifest.json` are written next to source materials.
 
 ## Invariants
 

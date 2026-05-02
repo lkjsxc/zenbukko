@@ -21,6 +21,7 @@ export async function downloadResolvedLessons(ctx: {
   chapterMarkdown: ChapterMarkdown;
 }): Promise<Array<{ lesson: CourseLesson; outFilePath: string }>> {
   const downloaded: Array<{ lesson: CourseLesson; outFilePath: string }> = [];
+  const workItems: WorkItem[] = [];
   const chapterLessonIndex = new Map<number, number>();
   const migratedChapters = new Set<number>();
 
@@ -38,11 +39,16 @@ export async function downloadResolvedLessons(ctx: {
 
     for (const item of lessonItems(lesson)) {
       const outFilePath = path.join(lessonDir, `lesson-${lesson.lessonId}${item.suffix}.ts`);
-      await processItem({ ...ctx, lesson, item, lessonIndex, outFilePath });
-      downloaded.push({ lesson, outFilePath });
+      workItems.push({ ...ctx, lesson, item, lessonIndex, outFilePath });
     }
   }
 
+  const materialsDirs = ctx.params.materials ? await downloadAllMaterials(workItems) : [];
+  for (const item of workItems) {
+    await processMediaItem(item);
+    downloaded.push({ lesson: item.lesson, outFilePath: item.outFilePath });
+  }
+  if (ctx.params.ocrMaterials) await ocrAllMaterials(ctx.params, materialsDirs);
   return downloaded;
 }
 
@@ -51,6 +57,16 @@ type LessonItem = {
   suffix: string;
   videoUrl: string;
   referencePageUrls?: string[];
+};
+
+type WorkItem = {
+  params: DownloadCommandParams;
+  headers: Record<string, string>;
+  chapterMarkdown: ChapterMarkdown;
+  lesson: CourseLesson;
+  item: LessonItem;
+  lessonIndex: number;
+  outFilePath: string;
 };
 
 function lessonItems(lesson: CourseLesson): LessonItem[] {
@@ -64,19 +80,10 @@ function lessonItems(lesson: CourseLesson): LessonItem[] {
   }));
 }
 
-async function processItem(ctx: {
-  params: DownloadCommandParams;
-  headers: Record<string, string>;
-  chapterMarkdown: ChapterMarkdown;
-  lesson: CourseLesson;
-  item: LessonItem;
-  lessonIndex: number;
-  outFilePath: string;
-}): Promise<void> {
+async function processMediaItem(ctx: WorkItem): Promise<void> {
   const needsSuffix = ctx.item.suffix !== '';
   ctx.params.logger.info(`Downloading: ${ctx.lesson.chapterId}/${ctx.lesson.lessonId}${needsSuffix ? ` (part ${ctx.item.index})` : ''} -> ${ctx.outFilePath}`);
   await downloadMedia(ctx.outFilePath, ctx.item.videoUrl, ctx.headers, ctx.params.logger);
-  if (ctx.params.materials) await handleMaterials(ctx, needsSuffix);
   if (ctx.params.transcribe) await handleTranscription(ctx);
 }
 
@@ -95,31 +102,49 @@ async function downloadMedia(outFilePath: string, videoUrl: string, headers: Rec
   });
 }
 
-async function handleMaterials(ctx: Parameters<typeof processItem>[0], needsSuffix: boolean): Promise<void> {
+async function downloadAllMaterials(items: WorkItem[]): Promise<string[]> {
+  const dirs: string[] = [];
+  const seen = new Set<string>();
+  for (const item of items) {
+    const dir = await handleMaterials(item);
+    if (dir && !seen.has(dir)) {
+      seen.add(dir);
+      dirs.push(dir);
+    }
+  }
+  return dirs;
+}
+
+async function handleMaterials(ctx: WorkItem): Promise<string | undefined> {
+  const needsSuffix = ctx.item.suffix !== '';
   const pages = ctx.item.referencePageUrls ?? [];
   if (pages.length === 0) {
     ctx.params.logger.warn(`No lesson reference URLs found; skipping materials: ${ctx.lesson.chapterId}/${ctx.lesson.lessonId}${needsSuffix ? ` (part ${ctx.item.index})` : ''}`);
-    return;
+    return undefined;
   }
   const materialsDir = path.join(path.dirname(ctx.outFilePath), `lesson-${ctx.lesson.lessonId}${ctx.item.suffix}_materials`);
   ctx.params.logger.info(`Downloading materials (${pages.length} reference page(s)) to: ${materialsDir}`);
   await downloadLessonMaterials({ referencePageUrls: pages, outDir: materialsDir, headers: ctx.headers, logger: ctx.params.logger });
-  if (ctx.params.ocrMaterials) {
+  return materialsDir;
+}
+
+async function ocrAllMaterials(params: DownloadCommandParams, materialsDirs: string[]): Promise<void> {
+  for (const materialsDir of materialsDirs) {
     await ocrMaterialsCommand({
       inputDir: materialsDir,
-      ...(ctx.params.geminiApiKey ? { apiKey: ctx.params.geminiApiKey } : {}),
-      model: ctx.params.ocrModel,
-      force: ctx.params.ocrForce,
-      ...(ctx.params.ocrMode ? { mode: ctx.params.ocrMode } : {}),
-      ...(ctx.params.ocrServiceTier ? { serviceTier: ctx.params.ocrServiceTier } : {}),
-      ...(typeof ctx.params.ocrRetries === 'number' ? { retries: ctx.params.ocrRetries } : {}),
-      ...(typeof ctx.params.ocrTimeoutMs === 'number' ? { timeoutMs: ctx.params.ocrTimeoutMs } : {}),
-      logger: ctx.params.logger,
+      ...(params.geminiApiKey ? { apiKey: params.geminiApiKey } : {}),
+      model: params.ocrModel,
+      force: params.ocrForce,
+      ...(params.ocrMode ? { mode: params.ocrMode } : {}),
+      ...(params.ocrServiceTier ? { serviceTier: params.ocrServiceTier } : {}),
+      ...(typeof params.ocrRetries === 'number' ? { retries: params.ocrRetries } : {}),
+      ...(typeof params.ocrTimeoutMs === 'number' ? { timeoutMs: params.ocrTimeoutMs } : {}),
+      logger: params.logger,
     });
   }
 }
 
-async function handleTranscription(ctx: Parameters<typeof processItem>[0]): Promise<void> {
+async function handleTranscription(ctx: WorkItem): Promise<void> {
   const transcriptPath = ctx.outFilePath.replace(/\.ts$/i, `_transcription.${ctx.params.transcribeFormat}`);
   if (await shouldTranscribe(transcriptPath, ctx.params.transcribeFormat, ctx.params.logger)) {
     await transcribeCommand(transcribeParams(ctx));
@@ -152,7 +177,7 @@ async function shouldTranscribe(pathname: string, format: 'txt' | 'srt' | 'vtt',
   return true;
 }
 
-function transcribeParams(ctx: Parameters<typeof processItem>[0]) {
+function transcribeParams(ctx: WorkItem) {
   const p: Parameters<typeof transcribeCommand>[0] = {
     inputPath: ctx.outFilePath,
     model: ctx.params.transcribeModel,
