@@ -9,7 +9,8 @@ Convert captured materials into a single OCR input format before Gemini sees the
 - Existing PDF files are reused directly.
 - Saved reference HTML pages are printed to PDF with Chromium.
 - Downloaded HTML files are printed to PDF with Chromium.
-- PNG and JPEG images are placed on printable pages and emitted as PDFs.
+- PNG and JPEG images are embedded into PDFs as data URIs.
+- Image PDFs use the source image aspect ratio as the PDF page size so slide screenshots are not scaled into blank or low-detail pages.
 - Plain text and Markdown files are wrapped in simple readable HTML and emitted as PDFs.
 
 ## Unsupported Inputs

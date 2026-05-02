@@ -7,6 +7,7 @@ import { discoverPdfFiles } from './geminiOcrDiscovery.js';
 import { flexOcrPdf } from './geminiOcrFlex.js';
 import { normalizeMarkdown } from './geminiOcrMarkdown.js';
 import { outputName, planOcrTasks, type OcrMode, type OcrServiceTier, type OcrTask } from './geminiOcrPlan.js';
+import { refreshMaterialsPdfsInTree } from './materials/refresh.js';
 
 const MAX_PDF_BYTES = 50 * 1024 * 1024;
 
@@ -42,6 +43,8 @@ export async function ocrMaterialsCommand(params: {
   const apiKey = params.apiKey ?? process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error('GEMINI_API_KEY is required for PDF OCR.');
 
+  const refreshed = await refreshMaterialsPdfsInTree(inputDir, params.logger);
+  if (refreshed > 0) params.logger.info(`Refreshed material PDFs from ${refreshed} manifest(s).`);
   const pdfs = await discoverPdfFiles(inputDir);
   if (pdfs.length === 0) params.logger.warn(`No PDF files found for OCR: ${inputDir}`);
   const plan = await planOcrTasks({ pdfs, force: params.force, mode: params.mode ?? 'auto' });

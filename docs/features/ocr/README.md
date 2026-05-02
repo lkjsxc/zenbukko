@@ -14,5 +14,6 @@ OCR converts normalized material PDFs into Markdown using Gemini.
 
 - OCR receives PDFs only.
 - Material directories use `materials_manifest.json` PDF entries before recursive PDF fallback.
+- Standalone OCR refreshes manifest-backed material PDFs before discovery.
 - `auto` mode prefers Batch only when there is meaningful multi-PDF work.
 - Batch failures recover through Flex unless Standard is explicitly requested.

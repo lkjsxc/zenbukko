@@ -3,10 +3,14 @@ import { ServiceTier, createPartFromUri, type GoogleGenAI } from '@google/genai'
 import type { OcrServiceTier } from './geminiOcrPlan.js';
 
 const DEFAULT_PROMPT = [
-  'Convert this PDF into clean Markdown.',
-  'Preserve headings, lists, tables, code blocks, formulas, and page order when possible.',
-  'Do not summarize. Transcribe visible content faithfully.',
-  'If a diagram or image contains important text, include that text and a short Markdown note.',
+  'You are transcribing university lecture screenshots into one accurate Markdown document.',
+  'Do not summarize. Transcribe all visible course content faithfully in page order.',
+  'Use exactly one H1 for the whole document, then H2 for slide titles. Do not repeat the same H2 for consecutive slides with the same title.',
+  'Use H3 only for visually independent section labels, not ordinary bold list items.',
+  'Preserve lists, tables, code blocks, formulas, quotes, and problem/answer structure.',
+  'Represent meaningful photos, diagrams, and graphs with short bold Markdown notes.',
+  'Do not use HTML tags, emoji, or horizontal rules.',
+  'If text is unreadable, write [判読不能]. If you correct an obvious typo, add a numbered note and collect notes under ## 注釈 at the end.',
 ].join('\n');
 
 export async function flexOcrPdf(params: {
