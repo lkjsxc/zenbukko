@@ -10,6 +10,7 @@ May 2, 2026.
 - `npm run lint`: passed.
 - `npm test`: passed.
 - `npm run check:lines`: passed.
+- HTML-to-PDF smoke check through `normalizeMaterialsToPdfs`: passed.
 
 ## Docker
 
