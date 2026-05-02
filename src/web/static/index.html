@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Study Assistant</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Study Assistant</h1>
+    <p class="tagline">A local learning aid for organizing study pages, materials, transcripts, and notes from services you can access.</p>
+  </header>
+  <main>
+    <div class="grid">
+      <section>
+        <h2>Session</h2>
+        <div id="status" class="muted">Loading status...</div>
+        <label>Paste session.json</label>
+        <textarea id="sessionInput" spellcheck="false"></textarea>
+        <div class="row top"><button id="saveSession">Save Session</button><button class="secondary" id="loadCourses">Load Courses</button></div>
+      </section>
+      <section>
+        <h2>Study Job</h2>
+        <label>Learning page URL</label><input id="learningUrl" placeholder="https://.../courses/12345" />
+        <label>Chapters</label><input id="chapters" placeholder="comma-separated, optional" />
+        <label>Lesson IDs</label><input id="lessonIds" placeholder="comma-separated, optional" />
+        <label>Concurrency</label><input id="maxConcurrency" value="6" />
+        <div>
+          <label class="check"><input type="checkbox" id="transcribe" /> Transcribe</label>
+          <label class="check"><input type="checkbox" id="materials" /> Materials</label>
+          <label class="check"><input type="checkbox" id="ocrMaterials" /> Gemini PDF OCR</label>
+          <label class="check"><input type="checkbox" id="cleanup" checked /> Delete media after transcript</label>
+        </div>
+        <div class="row top"><button id="startDownload">Start Study Job</button></div>
+      </section>
+    </div>
+    <section><h2>Courses</h2><table><thead><tr><th>ID</th><th>Title</th><th>Source</th></tr></thead><tbody id="courses"></tbody></table></section>
+    <section><h2>Standalone OCR</h2><label>Input directory</label><input id="ocrInput" value="/data/downloads" /><div class="row top"><button id="startOcr">Start OCR</button></div></section>
+    <section><h2>Jobs</h2><table><thead><tr><th>ID</th><th>Job</th><th>Status</th><th>Updated</th></tr></thead><tbody id="jobs"></tbody></table></section>
+    <section><h2>Log</h2><pre id="log"></pre></section>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>
