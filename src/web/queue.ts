@@ -86,7 +86,7 @@ export class WebJobQueue {
     const logger = new JobLogger(this.cfg.logLevel, job.logPath, (line) => this.events.emit(`job:${job.id}`, line));
     try {
       logger.info(`Starting job ${job.id}: ${job.title}`);
-      await runJob(job, this.cfg, logger);
+      await runJob(job, this.cfg, this.webDir, logger);
       job.status = 'succeeded';
       logger.info(`Job succeeded: ${job.id}`);
     } catch (e) {

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { buildSessionPrefill, parseStoredSession } from '../src/session/sessionStore.js';
 import { mergeWebSettings } from '../src/web/settings.js';
+import { normalizeJobRequest } from '../src/web/requests.js';
 import type { AppConfig } from '../src/config.js';
 
 const cfg: AppConfig = {
@@ -43,5 +44,26 @@ test('mergeWebSettings gives saved browser values precedence over env defaults',
     chapterRange: '1-2',
     ocrRetries: 5,
     ocrTimeoutMs: 123,
+  });
+});
+
+test('normalizeJobRequest preserves standalone OCR settings without secrets', () => {
+  const request = normalizeJobRequest('ocr-materials', {
+    inputDir: '/data/downloads/materials',
+    geminiApiKey: 'secret',
+    ocrModel: 'model-x',
+    ocrMode: 'batch',
+    ocrServiceTier: 'standard',
+    ocrRetries: 7,
+    ocrTimeoutMs: 456,
+  });
+  assert.deepEqual(request, {
+    inputDir: '/data/downloads/materials',
+    ocrModel: 'model-x',
+    ocrForce: false,
+    ocrMode: 'batch',
+    ocrServiceTier: 'standard',
+    ocrRetries: 7,
+    ocrTimeoutMs: 456,
   });
 });

@@ -5,23 +5,27 @@ import { ocrMaterialsCommand } from '../services/geminiOcr.js';
 import type { Logger } from '../utils/log.js';
 import type { JobRecord } from './types.js';
 import { booleanFrom, numberFrom, optionalNumberArray, stringFrom } from './requestUtils.js';
+import { getEffectiveWebSettings } from './settings.js';
 
-export async function runJob(job: JobRecord, cfg: AppConfig, logger: Logger): Promise<void> {
+export async function runJob(job: JobRecord, cfg: AppConfig, webDir: string, logger: Logger): Promise<void> {
+  const settings = await getEffectiveWebSettings(cfg, webDir);
   if (job.kind === 'ocr-materials') {
+    requireGeminiKey(settings.geminiApiKey);
     await ocrMaterialsCommand({
       inputDir: stringFrom(job.request.inputDir, cfg.outputDir),
-      ...(cfg.geminiApiKey ? { apiKey: cfg.geminiApiKey } : {}),
-      model: stringFrom(job.request.ocrModel, cfg.geminiModel),
+      apiKey: settings.geminiApiKey,
+      model: stringFrom(job.request.ocrModel, settings.geminiModel),
       force: booleanFrom(job.request.ocrForce, false),
-      mode: ocrModeFrom(job.request.ocrMode, cfg.ocrMode),
-      serviceTier: ocrTierFrom(job.request.ocrServiceTier, cfg.ocrServiceTier),
-      retries: numberFrom(job.request.ocrRetries, cfg.ocrRetries),
-      timeoutMs: numberFrom(job.request.ocrTimeoutMs, cfg.ocrTimeoutMs),
+      mode: ocrModeFrom(job.request.ocrMode, settings.ocrMode),
+      serviceTier: ocrTierFrom(job.request.ocrServiceTier, settings.ocrServiceTier),
+      retries: numberFrom(job.request.ocrRetries, settings.ocrRetries),
+      timeoutMs: numberFrom(job.request.ocrTimeoutMs, settings.ocrTimeoutMs),
       logger,
     });
     return;
   }
 
+  if (booleanFrom(job.request.ocrMaterials, false)) requireGeminiKey(settings.geminiApiKey);
   const common = {
     sessionPath: cfg.sessionPath,
     outputDir: cfg.outputDir,
@@ -33,13 +37,13 @@ export async function runJob(job: JobRecord, cfg: AppConfig, logger: Logger): Pr
     deleteMediaAfterTranscribe: booleanFrom(job.request.deleteMediaAfterTranscribe, true),
     materials: booleanFrom(job.request.materials, false) || booleanFrom(job.request.ocrMaterials, false),
     ocrMaterials: booleanFrom(job.request.ocrMaterials, false),
-    ocrModel: stringFrom(job.request.ocrModel, cfg.geminiModel),
+    ocrModel: stringFrom(job.request.ocrModel, settings.geminiModel),
     ocrForce: booleanFrom(job.request.ocrForce, false),
-    ocrMode: ocrModeFrom(job.request.ocrMode, cfg.ocrMode),
-    ocrServiceTier: ocrTierFrom(job.request.ocrServiceTier, cfg.ocrServiceTier),
-    ocrRetries: numberFrom(job.request.ocrRetries, cfg.ocrRetries),
-    ocrTimeoutMs: numberFrom(job.request.ocrTimeoutMs, cfg.ocrTimeoutMs),
-    ...(cfg.geminiApiKey ? { geminiApiKey: cfg.geminiApiKey } : {}),
+    ocrMode: ocrModeFrom(job.request.ocrMode, settings.ocrMode),
+    ocrServiceTier: ocrTierFrom(job.request.ocrServiceTier, settings.ocrServiceTier),
+    ocrRetries: numberFrom(job.request.ocrRetries, settings.ocrRetries),
+    ocrTimeoutMs: numberFrom(job.request.ocrTimeoutMs, settings.ocrTimeoutMs),
+    geminiApiKey: settings.geminiApiKey,
     logger,
   };
 
@@ -69,4 +73,8 @@ function ocrModeFrom(value: unknown, fallback: 'auto' | 'batch' | 'flex'): 'auto
 
 function ocrTierFrom(value: unknown, fallback: 'flex' | 'standard'): 'flex' | 'standard' {
   return value === 'flex' || value === 'standard' ? value : fallback;
+}
+
+function requireGeminiKey(apiKey: string): void {
+  if (!apiKey.trim()) throw new Error('Gemini API key is required before starting OCR. Save it in Gemini Settings or set GEMINI_API_KEY.');
 }

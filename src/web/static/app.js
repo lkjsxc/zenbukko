@@ -36,8 +36,8 @@ async function refreshJobs() {
 
 async function openJob(id) {
   if (eventSource) eventSource.close();
-  const data = await api('/api/jobs/' + id);
-  $('log').textContent = data.log || '';
+  await api('/api/jobs/' + id);
+  $('log').textContent = '';
   eventSource = new EventSource('/api/jobs/' + id + '/events');
   eventSource.onmessage = (ev) => {
     $('log').textContent += JSON.parse(ev.data) + '\n';
@@ -80,7 +80,7 @@ $('saveSettings').onclick = async () => {
   await api('/api/settings', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ settings: collectSettings() }),
+    body: JSON.stringify({ settings: collectSettings(true) }),
   });
   await refreshStatus();
 };
@@ -100,14 +100,15 @@ function collectDownload() {
   };
 }
 
-function collectSettings() {
-  return {
-    geminiApiKey: $('geminiApiKey').value,
+function collectSettings(includeSecret) {
+  const settings = {
     geminiModel: $('geminiModel').value,
     ocrMode: $('ocrMode').value,
     ocrServiceTier: $('ocrServiceTier').value,
     chapterRange: $('chapterRange').value,
   };
+  if (includeSecret) settings.geminiApiKey = $('geminiApiKey').value;
+  return settings;
 }
 
 function courseRow(c) {

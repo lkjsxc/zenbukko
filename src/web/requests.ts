@@ -7,6 +7,10 @@ export function normalizeJobRequest(kind: JobKind, body: Record<string, unknown>
       inputDir: stringFrom(body.inputDir, ''),
       ocrModel: stringFrom(body.ocrModel, 'gemini-3-flash-preview'),
       ocrForce: booleanFrom(body.ocrForce, false),
+      ocrMode: stringFrom(body.ocrMode, 'auto'),
+      ocrServiceTier: stringFrom(body.ocrServiceTier, 'flex'),
+      ocrRetries: numberFrom(body.ocrRetries, 3),
+      ocrTimeoutMs: numberFrom(body.ocrTimeoutMs, 900_000),
     };
   }
 

@@ -16,9 +16,14 @@ const SettingsSchema = z.object({
 
 export type WebSettings = z.infer<typeof SettingsSchema>;
 
-export type EffectiveWebSettings = Required<Omit<WebSettings, 'geminiApiKey' | 'chapterRange'>> & {
+export type EffectiveWebSettings = {
   geminiApiKey: string;
+  geminiModel: string;
+  ocrMode: 'auto' | 'batch' | 'flex';
+  ocrServiceTier: 'flex' | 'standard';
   chapterRange: string;
+  ocrRetries: number;
+  ocrTimeoutMs: number;
 };
 
 export async function loadWebSettings(webDir: string): Promise<WebSettings> {

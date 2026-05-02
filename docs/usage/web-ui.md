@@ -17,12 +17,14 @@ docker compose up zenbukko-web
 - Existing `session.json` is loaded by `GET /api/session` and pre-filled.
 - Gemini settings are stored locally under `/data/web/settings.json`.
 - Study jobs accept learning URL, chapter range, explicit chapter IDs, lesson IDs, materials, transcription, and OCR settings.
+- Saved Gemini settings are applied when web jobs run.
 
 ## Outputs
 
 - Jobs and logs are persisted under `/data/web/jobs`.
 - Downloads and derived artifacts are written under `/data/downloads` by default.
 - The output list shows recent Markdown, transcript, HTML, JSON, and PDF files.
+- Long log lines wrap inside the log panel instead of widening the page.
 
 ## Failure Behavior
 
