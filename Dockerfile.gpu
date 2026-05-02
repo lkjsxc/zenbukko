@@ -12,6 +12,7 @@ ARG NODE_VERSION=22.13.1
 ARG WHISPER_MODEL=large-v3-turbo
 # RTX 30xx = 86
 ARG CMAKE_CUDA_ARCHITECTURES=86
+ARG CMAKE_BUILD_PARALLEL_LEVEL=2
 
 WORKDIR /app
 
@@ -46,6 +47,7 @@ RUN npm run build
 # Build whisper.cpp w/ CUDA and cache the selected model in the image
 ENV ZENBUKKO_WHISPER_CUDA=1
 ENV ZENBUKKO_CMAKE_CUDA_ARCHITECTURES=${CMAKE_CUDA_ARCHITECTURES}
+ENV ZENBUKKO_CMAKE_BUILD_PARALLEL_LEVEL=${CMAKE_BUILD_PARALLEL_LEVEL}
 
 # During docker build, the NVIDIA driver library (libcuda.so.1) is not present.
 # Link against CUDA's stub library so the build can succeed; at runtime the
@@ -55,7 +57,7 @@ ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64/stubs:${LD_LIBRARY_PATH}
 RUN ln -sf /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/libcuda.so \
   && ln -sf /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/libcuda.so.1
 
-RUN node dist/index.js setup-whisper --model ${WHISPER_MODEL}
+RUN node dist/index.js setup-whisper --backend both --model "$WHISPER_MODEL"
 
 
 FROM nvidia/cuda:${CUDA_VERSION}-runtime-${CUDA_OS} AS runtime
@@ -67,14 +69,25 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
+    gnupg \
     xz-utils \
-  ffmpeg \
+    ffmpeg \
+  && install -d -m 0755 /etc/apt/keyrings \
+  && curl -fsSL https://dl.google.com/linux/linux_signing_key.pub \
+    | gpg --dearmor -o /etc/apt/keyrings/google-linux-signing-key.gpg \
+  && chmod a+r /etc/apt/keyrings/google-linux-signing-key.gpg \
+  && echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/google-linux-signing-key.gpg] http://dl.google.com/linux/chrome/deb/ stable main" \
+    > /etc/apt/sources.list.d/google-chrome.list \
+  && apt-get update \
+  && apt-get install -y --no-install-recommends google-chrome-stable \
   && rm -rf /var/lib/apt/lists/*
 
 RUN curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" \
   | tar -xJ -C /usr/local --strip-components=1
 
 ENV PUPPETEER_SKIP_DOWNLOAD=1
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+ENV ZENBUKKO_WHISPER_BACKEND=auto
 
 COPY --from=build /app /app
 

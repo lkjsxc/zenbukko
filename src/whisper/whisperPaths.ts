@@ -11,14 +11,16 @@ export function getWhisperDir(): string {
   return path.join(getProjectRoot(), 'whisper.cpp');
 }
 
+export type WhisperBackend = 'auto' | 'cpu' | 'cuda';
+
 export async function resolveWhisperBinary(): Promise<string> {
   const dir = getWhisperDir();
-  const candidates = [
-    path.join(dir, 'main'),
-    path.join(dir, 'whisper-cli'),
-    path.join(dir, 'build', 'bin', 'whisper-cli'),
-    path.join(dir, 'build', 'bin', 'main'),
-  ];
+  const backend = requestedBackend();
+  const candidates = backend === 'cuda'
+    ? cudaCandidates(dir)
+    : backend === 'cpu'
+      ? cpuCandidates(dir)
+      : [...cudaCandidates(dir), ...cpuCandidates(dir)];
 
   for (const c of candidates) {
     try {
@@ -35,4 +37,29 @@ export async function resolveWhisperBinary(): Promise<string> {
 export function resolveModelPath(model: string): string {
   // Whisper.cpp uses files like models/ggml-base.bin
   return path.join(getWhisperDir(), 'models', `ggml-${model}.bin`);
+}
+
+function requestedBackend(): WhisperBackend {
+  const value = (process.env.ZENBUKKO_WHISPER_BACKEND ?? '').trim();
+  if (value === 'cpu' || value === 'cuda') return value;
+  if ((process.env.ZENBUKKO_WHISPER_CUDA ?? '').trim() === '1') return 'cuda';
+  return 'auto';
+}
+
+function cpuCandidates(dir: string): string[] {
+  return [
+    path.join(dir, 'build-cpu', 'bin', 'whisper-cli'),
+    path.join(dir, 'build-cpu', 'bin', 'main'),
+    path.join(dir, 'build', 'bin', 'whisper-cli'),
+    path.join(dir, 'build', 'bin', 'main'),
+    path.join(dir, 'whisper-cli'),
+    path.join(dir, 'main'),
+  ];
+}
+
+function cudaCandidates(dir: string): string[] {
+  return [
+    path.join(dir, 'build-cuda', 'bin', 'whisper-cli'),
+    path.join(dir, 'build-cuda', 'bin', 'main'),
+  ];
 }

@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        WHISPER_MODEL: ${WHISPER_MODEL:-large-v3-turbo}
     image: zenbukko:local
     working_dir: /app
     volumes:
@@ -11,12 +13,39 @@ services:
       ZENBUKKO_SESSION_PATH: /data/session.json
       OUTPUT_DIR: /data/downloads
       PUPPETEER_HEADLESS: "true"
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3-flash-preview}
+
+  zenbukko-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        WHISPER_MODEL: ${WHISPER_MODEL:-large-v3-turbo}
+    image: zenbukko:local
+    working_dir: /app
+    command: ["web"]
+    ports:
+      - "127.0.0.1:8787:8787"
+    volumes:
+      - ./data:/data
+    environment:
+      ZENBUKKO_SESSION_PATH: /data/session.json
+      OUTPUT_DIR: /data/downloads
+      PUPPETEER_HEADLESS: "true"
+      WEB_PORT: "8787"
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3-flash-preview}
 
   zenbukko-gpu:
     profiles: ["gpu"]
     build:
       context: .
       dockerfile: Dockerfile.gpu
+      args:
+        WHISPER_MODEL: ${WHISPER_MODEL:-large-v3-turbo}
+        CMAKE_CUDA_ARCHITECTURES: ${ZENBUKKO_CMAKE_CUDA_ARCHITECTURES:-86}
+        CMAKE_BUILD_PARALLEL_LEVEL: ${ZENBUKKO_CMAKE_BUILD_PARALLEL_LEVEL:-2}
     image: zenbukko:local-gpu
     working_dir: /app
     volumes:
@@ -25,6 +54,8 @@ services:
       ZENBUKKO_SESSION_PATH: /data/session.json
       OUTPUT_DIR: /data/downloads
       PUPPETEER_HEADLESS: "true"
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3-flash-preview}
 
       # NVIDIA Container Toolkit settings
       NVIDIA_VISIBLE_DEVICES: all
@@ -32,8 +63,10 @@ services:
 
       # whisper.cpp CUDA build/runtime hints
       ZENBUKKO_WHISPER_CUDA: "1"
+      ZENBUKKO_WHISPER_BACKEND: auto
       # RTX 3070 = compute capability 8.6
       ZENBUKKO_CMAKE_CUDA_ARCHITECTURES: "86"
+      ZENBUKKO_CMAKE_BUILD_PARALLEL_LEVEL: "2"
 
     # More widely supported GPU request syntax
     gpus: all
@@ -45,3 +78,34 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
+
+  zenbukko-web-gpu:
+    profiles: ["gpu"]
+    build:
+      context: .
+      dockerfile: Dockerfile.gpu
+      args:
+        WHISPER_MODEL: ${WHISPER_MODEL:-large-v3-turbo}
+        CMAKE_CUDA_ARCHITECTURES: ${ZENBUKKO_CMAKE_CUDA_ARCHITECTURES:-86}
+        CMAKE_BUILD_PARALLEL_LEVEL: ${ZENBUKKO_CMAKE_BUILD_PARALLEL_LEVEL:-2}
+    image: zenbukko:local-gpu-web
+    working_dir: /app
+    command: ["web"]
+    ports:
+      - "127.0.0.1:8787:8787"
+    volumes:
+      - ./data:/data
+    environment:
+      ZENBUKKO_SESSION_PATH: /data/session.json
+      OUTPUT_DIR: /data/downloads
+      PUPPETEER_HEADLESS: "true"
+      WEB_PORT: "8787"
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3-flash-preview}
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility,video
+      ZENBUKKO_WHISPER_CUDA: "1"
+      ZENBUKKO_WHISPER_BACKEND: auto
+      ZENBUKKO_CMAKE_CUDA_ARCHITECTURES: "86"
+      ZENBUKKO_CMAKE_BUILD_PARALLEL_LEVEL: "2"
+    gpus: all

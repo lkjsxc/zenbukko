@@ -1,6 +1,8 @@
 # syntax=docker/dockerfile:1
 FROM node:22-bookworm-slim
 
+ARG WHISPER_MODEL=large-v3-turbo
+
 WORKDIR /app
 
 # System deps for puppeteer (if you ever run auth in-container), ffmpeg for audio extraction,
@@ -59,9 +61,8 @@ COPY src ./src
 
 RUN npm run build
 
-# Optional: cache whisper.cpp build + model into image.
-# This makes transcription "just work" without running setup-whisper each time.
-RUN node dist/index.js setup-whisper --model large-v3-turbo
+# Cache CPU whisper.cpp build + model into image.
+RUN node dist/index.js setup-whisper --backend cpu --model "$WHISPER_MODEL"
 
 
 # Avoid creating root-owned files in bind mounts (e.g. ./new/downloads)

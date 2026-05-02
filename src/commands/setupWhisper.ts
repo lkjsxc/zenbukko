@@ -20,7 +20,6 @@ export async function setupWhisperCommand(params: {
   };
 
   const backend = params.backend ?? backendFromEnv();
-  const wantCuda = backend === 'cuda' || backend === 'both';
   const cudaArch = (process.env.ZENBUKKO_CMAKE_CUDA_ARCHITECTURES ?? '').trim();
   const buildJobs = normalizeBuildJobs(process.env.ZENBUKKO_CMAKE_BUILD_PARALLEL_LEVEL);
 
@@ -43,23 +42,14 @@ export async function setupWhisperCommand(params: {
     );
   }
 
+  const builds = backend === 'both' ? ['cpu', 'cuda'] as const : [backend === 'auto' ? 'cpu' : backend] as const;
   if (hasCmake) {
-    const cmakeArgs = ['-B', 'build', '-DCMAKE_BUILD_TYPE=Release'];
-    if (wantCuda) {
-      cmakeArgs.push('-DGGML_CUDA=1');
-      if (cudaArch) cmakeArgs.push(`-DCMAKE_CUDA_ARCHITECTURES=${cudaArch}`);
+    for (const build of builds) {
+      await buildWithCmake({ whisperDir, env, build, buildJobs, cudaArch, logger: params.logger });
     }
-
-    params.logger.info(`Configuring whisper.cpp (cmake${wantCuda ? ' + CUDA' : ''})…`);
-    await runProcess('cmake', cmakeArgs, { cwd: whisperDir, env });
-
-    params.logger.info(`Building whisper.cpp (cmake --build${buildJobs ? `, ${buildJobs} job(s)` : ''})…`);
-    await runProcess('cmake', ['--build', 'build', ...(buildJobs ? ['--parallel', buildJobs] : ['-j']), '--config', 'Release'], {
-      cwd: whisperDir,
-      env,
-    });
   } else {
-    params.logger.info(`Building whisper.cpp (make${wantCuda ? ' (CPU only)' : ''}${buildJobs ? `, ${buildJobs} job(s)` : ''})…`);
+    if (backend === 'cuda' || backend === 'both') params.logger.warn('CMake is required for CUDA whisper build; falling back to CPU make build.');
+    params.logger.info(`Building whisper.cpp (make, CPU${buildJobs ? `, ${buildJobs} job(s)` : ''})…`);
     await runProcess('make', [buildJobs ? `-j${buildJobs}` : '-j'], { cwd: whisperDir, env });
   }
 
@@ -72,6 +62,29 @@ export async function setupWhisperCommand(params: {
   }
 
   params.logger.info('Whisper setup complete.');
+}
+
+async function buildWithCmake(params: {
+  whisperDir: string;
+  env: NodeJS.ProcessEnv;
+  build: 'cpu' | 'cuda';
+  buildJobs: string | undefined;
+  cudaArch: string;
+  logger: Logger;
+}): Promise<void> {
+  const buildDir = params.build === 'cuda' ? 'build-cuda' : 'build-cpu';
+  const cmakeArgs = ['-B', buildDir, '-DCMAKE_BUILD_TYPE=Release'];
+  if (params.build === 'cuda') {
+    cmakeArgs.push('-DGGML_CUDA=1');
+    if (params.cudaArch) cmakeArgs.push(`-DCMAKE_CUDA_ARCHITECTURES=${params.cudaArch}`);
+  }
+  params.logger.info(`Configuring whisper.cpp (${params.build})…`);
+  await runProcess('cmake', cmakeArgs, { cwd: params.whisperDir, env: params.env });
+  params.logger.info(`Building whisper.cpp (${params.build}${params.buildJobs ? `, ${params.buildJobs} job(s)` : ''})…`);
+  await runProcess('cmake', ['--build', buildDir, ...(params.buildJobs ? ['--parallel', params.buildJobs] : ['-j']), '--config', 'Release'], {
+    cwd: params.whisperDir,
+    env: params.env,
+  });
 }
 
 function backendFromEnv(): 'auto' | 'cpu' | 'cuda' | 'both' {
