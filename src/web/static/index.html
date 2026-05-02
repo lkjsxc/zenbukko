@@ -23,7 +23,8 @@
       <section>
         <h2>Study Job</h2>
         <label>Learning page URL</label><input id="learningUrl" placeholder="https://.../courses/12345" />
-        <label>Chapters</label><input id="chapters" placeholder="comma-separated, optional" />
+        <label>Chapter range</label><input id="chapterRange" placeholder="1,3-5 (course order)" />
+        <label>Chapter IDs</label><input id="chapters" placeholder="comma-separated, advanced" />
         <label>Lesson IDs</label><input id="lessonIds" placeholder="comma-separated, optional" />
         <label>Concurrency</label><input id="maxConcurrency" value="6" />
         <div>
@@ -36,6 +37,14 @@
       </section>
     </div>
     <section><h2>Courses</h2><table><thead><tr><th>ID</th><th>Title</th><th>Source</th></tr></thead><tbody id="courses"></tbody></table></section>
+    <section>
+      <h2>Gemini Settings</h2>
+      <label>API key</label><input id="geminiApiKey" type="password" autocomplete="off" />
+      <label>Model</label><input id="geminiModel" value="gemini-3-flash-preview" />
+      <label>OCR mode</label><select id="ocrMode"><option>auto</option><option>batch</option><option>flex</option></select>
+      <label>OCR service tier</label><select id="ocrServiceTier"><option>flex</option><option>standard</option></select>
+      <div class="row top"><button id="saveSettings">Save Settings</button></div>
+    </section>
     <section><h2>Standalone OCR</h2><label>Input directory</label><input id="ocrInput" value="/data/downloads" /><div class="row top"><button id="startOcr">Start OCR</button></div></section>
     <section><h2>Jobs</h2><table><thead><tr><th>ID</th><th>Job</th><th>Status</th><th>Updated</th></tr></thead><tbody id="jobs"></tbody></table></section>
     <section><h2>Log</h2><pre id="log"></pre></section>

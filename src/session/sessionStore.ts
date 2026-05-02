@@ -65,6 +65,27 @@ export class SessionStore {
   }
 }
 
+export function parseStoredSession(value: unknown): StoredSession {
+  const session = SessionSchema.parse(value);
+  if ('savedAt' in session) return session;
+
+  const cookieHeader = session.cookies;
+  return {
+    savedAt: session.created_at ?? new Date().toISOString(),
+    cookies: parseCookieHeader(cookieHeader),
+    cookieHeader,
+  };
+}
+
+export function buildSessionPrefill(session: StoredSession | null): {
+  exists: boolean;
+  session: StoredSession | null;
+  text: string;
+} {
+  if (!session) return { exists: false, session: null, text: '' };
+  return { exists: true, session, text: JSON.stringify(session, null, 2) };
+}
+
 function domainMatches(cookieDomain: string, requestHost: string): boolean {
   const cd = cookieDomain.startsWith('.') ? cookieDomain.slice(1) : cookieDomain;
   return requestHost === cd || requestHost.endsWith(`.${cd}`);

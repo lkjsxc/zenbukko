@@ -13,6 +13,10 @@ export async function runJob(job: JobRecord, cfg: AppConfig, logger: Logger): Pr
       ...(cfg.geminiApiKey ? { apiKey: cfg.geminiApiKey } : {}),
       model: stringFrom(job.request.ocrModel, cfg.geminiModel),
       force: booleanFrom(job.request.ocrForce, false),
+      mode: ocrModeFrom(job.request.ocrMode, cfg.ocrMode),
+      serviceTier: ocrTierFrom(job.request.ocrServiceTier, cfg.ocrServiceTier),
+      retries: numberFrom(job.request.ocrRetries, cfg.ocrRetries),
+      timeoutMs: numberFrom(job.request.ocrTimeoutMs, cfg.ocrTimeoutMs),
       logger,
     });
     return;
@@ -31,6 +35,10 @@ export async function runJob(job: JobRecord, cfg: AppConfig, logger: Logger): Pr
     ocrMaterials: booleanFrom(job.request.ocrMaterials, false),
     ocrModel: stringFrom(job.request.ocrModel, cfg.geminiModel),
     ocrForce: booleanFrom(job.request.ocrForce, false),
+    ocrMode: ocrModeFrom(job.request.ocrMode, cfg.ocrMode),
+    ocrServiceTier: ocrTierFrom(job.request.ocrServiceTier, cfg.ocrServiceTier),
+    ocrRetries: numberFrom(job.request.ocrRetries, cfg.ocrRetries),
+    ocrTimeoutMs: numberFrom(job.request.ocrTimeoutMs, cfg.ocrTimeoutMs),
     ...(cfg.geminiApiKey ? { geminiApiKey: cfg.geminiApiKey } : {}),
     logger,
   };
@@ -44,11 +52,21 @@ export async function runJob(job: JobRecord, cfg: AppConfig, logger: Logger): Pr
   if (!Number.isFinite(courseId)) throw new Error('courseId is required for download jobs.');
   const chapters = optionalNumberArray(job.request.chapters);
   const lessonIds = optionalNumberArray(job.request.lessonIds);
+  const chapterRange = stringFrom(job.request.chapterRange, '');
   await downloadCommand({
     ...common,
     courseId,
     ...(chapters ? { chapters } : {}),
+    ...(chapterRange ? { chapterRange } : {}),
     ...(lessonIds ? { lessonIds } : {}),
     firstLectureOnly: booleanFrom(job.request.firstLectureOnly, false),
   });
+}
+
+function ocrModeFrom(value: unknown, fallback: 'auto' | 'batch' | 'flex'): 'auto' | 'batch' | 'flex' {
+  return value === 'auto' || value === 'batch' || value === 'flex' ? value : fallback;
+}
+
+function ocrTierFrom(value: unknown, fallback: 'flex' | 'standard'): 'flex' | 'standard' {
+  return value === 'flex' || value === 'standard' ? value : fallback;
 }

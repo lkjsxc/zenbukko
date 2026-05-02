@@ -12,6 +12,7 @@ export function normalizeJobRequest(kind: JobKind, body: Record<string, unknown>
 
   const common = {
     chapters: csvNumbers(body.chapters),
+    chapterRange: stringFrom(body.chapterRange, ''),
     lessonIds: csvNumbers(body.lessonIds),
     firstLectureOnly: booleanFrom(body.firstLectureOnly, false),
     maxConcurrency: numberFrom(body.maxConcurrency, 6),
@@ -24,6 +25,10 @@ export function normalizeJobRequest(kind: JobKind, body: Record<string, unknown>
     ocrMaterials: booleanFrom(body.ocrMaterials, false),
     ocrModel: stringFrom(body.ocrModel, 'gemini-3-flash-preview'),
     ocrForce: booleanFrom(body.ocrForce, false),
+    ocrMode: stringFrom(body.ocrMode, 'auto'),
+    ocrServiceTier: stringFrom(body.ocrServiceTier, 'flex'),
+    ocrRetries: numberFrom(body.ocrRetries, 3),
+    ocrTimeoutMs: numberFrom(body.ocrTimeoutMs, 900_000),
   };
 
   if (kind === 'download-all') return common;

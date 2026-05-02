@@ -110,6 +110,10 @@ async function handleMaterials(ctx: Parameters<typeof processItem>[0], needsSuff
       ...(ctx.params.geminiApiKey ? { apiKey: ctx.params.geminiApiKey } : {}),
       model: ctx.params.ocrModel,
       force: ctx.params.ocrForce,
+      ...(ctx.params.ocrMode ? { mode: ctx.params.ocrMode } : {}),
+      ...(ctx.params.ocrServiceTier ? { serviceTier: ctx.params.ocrServiceTier } : {}),
+      ...(typeof ctx.params.ocrRetries === 'number' ? { retries: ctx.params.ocrRetries } : {}),
+      ...(typeof ctx.params.ocrTimeoutMs === 'number' ? { timeoutMs: ctx.params.ocrTimeoutMs } : {}),
       logger: ctx.params.logger,
     });
   }

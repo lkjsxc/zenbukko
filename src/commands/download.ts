@@ -9,6 +9,7 @@ import { selectLessons } from './download/lessonSelection.js';
 import { downloadResolvedLessons } from './download/lessonRunner.js';
 import { ChapterMarkdown } from './download/chapterMarkdown.js';
 import type { DownloadCommandParams } from './download/types.js';
+import { mapChapterOrdinalsToIds, parseChapterRange } from '../services/chapterRange.js';
 
 export async function downloadCommand(
   params: DownloadCommandParams,
@@ -17,15 +18,23 @@ export async function downloadCommand(
   if (!session) throw new Error(`No session found at ${params.sessionPath}. Run: zenbukko auth`);
 
   const client = new NnnClient(session);
+  if (params.chapterRange && params.chapters && params.chapters.length > 0) {
+    throw new Error('Use either chapterRange or explicit chapters, not both.');
+  }
+
+  const courseChapters = await client.getCourseChapters(params.courseId);
+  const rangeChapterIds = params.chapterRange
+    ? mapChapterOrdinalsToIds(parseChapterRange(params.chapterRange), courseChapters.chapters)
+    : undefined;
   const resolveArgs: { courseId: number; maxConcurrency: number; chapterIds?: number[]; limitLessons?: number } = {
     courseId: params.courseId,
     maxConcurrency: params.maxConcurrency,
   };
-  if (params.chapters && params.chapters.length > 0) resolveArgs.chapterIds = params.chapters;
+  if (rangeChapterIds && rangeChapterIds.length > 0) resolveArgs.chapterIds = rangeChapterIds;
+  else if (params.chapters && params.chapters.length > 0) resolveArgs.chapterIds = params.chapters;
   if (params.firstLectureOnly) resolveArgs.limitLessons = 1;
 
   const structure = await client.resolveCourseLessons(resolveArgs);
-  const courseChapters = await client.getCourseChapters(params.courseId);
   const lessons = selectLessons(structure, params);
   if (lessons.length === 0) throw new Error('No lessons resolved to download.');
 

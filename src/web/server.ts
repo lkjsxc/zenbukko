@@ -23,7 +23,7 @@ export async function startWebServer(params: {
   const app = express();
   app.use(express.json({ limit: '4mb' }));
   app.use(express.static(staticDir()));
-  registerWebRoutes(app, { config: params.config, logger: params.logger, queue });
+  registerWebRoutes(app, { config: params.config, logger: params.logger, queue, webDir });
 
   return app.listen(params.port, params.host, () => {
     params.logger.info(`Web UI listening on http://${params.host}:${params.port}`);

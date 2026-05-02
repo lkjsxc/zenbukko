@@ -4,15 +4,16 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { AppConfig } from '../config.js';
 import { scrapeMyCoursesDetailed } from '../services/courseScraper.js';
-import { parseStoredSession, SessionStore } from '../session/sessionStore.js';
+import { buildSessionPrefill, parseStoredSession, SessionStore } from '../session/sessionStore.js';
 import { fileExists, readTextFileIfExists } from '../utils/fs.js';
 import type { Logger } from '../utils/log.js';
 import { listOutputs } from './outputs.js';
 import { normalizeJobRequest } from './requests.js';
 import type { WebJobQueue } from './queue.js';
+import { getEffectiveWebSettings, saveWebSettings } from './settings.js';
 import type { JobKind, JobRecord, PublicJob } from './types.js';
 
-export function registerWebRoutes(app: express.Express, params: { config: AppConfig; logger: Logger; queue: WebJobQueue }): void {
+export function registerWebRoutes(app: express.Express, params: { config: AppConfig; logger: Logger; queue: WebJobQueue; webDir: string }): void {
   app.get('/', asyncHandler(async (_req, res) => {
     res.type('html').send(await readFile(path.join(process.cwd(), 'src', 'web', 'static', 'index.html'), 'utf8'));
   }));
@@ -21,15 +22,28 @@ export function registerWebRoutes(app: express.Express, params: { config: AppCon
     res.json({
       sessionExists: await fileExists(params.config.sessionPath),
       outputDir: params.config.outputDir,
-      geminiConfigured: Boolean(params.config.geminiApiKey ?? process.env.GEMINI_API_KEY),
-      model: params.config.geminiModel,
+      geminiConfigured: Boolean((await getEffectiveWebSettings(params.config, params.webDir)).geminiApiKey),
+      model: (await getEffectiveWebSettings(params.config, params.webDir)).geminiModel,
     });
+  }));
+
+  app.get('/api/session', asyncHandler(async (_req, res) => {
+    res.json(buildSessionPrefill(await new SessionStore(params.config.sessionPath).load()));
   }));
 
   app.post('/api/session', asyncHandler(async (req, res) => {
     const raw = typeof req.body?.session === 'string' ? JSON.parse(req.body.session) : req.body?.session;
     await new SessionStore(params.config.sessionPath).save(parseStoredSession(raw));
     res.json({ ok: true, sessionPath: params.config.sessionPath });
+  }));
+
+  app.get('/api/settings', asyncHandler(async (_req, res) => {
+    res.json({ settings: await getEffectiveWebSettings(params.config, params.webDir) });
+  }));
+
+  app.post('/api/settings', asyncHandler(async (req, res) => {
+    await saveWebSettings(params.webDir, req.body?.settings ?? req.body ?? {});
+    res.json({ settings: await getEffectiveWebSettings(params.config, params.webDir) });
   }));
 
   app.get('/api/courses', asyncHandler(async (_req, res) => {

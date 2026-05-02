@@ -34,6 +34,10 @@ export async function ocrMaterialsCommand(params: {
   apiKey?: string;
   model: string;
   force: boolean;
+  mode?: 'auto' | 'batch' | 'flex';
+  serviceTier?: 'flex' | 'standard';
+  retries?: number;
+  timeoutMs?: number;
   logger: { info: (message: string) => void; warn: (message: string) => void; error: (message: string) => void };
 }): Promise<OcrMaterialsResult> {
   const inputDir = path.resolve(params.inputDir);

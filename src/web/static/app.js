@@ -13,6 +13,21 @@ async function refreshStatus() {
   $('status').textContent = 'Session: ' + (s.sessionExists ? 'ready' : 'missing') + ' | Gemini: ' + (s.geminiConfigured ? 'configured' : 'missing key') + ' | Output: ' + s.outputDir;
 }
 
+async function loadSession() {
+  const data = await api('/api/session');
+  if (data.text) $('sessionInput').value = data.text;
+}
+
+async function loadSettings() {
+  const data = await api('/api/settings');
+  const s = data.settings || {};
+  $('geminiApiKey').value = s.geminiApiKey || '';
+  $('geminiModel').value = s.geminiModel || 'gemini-3-flash-preview';
+  $('ocrMode').value = s.ocrMode || 'auto';
+  $('ocrServiceTier').value = s.ocrServiceTier || 'flex';
+  $('chapterRange').value = s.chapterRange || '';
+}
+
 async function refreshJobs() {
   const data = await api('/api/jobs');
   $('jobs').innerHTML = data.jobs.map(jobRow).join('');
@@ -60,18 +75,38 @@ $('saveSession').onclick = async () => {
 
 $('loadCourses').onclick = () => loadCourses().catch(alertError);
 $('startDownload').onclick = () => createJob('download', collectDownload()).catch(alertError);
-$('startOcr').onclick = () => createJob('ocr-materials', { inputDir: $('ocrInput').value, ocrForce: false }).catch(alertError);
+$('startOcr').onclick = () => createJob('ocr-materials', { inputDir: $('ocrInput').value, ocrForce: false, ...collectSettings() }).catch(alertError);
+$('saveSettings').onclick = async () => {
+  await api('/api/settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ settings: collectSettings() }),
+  });
+  await refreshStatus();
+};
 
 function collectDownload() {
   return {
     learningUrl: $('learningUrl').value,
+    chapterRange: $('chapterRange').value,
     chapters: $('chapters').value,
     lessonIds: $('lessonIds').value,
     maxConcurrency: $('maxConcurrency').value,
     transcribe: $('transcribe').checked,
     materials: $('materials').checked,
     ocrMaterials: $('ocrMaterials').checked,
+    ...collectSettings(),
     deleteMediaAfterTranscribe: $('cleanup').checked,
+  };
+}
+
+function collectSettings() {
+  return {
+    geminiApiKey: $('geminiApiKey').value,
+    geminiModel: $('geminiModel').value,
+    ocrMode: $('ocrMode').value,
+    ocrServiceTier: $('ocrServiceTier').value,
+    chapterRange: $('chapterRange').value,
   };
 }
 
@@ -92,4 +127,6 @@ function alertError(e) {
 }
 
 refreshStatus().catch(console.error);
+loadSession().catch(console.error);
+loadSettings().catch(console.error);
 refreshJobs().catch(console.error);

@@ -9,6 +9,7 @@ import { which } from '../utils/which.js';
 export async function setupWhisperCommand(params: {
   logger: Logger;
   model: string;
+  backend?: 'auto' | 'cpu' | 'cuda' | 'both';
   force: boolean;
 }): Promise<void> {
   const whisperDir = getWhisperDir();
@@ -18,8 +19,10 @@ export async function setupWhisperCommand(params: {
     PATH: `${cmakeBinDir}:${process.env.PATH ?? ''}`,
   };
 
-  const wantCuda = (process.env.ZENBUKKO_WHISPER_CUDA ?? '').trim() === '1';
+  const backend = params.backend ?? backendFromEnv();
+  const wantCuda = backend === 'cuda' || backend === 'both';
   const cudaArch = (process.env.ZENBUKKO_CMAKE_CUDA_ARCHITECTURES ?? '').trim();
+  const buildJobs = normalizeBuildJobs(process.env.ZENBUKKO_CMAKE_BUILD_PARALLEL_LEVEL);
 
   if (params.force && (await fileExists(whisperDir))) {
     params.logger.warn(`Removing existing whisper.cpp at ${whisperDir}`);
@@ -50,11 +53,14 @@ export async function setupWhisperCommand(params: {
     params.logger.info(`Configuring whisper.cpp (cmake${wantCuda ? ' + CUDA' : ''})…`);
     await runProcess('cmake', cmakeArgs, { cwd: whisperDir, env });
 
-    params.logger.info('Building whisper.cpp (cmake --build)…');
-    await runProcess('cmake', ['--build', 'build', '-j', '--config', 'Release'], { cwd: whisperDir, env });
+    params.logger.info(`Building whisper.cpp (cmake --build${buildJobs ? `, ${buildJobs} job(s)` : ''})…`);
+    await runProcess('cmake', ['--build', 'build', ...(buildJobs ? ['--parallel', buildJobs] : ['-j']), '--config', 'Release'], {
+      cwd: whisperDir,
+      env,
+    });
   } else {
-    params.logger.info(`Building whisper.cpp (make${wantCuda ? ' (CPU only)' : ''})…`);
-    await runProcess('make', ['-j'], { cwd: whisperDir, env });
+    params.logger.info(`Building whisper.cpp (make${wantCuda ? ' (CPU only)' : ''}${buildJobs ? `, ${buildJobs} job(s)` : ''})…`);
+    await runProcess('make', [buildJobs ? `-j${buildJobs}` : '-j'], { cwd: whisperDir, env });
   }
 
   const modelPath = resolveModelPath(params.model);
@@ -66,4 +72,18 @@ export async function setupWhisperCommand(params: {
   }
 
   params.logger.info('Whisper setup complete.');
+}
+
+function backendFromEnv(): 'auto' | 'cpu' | 'cuda' | 'both' {
+  const value = (process.env.ZENBUKKO_WHISPER_BACKEND ?? '').trim();
+  if (value === 'cpu' || value === 'cuda' || value === 'both') return value;
+  if ((process.env.ZENBUKKO_WHISPER_CUDA ?? '').trim() === '1') return 'cuda';
+  return 'auto';
+}
+
+function normalizeBuildJobs(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  const n = Number(value.trim());
+  if (!Number.isFinite(n) || n < 1) return undefined;
+  return String(Math.trunc(n));
 }

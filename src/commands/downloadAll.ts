@@ -15,6 +15,16 @@ export async function downloadAllCommand(params: {
   noSpeechThreshold?: number;
   maxSeconds?: number;
   materials: boolean;
+  chapterRange?: string;
+  deleteMediaAfterTranscribe: boolean;
+  ocrMaterials: boolean;
+  ocrModel: string;
+  ocrForce: boolean;
+  ocrMode?: 'auto' | 'batch' | 'flex';
+  ocrServiceTier?: 'flex' | 'standard';
+  ocrRetries?: number;
+  ocrTimeoutMs?: number;
+  geminiApiKey?: string;
   logger: Logger;
 }): Promise<void> {
   const session = await new SessionStore(params.sessionPath).load();
@@ -54,6 +64,7 @@ export async function downloadAllCommand(params: {
         outputDir: params.outputDir,
         courseId: course.courseId,
         maxConcurrency: params.maxConcurrency,
+        ...(params.chapterRange ? { chapterRange: params.chapterRange } : {}),
         firstLectureOnly: false,
         transcribe: params.transcribe,
         transcribeModel: params.transcribeModel,
@@ -66,6 +77,15 @@ export async function downloadAllCommand(params: {
           : {}),
         ...(typeof params.maxSeconds === 'number' && Number.isFinite(params.maxSeconds) ? { maxSeconds: params.maxSeconds } : {}),
         materials: params.materials,
+        deleteMediaAfterTranscribe: params.deleteMediaAfterTranscribe,
+        ocrMaterials: params.ocrMaterials,
+        ocrModel: params.ocrModel,
+        ocrForce: params.ocrForce,
+        ...(params.ocrMode ? { ocrMode: params.ocrMode } : {}),
+        ...(params.ocrServiceTier ? { ocrServiceTier: params.ocrServiceTier } : {}),
+        ...(typeof params.ocrRetries === 'number' ? { ocrRetries: params.ocrRetries } : {}),
+        ...(typeof params.ocrTimeoutMs === 'number' ? { ocrTimeoutMs: params.ocrTimeoutMs } : {}),
+        ...(params.geminiApiKey ? { geminiApiKey: params.geminiApiKey } : {}),
         logger: params.logger,
       });
       params.logger.info(`Finished course ${course.courseId}: ${course.title}`);

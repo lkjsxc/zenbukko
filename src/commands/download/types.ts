@@ -5,6 +5,7 @@ export type DownloadCommandParams = {
   outputDir: string;
   courseId: number;
   chapters?: number[];
+  chapterRange?: string;
   lessonIds?: number[];
   maxConcurrency: number;
   firstLectureOnly: boolean;
@@ -19,6 +20,10 @@ export type DownloadCommandParams = {
   ocrMaterials: boolean;
   ocrModel: string;
   ocrForce: boolean;
+  ocrMode?: 'auto' | 'batch' | 'flex';
+  ocrServiceTier?: 'flex' | 'standard';
+  ocrRetries?: number;
+  ocrTimeoutMs?: number;
   geminiApiKey?: string;
   logger: Logger;
 };
