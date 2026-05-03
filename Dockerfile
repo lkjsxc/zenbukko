@@ -53,6 +53,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV PUPPETEER_SKIP_DOWNLOAD=1
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
+# Keep whisper.cpp independent from application source layers. Code, docs, and
+# test edits should not force the expensive C++ build or model download.
+RUN git clone https://github.com/ggerganov/whisper.cpp /app/whisper.cpp \
+  && cmake -S /app/whisper.cpp -B /app/whisper.cpp/build-cpu -DCMAKE_BUILD_TYPE=Release \
+  && cmake --build /app/whisper.cpp/build-cpu -j --config Release \
+  && bash /app/whisper.cpp/models/download-ggml-model.sh "$WHISPER_MODEL"
+
 COPY package.json package-lock.json* ./
 RUN npm ci
 
@@ -60,9 +67,6 @@ COPY tsconfig.json ./
 COPY src ./src
 
 RUN npm run build
-
-# Cache CPU whisper.cpp build + model into image.
-RUN node dist/index.js setup-whisper --backend cpu --model "$WHISPER_MODEL"
 
 COPY eslint.config.js ./
 COPY scripts ./scripts

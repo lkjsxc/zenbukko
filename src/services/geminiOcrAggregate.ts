@@ -18,10 +18,26 @@ export async function writeAggregate(inputDir: string, results: OcrPdfResult[], 
   return aggregatePath;
 }
 
-function normalizeAggregateSection(markdown: string): string {
+export function normalizeAggregateSection(markdown: string): string {
   const lines = markdown.trim().split('\n');
-  const normalized = lines.map((line) => line.replace(/^#(#{0,5})\s+/, '##$1 '));
+  const shift = headingShift(lines);
+  const normalized = lines.map((line) => normalizeHeading(line, shift));
   return collapseAdjacentDuplicateHeadings(normalized).join('\n').trim();
+}
+
+function headingShift(lines: string[]): number {
+  const levels = lines.map((line) => headingLevel(line)).filter((level): level is number => Boolean(level));
+  const minLevel = Math.min(...levels.filter((level) => level > 1));
+  return Number.isFinite(minLevel) && minLevel > 2 ? minLevel - 2 : 0;
+}
+
+function normalizeHeading(line: string, shift: number): string {
+  const match = line.match(/^(#{1,6})\s+(.+)$/);
+  if (!match) return line;
+  const hashes = match[1] ?? '';
+  const text = match[2] ?? '';
+  const level = Math.max(2, Math.min(6, hashes.length - shift));
+  return `${'#'.repeat(level)} ${text.trim()}`;
 }
 
 function collapseAdjacentDuplicateHeadings(lines: string[]): string[] {
@@ -37,6 +53,10 @@ function collapseAdjacentDuplicateHeadings(lines: string[]): string[] {
 
 function headingText(line: string): string | undefined {
   return line.match(/^#{2,6}\s+(.+)$/)?.[1]?.trim();
+}
+
+function headingLevel(line: string): number | undefined {
+  return line.match(/^(#{1,6})\s+/)?.[1]?.length;
 }
 
 function aggregateTitle(inputDir: string): string {

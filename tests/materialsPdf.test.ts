@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import path from 'node:path';
 import { classifyMaterialForPdf, generatedPdfRelativePath } from '../src/services/materials/pdfPlan.js';
 import { pdfFilesFromMaterialsManifest } from '../src/services/geminiOcrDiscovery.js';
+import { normalizeAggregateSection } from '../src/services/geminiOcrAggregate.js';
 import type { MaterialsManifest } from '../src/services/materials/types.js';
 
 test('classifyMaterialForPdf identifies supported normalization inputs', () => {
@@ -35,4 +36,9 @@ test('pdfFilesFromMaterialsManifest prefers asset pdf entries and preserves orde
   };
 
   assert.deepEqual(pdfFilesFromMaterialsManifest(manifest), ['assets/file.pdf', 'pdf/image.pdf']);
+});
+
+test('normalizeAggregateSection keeps slide titles at H2 and sections below them', () => {
+  const markdown = ['### Slide Title', '', '#### Section', '', 'text', '', '# Another Slide'].join('\n');
+  assert.equal(normalizeAggregateSection(markdown), ['## Slide Title', '', '### Section', '', 'text', '', '## Another Slide'].join('\n'));
 });

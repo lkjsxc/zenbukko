@@ -43,4 +43,5 @@ Show how requests move through Zenbukko and where persistent artifacts are writt
 
 - Course chapter folder numbers use one-based full-course chapter order.
 - `1-15` refers to chapter ordinals, not NNN chapter IDs.
+- Chapter range ordinals use the same displayed course order as chapter folder numbers.
 - Explicit chapter IDs remain supported as an advanced path.

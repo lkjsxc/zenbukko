@@ -22,6 +22,17 @@ docker compose run --rm --entrypoint npm zenbukko test
 docker compose --profile gpu build zenbukko-gpu
 ```
 
+## Build Cache
+
+Dockerfiles build and download whisper.cpp before copying application source. Normal TypeScript, docs, and test edits should reuse the whisper layer.
+
+Whisper rebuilds are expected only when these inputs change:
+
+- `WHISPER_MODEL`
+- CPU/GPU Dockerfile commands before the whisper layer
+- GPU build args such as `ZENBUKKO_CMAKE_CUDA_ARCHITECTURES`
+- Docker cache pruning or `--no-cache`
+
 ## Data
 
 The repository `./data` directory is mounted at `/data`. Session, settings, jobs, and downloads should be considered local private data.

@@ -30,6 +30,27 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   ffmpeg \
   && rm -rf /var/lib/apt/lists/*
 
+# Keep whisper.cpp independent from application source layers. Code, docs, and
+# test edits should not force the expensive CPU/CUDA build or model download.
+ENV ZENBUKKO_WHISPER_CUDA=1
+ENV ZENBUKKO_CMAKE_CUDA_ARCHITECTURES=${CMAKE_CUDA_ARCHITECTURES}
+ENV ZENBUKKO_CMAKE_BUILD_PARALLEL_LEVEL=${CMAKE_BUILD_PARALLEL_LEVEL}
+
+# During docker build, the NVIDIA driver library (libcuda.so.1) is not present.
+# Link against CUDA's stub library so the build can succeed; at runtime the
+# real libcuda is provided by the host via NVIDIA Container Toolkit.
+ENV LIBRARY_PATH=/usr/local/cuda/lib64/stubs:${LIBRARY_PATH}
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64/stubs:${LD_LIBRARY_PATH}
+RUN ln -sf /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/libcuda.so \
+  && ln -sf /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/libcuda.so.1
+
+RUN git clone https://github.com/ggerganov/whisper.cpp /app/whisper.cpp \
+  && cmake -S /app/whisper.cpp -B /app/whisper.cpp/build-cpu -DCMAKE_BUILD_TYPE=Release \
+  && cmake --build /app/whisper.cpp/build-cpu --parallel "${CMAKE_BUILD_PARALLEL_LEVEL}" --config Release \
+  && cmake -S /app/whisper.cpp -B /app/whisper.cpp/build-cuda -DCMAKE_BUILD_TYPE=Release -DGGML_CUDA=1 -DCMAKE_CUDA_ARCHITECTURES="${CMAKE_CUDA_ARCHITECTURES}" \
+  && cmake --build /app/whisper.cpp/build-cuda --parallel "${CMAKE_BUILD_PARALLEL_LEVEL}" --config Release \
+  && bash /app/whisper.cpp/models/download-ggml-model.sh "$WHISPER_MODEL"
+
 # Install Node.js from official tarball (keeps us on CUDA base images)
 RUN curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" \
   | tar -xJ -C /usr/local --strip-components=1
@@ -43,21 +64,6 @@ COPY tsconfig.json ./
 COPY src ./src
 
 RUN npm run build
-
-# Build whisper.cpp w/ CUDA and cache the selected model in the image
-ENV ZENBUKKO_WHISPER_CUDA=1
-ENV ZENBUKKO_CMAKE_CUDA_ARCHITECTURES=${CMAKE_CUDA_ARCHITECTURES}
-ENV ZENBUKKO_CMAKE_BUILD_PARALLEL_LEVEL=${CMAKE_BUILD_PARALLEL_LEVEL}
-
-# During docker build, the NVIDIA driver library (libcuda.so.1) is not present.
-# Link against CUDA's stub library so the build can succeed; at runtime the
-# real libcuda is provided by the host via NVIDIA Container Toolkit.
-ENV LIBRARY_PATH=/usr/local/cuda/lib64/stubs:${LIBRARY_PATH}
-ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64/stubs:${LD_LIBRARY_PATH}
-RUN ln -sf /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/libcuda.so \
-  && ln -sf /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/libcuda.so.1
-
-RUN node dist/index.js setup-whisper --backend both --model "$WHISPER_MODEL"
 
 COPY eslint.config.js ./
 COPY scripts ./scripts

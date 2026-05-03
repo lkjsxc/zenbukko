@@ -12,14 +12,28 @@ test('parseChapterRange rejects invalid input', () => {
   assert.throws(() => parseChapterRange('1,,2'), /empty segment/);
 });
 
-test('mapChapterOrdinalsToIds uses one-based course order', () => {
+test('mapChapterOrdinalsToIds uses the provided display order', () => {
   const ids = mapChapterOrdinalsToIds(
     [1, 3],
     [
-      { id: 30, order: 3 },
-      { id: 10, order: 1 },
-      { id: 20, order: 2 },
+      { id: 30 },
+      { id: 10 },
+      { id: 20 },
     ],
   );
-  assert.deepEqual(ids, [10, 30]);
+  assert.deepEqual(ids, [30, 20]);
+});
+
+test('mapChapterOrdinalsToIds does not sort missing order fields by id', () => {
+  const ids = mapChapterOrdinalsToIds(
+    [1, 2, 3, 4, 5],
+    [
+      { id: 1082427383 },
+      { id: 958863356 },
+      { id: 1798471593 },
+      { id: 628108313 },
+      { id: 2117733272 },
+    ],
+  );
+  assert.deepEqual(ids, [1082427383, 958863356, 1798471593, 628108313, 2117733272]);
 });

@@ -26,14 +26,9 @@ export function mapChapterOrdinalsToIds(
   ordinals: number[],
   chapters: Array<{ id: number; order?: number }>,
 ): number[] {
-  const sorted = [...chapters].sort((a, b) => {
-    const ao = a.order ?? Number.MAX_SAFE_INTEGER;
-    const bo = b.order ?? Number.MAX_SAFE_INTEGER;
-    return ao === bo ? a.id - b.id : ao - bo;
-  });
   return ordinals.map((ordinal) => {
-    const chapter = sorted[ordinal - 1];
-    if (!chapter) throw new Error(`Chapter ordinal ${ordinal} is outside course range 1-${sorted.length}.`);
+    const chapter = chapters[ordinal - 1];
+    if (!chapter) throw new Error(`Chapter ordinal ${ordinal} is outside course range 1-${chapters.length}.`);
     return chapter.id;
   });
 }
