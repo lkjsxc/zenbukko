@@ -38,6 +38,7 @@ Show how requests move through Zenbukko and where persistent artifacts are writt
 10. Batch uploads PDFs to the Gemini Files API and sends inline batch requests using file URIs.
 11. Failed Batch items retry through Flex unless Standard is explicitly selected.
 12. Markdown and `materials_ocr_manifest.json` are written next to source materials.
+13. Chapter OCR aggregates concatenate lesson `materials_ocr.md` files under each chapter directory.
 
 ## Invariants
 
@@ -45,3 +46,4 @@ Show how requests move through Zenbukko and where persistent artifacts are writt
 - `1-15` refers to chapter ordinals, not NNN chapter IDs.
 - Chapter range ordinals use the same displayed course order as chapter folder numbers.
 - Explicit chapter IDs remain supported as an advanced path.
+- Chapter OCR and transcript aggregates use the same chapter and lesson order.

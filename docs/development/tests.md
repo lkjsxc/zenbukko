@@ -12,6 +12,7 @@ Cover shared parsing and planning behavior without requiring external services.
 - Web settings precedence.
 - OCR task planning.
 - Markdown normalization.
+- Chapter OCR aggregation and backfill discovery.
 - Line-limit enforcement.
 
 ## Commands

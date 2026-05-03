@@ -12,6 +12,10 @@ Identify persistent and generated paths.
 /data/web/jobs/*.json
 /data/web/jobs/*.log
 /data/downloads/
+  course-<courseId>/
+    <chapterOrdinal>/
+      chapter-<chapterId>_ocr.md
+      chapter-<chapterId>_transcription.md
 ```
 
 ## Repository Paths
@@ -36,6 +40,8 @@ index.html
 *_ocr.md
 materials_ocr.md
 materials_ocr_manifest.json
+chapter-<chapterId>_ocr.md
+chapter-<chapterId>_transcription.md
 ```
 
 ## Invariants

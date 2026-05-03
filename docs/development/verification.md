@@ -12,6 +12,7 @@ docker compose build zenbukko
 docker compose run --rm --entrypoint npm zenbukko run type-check
 docker compose run --rm --entrypoint npm zenbukko run lint
 docker compose run --rm --entrypoint npm zenbukko test
+docker compose run --rm --entrypoint npm zenbukko run check:lines
 docker compose --profile gpu build zenbukko-gpu
 ```
 
@@ -22,6 +23,12 @@ npm run type-check
 npm run lint
 npm test
 npm run check:lines
+```
+
+## Data Backfill
+
+```sh
+docker compose run --rm zenbukko rebuild-chapter-ocr --input /data/downloads
 ```
 
 ## Notes

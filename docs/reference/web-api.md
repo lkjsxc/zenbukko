@@ -22,6 +22,8 @@ Define the local web server contract.
 
 Download requests may include `chapterRange`, `chapters`, `lessonIds`, `ocrMode`, and `ocrServiceTier`. `chapterRange` is resolved before downloader lesson resolution.
 
+Download jobs that run OCR rebuild chapter OCR aggregates after lesson OCR finishes. Standalone OCR jobs rebuild chapter OCR aggregates when their input is inside the standard downloads layout.
+
 ## Failure Behavior
 
 Validation failures return HTTP 400. Missing resources return HTTP 404. Unexpected server failures return HTTP 500 with an error message.

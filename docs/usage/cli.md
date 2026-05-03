@@ -12,6 +12,7 @@ zenbukko list-courses --format table
 zenbukko download --course-id 12345 --chapter-range 1-3 --materials
 zenbukko download-all --materials --ocr-materials
 zenbukko ocr-materials --input /data/downloads/course-12345
+zenbukko rebuild-chapter-ocr --input /data/downloads
 zenbukko setup-whisper --backend auto --model large-v3-turbo
 zenbukko transcribe --input lesson.ts --format txt
 ```
@@ -28,6 +29,10 @@ zenbukko transcribe --input lesson.ts --format txt
 - `--ocr-mode auto|batch|flex` controls OCR planning.
 - `--ocr-service-tier flex|standard` controls synchronous fallback tier.
 - `auto` chooses Batch for multi-PDF/background work and Flex for single/small work and Batch recovery.
+
+## Local Rebuilds
+
+`rebuild-chapter-ocr` scans existing downloaded lesson materials and rewrites `chapter-<chapterId>_ocr.md` files. It does not call Gemini and is the preferred way to backfill chapter OCR after older runs.
 
 ## Failure Behavior
 

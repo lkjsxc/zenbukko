@@ -14,7 +14,8 @@ Define how normalized PDFs become Markdown outputs.
 6. Execute Batch or Flex according to the OCR plan.
 7. Normalize Gemini Markdown responses.
 8. Write one `*_ocr.md` per PDF.
-9. Write `materials_ocr.md` aggregate and `materials_ocr_manifest.json`.
+9. Write lesson-level `materials_ocr.md` and `materials_ocr_manifest.json`.
+10. Rebuild chapter-level `chapter-<chapterId>_ocr.md` when the input is inside a standard course layout.
 
 ## Inputs
 
@@ -25,3 +26,5 @@ Define how normalized PDFs become Markdown outputs.
 ## Failure Behavior
 
 One failed PDF must not erase successful Markdown from other PDFs. The manifest records skipped, written, and failed entries.
+
+Chapter aggregation is best-effort. Missing lesson aggregates are logged and skipped so completed OCR remains usable.
