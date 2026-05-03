@@ -2,7 +2,7 @@
 
 ## Date
 
-May 2, 2026.
+May 3, 2026.
 
 ## Local
 
@@ -10,7 +10,6 @@ May 2, 2026.
 - `npm run lint`: passed.
 - `npm test`: passed.
 - `npm run check:lines`: passed.
-- HTML-to-PDF smoke check through `normalizeMaterialsToPdfs`: passed.
 
 ## Docker
 
@@ -19,7 +18,14 @@ May 2, 2026.
 - `docker compose run --rm --entrypoint npm zenbukko run type-check`: passed.
 - `docker compose run --rm --entrypoint npm zenbukko run lint`: passed.
 - `docker compose run --rm --entrypoint npm zenbukko test`: passed.
+- `docker compose run --rm --entrypoint npm zenbukko run check:lines`: passed.
 - `docker compose --profile gpu build zenbukko-gpu`: passed, including CPU and CUDA whisper.cpp builds and model download.
+
+## Data Backfill
+
+- `docker compose run --rm zenbukko rebuild-chapter-ocr --input /data/downloads`: passed.
+- Wrote 20 ignored local `chapter-<chapterId>_ocr.md` files across the current downloaded data.
+- Sample output uses `## NN lesson-<lessonId>` sections and demoted OCR headings.
 
 ## Not Verified
 
