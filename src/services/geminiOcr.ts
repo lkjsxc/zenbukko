@@ -8,6 +8,7 @@ import { normalizeMarkdown } from './geminiOcrMarkdown.js';
 import { planOcrTasks, type OcrMode, type OcrServiceTier, type OcrTask } from './geminiOcrPlan.js';
 import { refreshMaterialsPdfsInTree } from './materials/refresh.js';
 import { writeAggregate } from './geminiOcrAggregate.js';
+import { rebuildChapterOcr } from './chapterOcr.js';
 
 const MAX_PDF_BYTES = 50 * 1024 * 1024;
 
@@ -73,6 +74,7 @@ export async function ocrMaterialsCommand(params: {
     results,
     aggregatePath,
   });
+  await rebuildChapterOcr({ inputDir, logger: params.logger });
   return { inputDir, pdfs, results, ...(aggregatePath ? { aggregatePath } : {}), manifestPath };
 }
 

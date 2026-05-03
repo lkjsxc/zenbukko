@@ -4,6 +4,7 @@ import { listCoursesCommand } from '../commands/listCourses.js';
 import { setupWhisperCommand } from '../commands/setupWhisper.js';
 import { transcribeCommand } from '../commands/transcribe.js';
 import { ocrMaterialsCommand } from '../services/geminiOcr.js';
+import { rebuildChapterOcr } from '../services/chapterOcr.js';
 import { startWebServer } from '../web/server.js';
 import { headlessFrom, makeContext } from './context.js';
 
@@ -38,6 +39,14 @@ export function registerBasicCommands(program: Command): void {
         timeoutMs: ctx.cfg.ocrTimeoutMs,
         logger: ctx.logger,
       });
+    });
+
+  program.command('rebuild-chapter-ocr')
+    .description('Rebuild chapter OCR Markdown from existing materials_ocr.md files')
+    .requiredOption('--input <path>', 'Downloads, course, chapter, lesson, or materials directory to scan')
+    .action(async (cmd) => {
+      const ctx = makeContext(program);
+      await rebuildChapterOcr({ inputDir: String(cmd.input), logger: ctx.logger });
     });
 
   program.command('web').description('Start the local Docker-friendly web UI').option('--host <host>', 'Bind host', '0.0.0.0').option('--port <port>', 'Bind port', (v) => Number(v)).action(async (cmd) => {

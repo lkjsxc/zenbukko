@@ -5,6 +5,7 @@ import { readTextFileIfExists } from '../../utils/fs.js';
 import { downloadHlsToFile } from '../../downloader/hls.js';
 import { downloadLessonMaterials } from '../../services/materials.js';
 import { ocrMaterialsCommand } from '../../services/geminiOcr.js';
+import { rebuildChapterOcr } from '../../services/chapterOcr.js';
 import { deleteMediaArtifactsAfterTranscript } from '../../services/mediaCleanup.js';
 import { transcribeCommand } from '../transcribe.js';
 import type { CourseLesson } from '../../services/nnnClient.js';
@@ -48,7 +49,10 @@ export async function downloadResolvedLessons(ctx: {
     await processMediaItem(item);
     downloaded.push({ lesson: item.lesson, outFilePath: item.outFilePath });
   }
-  if (ctx.params.ocrMaterials) await ocrAllMaterials(ctx.params, materialsDirs);
+  if (ctx.params.ocrMaterials) {
+    await ocrAllMaterials(ctx.params, materialsDirs);
+    await rebuildChapterOcr({ inputDir: ctx.courseDir, logger: ctx.params.logger });
+  }
   return downloaded;
 }
 
