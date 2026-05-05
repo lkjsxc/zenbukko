@@ -1,4 +1,5 @@
 const $ = (id) => document.getElementById(id);
+const DEFAULT_GEMINI_MODEL = 'gemini-3.1-flash-lite';
 let eventSource;
 
 async function api(path, options) {
@@ -22,7 +23,7 @@ async function loadSettings() {
   const data = await api('/api/settings');
   const s = data.settings || {};
   $('geminiApiKey').value = s.geminiApiKey || '';
-  $('geminiModel').value = s.geminiModel || 'gemini-3-flash-preview';
+  $('geminiModel').value = s.geminiModel || DEFAULT_GEMINI_MODEL;
   $('ocrMode').value = s.ocrMode || 'auto';
   $('ocrServiceTier').value = s.ocrServiceTier || 'flex';
   $('chapterRange').value = s.chapterRange || '';

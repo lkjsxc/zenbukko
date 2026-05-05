@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import { buildSessionPrefill, parseStoredSession } from '../src/session/sessionStore.js';
 import { mergeWebSettings } from '../src/web/settings.js';
 import { normalizeJobRequest } from '../src/web/requests.js';
+import { DEFAULT_GEMINI_MODEL } from '../src/geminiDefaults.js';
 import type { AppConfig } from '../src/config.js';
 
 const cfg: AppConfig = {
@@ -66,4 +67,11 @@ test('normalizeJobRequest preserves standalone OCR settings without secrets', ()
     ocrRetries: 7,
     ocrTimeoutMs: 456,
   });
+});
+
+test('normalizeJobRequest uses the default Gemini model when OCR model is omitted', () => {
+  const request = normalizeJobRequest('ocr-materials', {
+    inputDir: '/data/downloads/materials',
+  });
+  assert.equal(request.ocrModel, DEFAULT_GEMINI_MODEL);
 });

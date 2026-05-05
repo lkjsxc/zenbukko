@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import path from 'node:path';
 import { z } from 'zod';
+import { DEFAULT_GEMINI_MODEL } from './geminiDefaults.js';
 import { getDefaultSessionPath } from './utils/paths.js';
 
 dotenv.config();
@@ -52,7 +53,7 @@ export function loadConfig(): AppConfig {
   const outputDir = env.OUTPUT_DIR ? path.resolve(env.OUTPUT_DIR) : path.resolve('data', 'downloads');
   const logLevel = env.LOG_LEVEL ?? 'info';
   const puppeteerHeadless = env.PUPPETEER_HEADLESS ?? false;
-  const geminiModel = env.GEMINI_MODEL ?? 'gemini-3-flash-preview';
+  const geminiModel = env.GEMINI_MODEL ?? DEFAULT_GEMINI_MODEL;
   const ocrMode = env.ZENBUKKO_OCR_MODE ?? 'auto';
   const ocrServiceTier = env.ZENBUKKO_OCR_SERVICE_TIER ?? 'flex';
   const ocrRetries = env.ZENBUKKO_OCR_RETRIES ?? 3;

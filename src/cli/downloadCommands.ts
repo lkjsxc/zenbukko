@@ -1,6 +1,7 @@
 import type { Command } from 'commander';
 import { downloadCommand } from '../commands/download.js';
 import { downloadAllCommand } from '../commands/downloadAll.js';
+import { DEFAULT_GEMINI_MODEL } from '../geminiDefaults.js';
 import { addRepeatedNumber, headlessFrom, makeContext } from './context.js';
 
 export function registerDownloadCommands(program: Command): void {
@@ -41,7 +42,7 @@ function addDownloadOptions(command: Command): Command {
     .option('--materials', 'Download lesson materials', false)
     .option('--delete-media-after-transcribe', 'Delete media after usable transcript exists', false)
     .option('--ocr-materials', 'Run Gemini PDF OCR for downloaded lesson materials', false)
-    .option('--ocr-model <name>', 'Gemini model name for PDF OCR', 'gemini-3-flash-preview')
+    .option('--ocr-model <name>', 'Gemini model name for PDF OCR', DEFAULT_GEMINI_MODEL)
     .option('--ocr-force', 'Re-run Gemini PDF OCR even when markdown output already exists', false)
     .option('--ocr-mode <mode>', 'auto|batch|flex', 'auto')
     .option('--ocr-service-tier <tier>', 'flex|standard', 'flex');

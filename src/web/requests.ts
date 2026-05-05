@@ -1,11 +1,12 @@
 import type { JobKind } from './types.js';
+import { DEFAULT_GEMINI_MODEL } from '../geminiDefaults.js';
 import { booleanFrom, csvNumbers, numberFrom, stringFrom } from './requestUtils.js';
 
 export function normalizeJobRequest(kind: JobKind, body: Record<string, unknown>): Record<string, unknown> {
   if (kind === 'ocr-materials') {
     return {
       inputDir: stringFrom(body.inputDir, ''),
-      ocrModel: stringFrom(body.ocrModel, 'gemini-3-flash-preview'),
+      ocrModel: stringFrom(body.ocrModel, DEFAULT_GEMINI_MODEL),
       ocrForce: booleanFrom(body.ocrForce, false),
       ocrMode: stringFrom(body.ocrMode, 'auto'),
       ocrServiceTier: stringFrom(body.ocrServiceTier, 'flex'),
@@ -27,7 +28,7 @@ export function normalizeJobRequest(kind: JobKind, body: Record<string, unknown>
     materials: booleanFrom(body.materials, false),
     deleteMediaAfterTranscribe: booleanFrom(body.deleteMediaAfterTranscribe, true),
     ocrMaterials: booleanFrom(body.ocrMaterials, false),
-    ocrModel: stringFrom(body.ocrModel, 'gemini-3-flash-preview'),
+    ocrModel: stringFrom(body.ocrModel, DEFAULT_GEMINI_MODEL),
     ocrForce: booleanFrom(body.ocrForce, false),
     ocrMode: stringFrom(body.ocrMode, 'auto'),
     ocrServiceTier: stringFrom(body.ocrServiceTier, 'flex'),

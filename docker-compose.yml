@@ -14,7 +14,7 @@ services:
       OUTPUT_DIR: /data/downloads
       PUPPETEER_HEADLESS: "true"
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3-flash-preview}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-flash-lite}
 
   zenbukko-web:
     build:
@@ -35,7 +35,7 @@ services:
       PUPPETEER_HEADLESS: "true"
       WEB_PORT: "8787"
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3-flash-preview}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-flash-lite}
 
   zenbukko-gpu:
     profiles: ["gpu"]
@@ -55,7 +55,7 @@ services:
       OUTPUT_DIR: /data/downloads
       PUPPETEER_HEADLESS: "true"
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3-flash-preview}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-flash-lite}
 
       # NVIDIA Container Toolkit settings
       NVIDIA_VISIBLE_DEVICES: all
@@ -101,7 +101,7 @@ services:
       PUPPETEER_HEADLESS: "true"
       WEB_PORT: "8787"
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3-flash-preview}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-flash-lite}
       NVIDIA_VISIBLE_DEVICES: all
       NVIDIA_DRIVER_CAPABILITIES: compute,utility,video
       ZENBUKKO_WHISPER_CUDA: "1"

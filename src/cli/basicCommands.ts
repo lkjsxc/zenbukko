@@ -3,6 +3,7 @@ import { authCommand } from '../commands/auth.js';
 import { listCoursesCommand } from '../commands/listCourses.js';
 import { setupWhisperCommand } from '../commands/setupWhisper.js';
 import { transcribeCommand } from '../commands/transcribe.js';
+import { DEFAULT_GEMINI_MODEL } from '../geminiDefaults.js';
 import { ocrMaterialsCommand } from '../services/geminiOcr.js';
 import { rebuildChapterOcr } from '../services/chapterOcr.js';
 import { startWebServer } from '../web/server.js';
@@ -22,7 +23,7 @@ export function registerBasicCommands(program: Command): void {
   program.command('ocr-materials')
     .description('Run Gemini PDF OCR for downloaded lesson materials')
     .requiredOption('--input <path>', 'Downloads, course, lesson, or materials directory to scan for PDFs')
-    .option('--model <name>', 'Gemini model name', 'gemini-3-flash-preview')
+    .option('--model <name>', 'Gemini model name', DEFAULT_GEMINI_MODEL)
     .option('--force', 'Re-run OCR even when markdown output already exists', false)
     .option('--ocr-mode <mode>', 'auto|batch|flex', 'auto')
     .option('--ocr-service-tier <tier>', 'flex|standard', 'flex')

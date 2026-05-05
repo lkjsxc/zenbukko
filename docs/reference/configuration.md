@@ -12,7 +12,7 @@ Document environment variables and browser settings precedence.
 - `PUPPETEER_HEADLESS`: `true|false`.
 - `WEB_PORT`: default web port.
 - `GEMINI_API_KEY`: Gemini key.
-- `GEMINI_MODEL`: default `gemini-3-flash-preview`.
+- `GEMINI_MODEL`: default `gemini-3.1-flash-lite`.
 - `ZENBUKKO_WHISPER_BACKEND`: `auto|cpu|cuda`.
 
 ## Web Settings

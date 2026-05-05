@@ -7,7 +7,7 @@ Browser settings persist operator preferences under `/data/web/settings.json`.
 ## Fields
 
 - `geminiApiKey`: optional Gemini key.
-- `geminiModel`: Gemini OCR model, default `gemini-3-flash-preview`.
+- `geminiModel`: Gemini OCR model, default `gemini-3.1-flash-lite`.
 - `ocrMode`: `auto`, `batch`, or `flex`.
 - `ocrServiceTier`: `flex` or `standard`.
 - `chapterRange`: one-based chapter ordinal range expression.
