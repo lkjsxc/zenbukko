@@ -14,7 +14,9 @@ Browser settings persist operator preferences under `/data/web/settings.json`.
 - `chapterRange`: one-based chapter ordinal range expression.
 - `ocrRetries`: retry count for Flex recovery.
 - `ocrTimeoutMs`: timeout for Gemini OCR calls.
+- `ndlocrCommand`, `ndlocrDevice`, `ocrPageDpi`, `ocrKeepIntermediates`, `ndlocrEnableTcy`: local OCR knobs.
 
 ## Precedence
 
 Web settings override environment variables. Environment variables override built-in defaults.
+- Request normalization also defaults omitted fields to safe local values (`ocrBackend=local`, local executable settings, and defaults for local OCR flags).

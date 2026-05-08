@@ -63,7 +63,7 @@ export async function scrapeMyCoursesDetailed(params: {
 
     // Puppeteer requires a URL for cookies that don't specify domain.
     await page.goto('https://www.nnn.ed.nico/', { waitUntil: 'domcontentloaded' });
-    // @ts-expect-error puppeteer cookie typing varies by version
+    // @ts-expect-error puppeteer cookie typing differs across supported installs
     await page.setCookie(...cookies);
 
     const baseUrl = 'https://www.nnn.ed.nico/my_course';

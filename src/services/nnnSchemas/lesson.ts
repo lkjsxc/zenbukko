@@ -9,7 +9,7 @@ const PartSchema = z.object({
   references: z.array(RefSchema).optional(),
 });
 
-const LessonV1LegacySchema = z.object({
+const LessonDataSchema = z.object({
   data: z.object({
     video_url: z.string().url(),
     title: z.string().optional(),
@@ -30,12 +30,12 @@ const LessonV1CurrentSchema = z.object({
 });
 
 export function parseLessonV1(input: unknown): NormalizedLessonV1 {
-  const legacy = LessonV1LegacySchema.safeParse(input);
-  if (legacy.success) {
+  const dataEnvelope = LessonDataSchema.safeParse(input);
+  if (dataEnvelope.success) {
     return {
-      ...(legacy.data.data.title ? { title: legacy.data.data.title } : {}),
-      videoUrl: legacy.data.data.video_url,
-      references: normalizeRefs(legacy.data.data.references ?? []),
+      ...(dataEnvelope.data.data.title ? { title: dataEnvelope.data.data.title } : {}),
+      videoUrl: dataEnvelope.data.data.video_url,
+      references: normalizeRefs(dataEnvelope.data.data.references ?? []),
     };
   }
 

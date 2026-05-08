@@ -10,7 +10,6 @@ import { deleteMediaArtifactsAfterTranscript } from '../../services/mediaCleanup
 import { transcribeCommand } from '../transcribe.js';
 import type { CourseLesson } from '../../services/nnnClient.js';
 import type { DownloadCommandParams } from './types.js';
-import { migrateLegacyChapterDir } from './legacyDirs.js';
 import type { ChapterMarkdown } from './chapterMarkdown.js';
 
 export async function downloadResolvedLessons(ctx: {
@@ -24,15 +23,9 @@ export async function downloadResolvedLessons(ctx: {
   const downloaded: Array<{ lesson: CourseLesson; outFilePath: string }> = [];
   const workItems: WorkItem[] = [];
   const chapterLessonIndex = new Map<number, number>();
-  const migratedChapters = new Set<number>();
 
   for (const lesson of ctx.lessons) {
     const chapterDirName = ctx.chapterDirNameForId(lesson.chapterId);
-    if (!migratedChapters.has(lesson.chapterId)) {
-      migratedChapters.add(lesson.chapterId);
-      await migrateLegacyChapterDir({ courseDir: ctx.courseDir, chapterId: lesson.chapterId, chapterDirName, logger: ctx.params.logger });
-    }
-
     const lessonIndex = (chapterLessonIndex.get(lesson.chapterId) ?? 0) + 1;
     chapterLessonIndex.set(lesson.chapterId, lessonIndex);
     const lessonDir = path.join(ctx.courseDir, chapterDirName, String(lessonIndex).padStart(2, '0'));
@@ -136,6 +129,7 @@ async function ocrAllMaterials(params: DownloadCommandParams, materialsDirs: str
   for (const materialsDir of materialsDirs) {
     await ocrMaterialsCommand({
       inputDir: materialsDir,
+      backend: params.ocrBackend,
       ...(params.geminiApiKey ? { apiKey: params.geminiApiKey } : {}),
       model: params.ocrModel,
       force: params.ocrForce,
@@ -143,6 +137,11 @@ async function ocrAllMaterials(params: DownloadCommandParams, materialsDirs: str
       ...(params.ocrServiceTier ? { serviceTier: params.ocrServiceTier } : {}),
       ...(typeof params.ocrRetries === 'number' ? { retries: params.ocrRetries } : {}),
       ...(typeof params.ocrTimeoutMs === 'number' ? { timeoutMs: params.ocrTimeoutMs } : {}),
+      ndlocrCommand: params.ndlocrCommand,
+      ndlocrDevice: params.ndlocrDevice,
+      ocrPageDpi: params.ocrPageDpi,
+      ocrKeepIntermediates: params.ocrKeepIntermediates,
+      ndlocrEnableTcy: params.ndlocrEnableTcy,
       logger: params.logger,
     });
   }

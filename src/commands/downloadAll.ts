@@ -18,12 +18,18 @@ export async function downloadAllCommand(params: {
   chapterRange?: string;
   deleteMediaAfterTranscribe: boolean;
   ocrMaterials: boolean;
+  ocrBackend: 'local' | 'gemini';
   ocrModel: string;
   ocrForce: boolean;
   ocrMode?: 'auto' | 'batch' | 'flex';
   ocrServiceTier?: 'flex' | 'standard';
   ocrRetries?: number;
   ocrTimeoutMs?: number;
+  ndlocrCommand: string;
+  ndlocrDevice: 'cpu' | 'cuda';
+  ocrPageDpi: number;
+  ocrKeepIntermediates: boolean;
+  ndlocrEnableTcy: boolean;
   geminiApiKey?: string;
   logger: Logger;
 }): Promise<void> {
@@ -79,12 +85,18 @@ export async function downloadAllCommand(params: {
         materials: params.materials,
         deleteMediaAfterTranscribe: params.deleteMediaAfterTranscribe,
         ocrMaterials: params.ocrMaterials,
+        ocrBackend: params.ocrBackend,
         ocrModel: params.ocrModel,
         ocrForce: params.ocrForce,
         ...(params.ocrMode ? { ocrMode: params.ocrMode } : {}),
         ...(params.ocrServiceTier ? { ocrServiceTier: params.ocrServiceTier } : {}),
         ...(typeof params.ocrRetries === 'number' ? { ocrRetries: params.ocrRetries } : {}),
         ...(typeof params.ocrTimeoutMs === 'number' ? { ocrTimeoutMs: params.ocrTimeoutMs } : {}),
+        ndlocrCommand: params.ndlocrCommand,
+        ndlocrDevice: params.ndlocrDevice,
+        ocrPageDpi: params.ocrPageDpi,
+        ocrKeepIntermediates: params.ocrKeepIntermediates,
+        ndlocrEnableTcy: params.ndlocrEnableTcy,
         ...(params.geminiApiKey ? { geminiApiKey: params.geminiApiKey } : {}),
         logger: params.logger,
       });

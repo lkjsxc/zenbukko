@@ -41,11 +41,17 @@ function addDownloadOptions(command: Command): Command {
     .option('--max-seconds <n>', 'Only transcribe the first N seconds', (v) => Number(v))
     .option('--materials', 'Download lesson materials', false)
     .option('--delete-media-after-transcribe', 'Delete media after usable transcript exists', false)
-    .option('--ocr-materials', 'Run Gemini PDF OCR for downloaded lesson materials', false)
+    .option('--ocr-materials', 'Run PDF OCR for downloaded lesson materials', false)
+    .option('--ocr-backend <backend>', 'local|gemini', 'local')
     .option('--ocr-model <name>', 'Gemini model name for PDF OCR', DEFAULT_GEMINI_MODEL)
     .option('--ocr-force', 'Re-run Gemini PDF OCR even when markdown output already exists', false)
     .option('--ocr-mode <mode>', 'auto|batch|flex', 'auto')
-    .option('--ocr-service-tier <tier>', 'flex|standard', 'flex');
+    .option('--ocr-service-tier <tier>', 'flex|standard', 'flex')
+    .option('--ndlocr-command <path>', 'NDLOCR-Lite executable', 'ndlocr-lite')
+    .option('--ndlocr-device <device>', 'cpu|cuda', 'cpu')
+    .option('--ocr-page-dpi <n>', 'PDF rasterization DPI for local OCR', (v) => Number(v), 200)
+    .option('--ocr-keep-intermediates', 'Keep local OCR page images and raw output', false)
+    .option('--ndlocr-enable-tcy', 'Enable NDLOCR-Lite tate-chu-yoko handling', false);
 }
 
 function downloadCommon(ctx: ReturnType<typeof makeContext>, cmd: Record<string, unknown>) {
@@ -59,12 +65,18 @@ function downloadCommon(ctx: ReturnType<typeof makeContext>, cmd: Record<string,
     materials: Boolean(cmd.materials) || Boolean(cmd.ocrMaterials),
     deleteMediaAfterTranscribe: Boolean(cmd.deleteMediaAfterTranscribe),
     ocrMaterials: Boolean(cmd.ocrMaterials),
+    ocrBackend: backendFrom(cmd.ocrBackend, ctx.cfg.ocrBackend),
     ocrModel: String(cmd.ocrModel ?? ctx.cfg.geminiModel),
     ocrForce: Boolean(cmd.ocrForce),
     ocrMode: modeFrom(cmd.ocrMode, ctx.cfg.ocrMode),
     ocrServiceTier: tierFrom(cmd.ocrServiceTier, ctx.cfg.ocrServiceTier),
     ocrRetries: ctx.cfg.ocrRetries,
     ocrTimeoutMs: ctx.cfg.ocrTimeoutMs,
+    ndlocrCommand: typeof cmd.ndlocrCommand === 'string' && cmd.ndlocrCommand.trim() ? cmd.ndlocrCommand.trim() : ctx.cfg.ndlocrCommand,
+    ndlocrDevice: deviceFrom(cmd.ndlocrDevice, ctx.cfg.ndlocrDevice),
+    ocrPageDpi: numberOption(cmd.ocrPageDpi, ctx.cfg.ocrPageDpi),
+    ocrKeepIntermediates: Boolean(cmd.ocrKeepIntermediates) || ctx.cfg.ocrKeepIntermediates,
+    ndlocrEnableTcy: Boolean(cmd.ndlocrEnableTcy) || ctx.cfg.ndlocrEnableTcy,
     logger: ctx.logger,
   };
   return {
@@ -87,4 +99,16 @@ function modeFrom(value: unknown, fallback: 'auto' | 'batch' | 'flex'): 'auto' |
 
 function tierFrom(value: unknown, fallback: 'flex' | 'standard'): 'flex' | 'standard' {
   return value === 'flex' || value === 'standard' ? value : fallback;
+}
+
+function backendFrom(value: unknown, fallback: 'local' | 'gemini'): 'local' | 'gemini' {
+  return value === 'local' || value === 'gemini' ? value : fallback;
+}
+
+function deviceFrom(value: unknown, fallback: 'cpu' | 'cuda'): 'cpu' | 'cuda' {
+  return value === 'cpu' || value === 'cuda' ? value : fallback;
+}
+
+function numberOption(value: unknown, fallback: number): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
 }

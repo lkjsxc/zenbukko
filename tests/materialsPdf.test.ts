@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import fs from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { classifyMaterialForPdf, generatedPdfRelativePath } from '../src/services/materials/pdfPlan.js';
-import { pdfFilesFromMaterialsManifest } from '../src/services/geminiOcrDiscovery.js';
+import { discoverPdfFiles, pdfFilesFromMaterialsManifest } from '../src/services/ocr/discovery.js';
 import { normalizeAggregateSection } from '../src/services/geminiOcrAggregate.js';
 import type { MaterialsManifest } from '../src/services/materials/types.js';
 
@@ -36,6 +38,24 @@ test('pdfFilesFromMaterialsManifest prefers asset pdf entries and preserves orde
   };
 
   assert.deepEqual(pdfFilesFromMaterialsManifest(manifest), ['assets/file.pdf', 'pdf/image.pdf']);
+});
+
+test('discoverPdfFiles falls back to recursive PDF discovery when manifest is malformed', async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'zenbukko-bad-manifest-'));
+  await fs.mkdir(path.join(root, 'nested'), { recursive: true });
+  const badManifest = path.join(root, 'materials_manifest.json');
+  const topPdf = path.join(root, 'root.pdf');
+  const nestedPdf = path.join(root, 'nested', 'nested.pdf');
+  await fs.writeFile(badManifest, '{not-json', 'utf8');
+  await fs.writeFile(topPdf, 'pdf');
+  await fs.writeFile(nestedPdf, 'pdf');
+
+  const warnings: string[] = [];
+  const files = await discoverPdfFiles(root, { warn: (message) => warnings.push(message) });
+
+  assert.deepEqual(files, [topPdf, nestedPdf].sort());
+  assert.equal(warnings.length, 1);
+  assert.match(warnings[0], /Skipping malformed materials manifest: .*materials_manifest\.json/);
 });
 
 test('normalizeAggregateSection keeps slide titles at H2 and sections below them', () => {

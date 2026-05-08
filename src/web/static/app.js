@@ -24,8 +24,14 @@ async function loadSettings() {
   const s = data.settings || {};
   $('geminiApiKey').value = s.geminiApiKey || '';
   $('geminiModel').value = s.geminiModel || DEFAULT_GEMINI_MODEL;
+  $('ocrBackend').value = s.ocrBackend || 'local';
   $('ocrMode').value = s.ocrMode || 'auto';
   $('ocrServiceTier').value = s.ocrServiceTier || 'flex';
+  $('ndlocrCommand').value = s.ndlocrCommand || 'ndlocr-lite';
+  $('ndlocrDevice').value = s.ndlocrDevice || 'cpu';
+  $('ocrPageDpi').value = s.ocrPageDpi || 200;
+  $('ocrKeepIntermediates').checked = Boolean(s.ocrKeepIntermediates);
+  $('ndlocrEnableTcy').checked = Boolean(s.ndlocrEnableTcy);
   $('chapterRange').value = s.chapterRange || '';
 }
 
@@ -103,9 +109,15 @@ function collectDownload() {
 
 function collectSettings(includeSecret) {
   const settings = {
+    ocrBackend: $('ocrBackend').value,
     geminiModel: $('geminiModel').value,
     ocrMode: $('ocrMode').value,
     ocrServiceTier: $('ocrServiceTier').value,
+    ndlocrCommand: $('ndlocrCommand').value,
+    ndlocrDevice: $('ndlocrDevice').value,
+    ocrPageDpi: Number($('ocrPageDpi').value || 200),
+    ocrKeepIntermediates: $('ocrKeepIntermediates').checked,
+    ndlocrEnableTcy: $('ndlocrEnableTcy').checked,
     chapterRange: $('chapterRange').value,
   };
   if (includeSecret) settings.geminiApiKey = $('geminiApiKey').value;

@@ -2,7 +2,7 @@ import path from 'node:path';
 import fs from 'node:fs/promises';
 import { ensureDir, safeBasename } from '../utils/fs.js';
 import { downloadUrlToFile } from '../downloader/httpFile.js';
-import { candidateMaterialUrls, legacyAssetFilename, stableAssetFilename } from './materials/assets.js';
+import { candidateMaterialUrls, stableAssetFilename } from './materials/assets.js';
 import { renderMaterialsIndexHtml } from './materials/indexHtml.js';
 import { normalizeMaterialsToPdfs } from './materials/pdf.js';
 import type { MaterialsManifest } from './materials/types.js';
@@ -39,12 +39,9 @@ export async function downloadLessonMaterials(params: {
     for (const fileUrlStr of candidates) {
       const fileUrl = new URL(fileUrlStr, pageUrl);
       const stablePath = path.join(assetsDir, stableAssetFilename(fileUrl));
-      const legacyPath = path.join(params.outDir, legacyAssetFilename(fileUrl));
-      const existing = await existingAssetPath(stablePath, legacyPath);
-      if (existing) {
-        const layout = existing === legacyPath ? ' (legacy layout)' : '';
-        params.logger.info(`Material exists${layout}, reusing: ${existing}`);
-        addAsset(manifest, pageUrl, fileUrl, params.outDir, existing);
+      if (await hasFile(stablePath)) {
+        params.logger.info(`Material exists, reusing: ${stablePath}`);
+        addAsset(manifest, pageUrl, fileUrl, params.outDir, stablePath);
         continue;
       }
 
@@ -83,12 +80,6 @@ async function fetchReferencePage(
     params.logger.warn(`Materials page fetch failed: ${pageUrl} (${e instanceof Error ? e.message : String(e)})`);
     return undefined;
   }
-}
-
-async function existingAssetPath(stablePath: string, legacyPath: string): Promise<string | undefined> {
-  if (await hasFile(stablePath)) return stablePath;
-  if (await hasFile(legacyPath)) return legacyPath;
-  return undefined;
 }
 
 async function hasFile(filePath: string): Promise<boolean> {

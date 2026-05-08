@@ -7,11 +7,17 @@ import { ensureDir, readTextFileIfExists } from '../utils/fs.js';
 const SettingsSchema = z.object({
   geminiApiKey: z.string().optional(),
   geminiModel: z.string().optional(),
+  ocrBackend: z.enum(['local', 'gemini']).optional(),
   ocrMode: z.enum(['auto', 'batch', 'flex']).optional(),
   ocrServiceTier: z.enum(['flex', 'standard']).optional(),
   chapterRange: z.string().optional(),
   ocrRetries: z.number().int().min(0).optional(),
   ocrTimeoutMs: z.number().int().min(1).optional(),
+  ndlocrCommand: z.string().optional(),
+  ndlocrDevice: z.enum(['cpu', 'cuda']).optional(),
+  ocrPageDpi: z.number().int().min(72).max(600).optional(),
+  ocrKeepIntermediates: z.boolean().optional(),
+  ndlocrEnableTcy: z.boolean().optional(),
 });
 
 export type WebSettings = z.infer<typeof SettingsSchema>;
@@ -19,11 +25,17 @@ export type WebSettings = z.infer<typeof SettingsSchema>;
 export type EffectiveWebSettings = {
   geminiApiKey: string;
   geminiModel: string;
+  ocrBackend: 'local' | 'gemini';
   ocrMode: 'auto' | 'batch' | 'flex';
   ocrServiceTier: 'flex' | 'standard';
   chapterRange: string;
   ocrRetries: number;
   ocrTimeoutMs: number;
+  ndlocrCommand: string;
+  ndlocrDevice: 'cpu' | 'cuda';
+  ocrPageDpi: number;
+  ocrKeepIntermediates: boolean;
+  ndlocrEnableTcy: boolean;
 };
 
 export async function loadWebSettings(webDir: string): Promise<WebSettings> {
@@ -47,11 +59,17 @@ export function mergeWebSettings(cfg: AppConfig, saved: WebSettings): EffectiveW
   return {
     geminiApiKey: saved.geminiApiKey?.trim() || cfg.geminiApiKey || '',
     geminiModel: saved.geminiModel?.trim() || cfg.geminiModel,
+    ocrBackend: saved.ocrBackend ?? cfg.ocrBackend,
     ocrMode: saved.ocrMode ?? cfg.ocrMode,
     ocrServiceTier: saved.ocrServiceTier ?? cfg.ocrServiceTier,
     chapterRange: saved.chapterRange?.trim() || '',
     ocrRetries: saved.ocrRetries ?? cfg.ocrRetries,
     ocrTimeoutMs: saved.ocrTimeoutMs ?? cfg.ocrTimeoutMs,
+    ndlocrCommand: saved.ndlocrCommand?.trim() || cfg.ndlocrCommand,
+    ndlocrDevice: saved.ndlocrDevice ?? cfg.ndlocrDevice,
+    ocrPageDpi: saved.ocrPageDpi ?? cfg.ocrPageDpi,
+    ocrKeepIntermediates: saved.ocrKeepIntermediates ?? cfg.ocrKeepIntermediates,
+    ndlocrEnableTcy: saved.ndlocrEnableTcy ?? cfg.ndlocrEnableTcy,
   };
 }
 

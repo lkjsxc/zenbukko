@@ -6,12 +6,18 @@ export function normalizeJobRequest(kind: JobKind, body: Record<string, unknown>
   if (kind === 'ocr-materials') {
     return {
       inputDir: stringFrom(body.inputDir, ''),
+      ocrBackend: stringFrom(body.ocrBackend, 'local'),
       ocrModel: stringFrom(body.ocrModel, DEFAULT_GEMINI_MODEL),
       ocrForce: booleanFrom(body.ocrForce, false),
       ocrMode: stringFrom(body.ocrMode, 'auto'),
       ocrServiceTier: stringFrom(body.ocrServiceTier, 'flex'),
       ocrRetries: numberFrom(body.ocrRetries, 3),
       ocrTimeoutMs: numberFrom(body.ocrTimeoutMs, 900_000),
+      ndlocrCommand: stringFrom(body.ndlocrCommand, 'ndlocr-lite'),
+      ndlocrDevice: stringFrom(body.ndlocrDevice, 'cpu'),
+      ocrPageDpi: numberFrom(body.ocrPageDpi, 200),
+      ocrKeepIntermediates: booleanFrom(body.ocrKeepIntermediates, false),
+      ndlocrEnableTcy: booleanFrom(body.ndlocrEnableTcy, false),
     };
   }
 
@@ -28,12 +34,18 @@ export function normalizeJobRequest(kind: JobKind, body: Record<string, unknown>
     materials: booleanFrom(body.materials, false),
     deleteMediaAfterTranscribe: booleanFrom(body.deleteMediaAfterTranscribe, true),
     ocrMaterials: booleanFrom(body.ocrMaterials, false),
+    ocrBackend: stringFrom(body.ocrBackend, 'local'),
     ocrModel: stringFrom(body.ocrModel, DEFAULT_GEMINI_MODEL),
     ocrForce: booleanFrom(body.ocrForce, false),
     ocrMode: stringFrom(body.ocrMode, 'auto'),
     ocrServiceTier: stringFrom(body.ocrServiceTier, 'flex'),
     ocrRetries: numberFrom(body.ocrRetries, 3),
     ocrTimeoutMs: numberFrom(body.ocrTimeoutMs, 900_000),
+    ndlocrCommand: stringFrom(body.ndlocrCommand, 'ndlocr-lite'),
+    ndlocrDevice: stringFrom(body.ndlocrDevice, 'cpu'),
+    ocrPageDpi: numberFrom(body.ocrPageDpi, 200),
+    ocrKeepIntermediates: booleanFrom(body.ocrKeepIntermediates, false),
+    ndlocrEnableTcy: booleanFrom(body.ndlocrEnableTcy, false),
   };
 
   if (kind === 'download-all') return common;

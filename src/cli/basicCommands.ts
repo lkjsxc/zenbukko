@@ -21,16 +21,23 @@ export function registerBasicCommands(program: Command): void {
   });
 
   program.command('ocr-materials')
-    .description('Run Gemini PDF OCR for downloaded lesson materials')
+    .description('Run PDF OCR for downloaded lesson materials')
     .requiredOption('--input <path>', 'Downloads, course, lesson, or materials directory to scan for PDFs')
+    .option('--ocr-backend <backend>', 'local|gemini', 'local')
     .option('--model <name>', 'Gemini model name', DEFAULT_GEMINI_MODEL)
     .option('--force', 'Re-run OCR even when markdown output already exists', false)
     .option('--ocr-mode <mode>', 'auto|batch|flex', 'auto')
     .option('--ocr-service-tier <tier>', 'flex|standard', 'flex')
+    .option('--ndlocr-command <path>', 'NDLOCR-Lite executable', 'ndlocr-lite')
+    .option('--ndlocr-device <device>', 'cpu|cuda', 'cpu')
+    .option('--ocr-page-dpi <n>', 'PDF rasterization DPI for local OCR', (v) => Number(v), 200)
+    .option('--ocr-keep-intermediates', 'Keep local OCR page images and raw output', false)
+    .option('--ndlocr-enable-tcy', 'Enable NDLOCR-Lite tate-chu-yoko handling', false)
     .action(async (cmd) => {
       const ctx = makeContext(program);
       await ocrMaterialsCommand({
         inputDir: String(cmd.input),
+        backend: backendFrom(cmd.ocrBackend, ctx.cfg.ocrBackend),
         ...(ctx.cfg.geminiApiKey ? { apiKey: ctx.cfg.geminiApiKey } : {}),
         model: String(cmd.model ?? ctx.cfg.geminiModel),
         force: Boolean(cmd.force),
@@ -38,6 +45,11 @@ export function registerBasicCommands(program: Command): void {
         serviceTier: tierFrom(cmd.ocrServiceTier, ctx.cfg.ocrServiceTier),
         retries: ctx.cfg.ocrRetries,
         timeoutMs: ctx.cfg.ocrTimeoutMs,
+        ndlocrCommand: stringOption(cmd.ndlocrCommand, ctx.cfg.ndlocrCommand),
+        ndlocrDevice: deviceFrom(cmd.ndlocrDevice, ctx.cfg.ndlocrDevice),
+        ocrPageDpi: numberOption(cmd.ocrPageDpi, ctx.cfg.ocrPageDpi),
+        ocrKeepIntermediates: Boolean(cmd.ocrKeepIntermediates) || ctx.cfg.ocrKeepIntermediates,
+        ndlocrEnableTcy: Boolean(cmd.ndlocrEnableTcy) || ctx.cfg.ndlocrEnableTcy,
         logger: ctx.logger,
       });
     });
@@ -67,7 +79,7 @@ export function registerBasicCommands(program: Command): void {
     .option('--force', 'Reinstall whisper.cpp even if it already exists', false)
     .action(async (cmd) => {
       const ctx = makeContext(program);
-      await setupWhisperCommand({ logger: ctx.logger, model: String(cmd.model ?? 'base'), backend: backendFrom(cmd.backend), force: Boolean(cmd.force) });
+      await setupWhisperCommand({ logger: ctx.logger, model: String(cmd.model ?? 'base'), backend: whisperBackendFrom(cmd.backend), force: Boolean(cmd.force) });
     });
 
   program.command('transcribe')
@@ -96,6 +108,22 @@ function tierFrom(value: unknown, fallback: 'flex' | 'standard'): 'flex' | 'stan
   return value === 'flex' || value === 'standard' ? value : fallback;
 }
 
-function backendFrom(value: unknown): 'auto' | 'cpu' | 'cuda' | 'both' {
+function backendFrom(value: unknown, fallback: 'local' | 'gemini'): 'local' | 'gemini' {
+  return value === 'local' || value === 'gemini' ? value : fallback;
+}
+
+function deviceFrom(value: unknown, fallback: 'cpu' | 'cuda'): 'cpu' | 'cuda' {
+  return value === 'cpu' || value === 'cuda' ? value : fallback;
+}
+
+function numberOption(value: unknown, fallback: number): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+}
+
+function stringOption(value: unknown, fallback: string): string {
+  return typeof value === 'string' && value.trim() ? value.trim() : fallback;
+}
+
+function whisperBackendFrom(value: unknown): 'auto' | 'cpu' | 'cuda' | 'both' {
   return value === 'cpu' || value === 'cuda' || value === 'both' ? value : 'auto';
 }

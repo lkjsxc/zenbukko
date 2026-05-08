@@ -18,12 +18,18 @@ export type DownloadCommandParams = {
   materials: boolean;
   deleteMediaAfterTranscribe: boolean;
   ocrMaterials: boolean;
+  ocrBackend: 'local' | 'gemini';
   ocrModel: string;
   ocrForce: boolean;
   ocrMode?: 'auto' | 'batch' | 'flex';
   ocrServiceTier?: 'flex' | 'standard';
   ocrRetries?: number;
   ocrTimeoutMs?: number;
+  ndlocrCommand: string;
+  ndlocrDevice: 'cpu' | 'cuda';
+  ocrPageDpi: number;
+  ocrKeepIntermediates: boolean;
+  ndlocrEnableTcy: boolean;
   geminiApiKey?: string;
   logger: Logger;
 };

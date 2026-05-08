@@ -113,7 +113,7 @@ export class NnnClient {
         retryOnStatus: (s) => s >= 500,
       },
     );
-    if (!res.ok) throw new Error(`Lesson v1 request failed (${res.error.kind}): ${res.error.url}`);
+    if (!res.ok) throw new Error(`Lesson detail request failed (${res.error.kind}): ${res.error.url}`);
     return parseLessonV1(res.value);
   }
 

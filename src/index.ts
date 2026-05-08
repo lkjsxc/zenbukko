@@ -6,7 +6,7 @@ import { registerDownloadCommands } from './cli/downloadCommands.js';
 
 const program = new Command();
 
-program.name('zenbukko').description('Local course archive and transcription toolkit').version('2.0.0');
+program.name('zenbukko').description('Local course archive and transcription toolkit');
 program
   .option('--session <path>', 'Session file path override')
   .option('--output <path>', 'Output directory override')

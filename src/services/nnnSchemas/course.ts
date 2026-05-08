@@ -7,7 +7,7 @@ const ChapterSchema = z.object({
   order: z.number().optional(),
 });
 
-const CourseDetailsLegacySchema = z.object({
+const CourseDetailsDataSchema = z.object({
   data: z.object({
     title: z.string().optional(),
     chapters: z.array(ChapterSchema),
@@ -22,8 +22,8 @@ const CourseDetailsCurrentSchema = z.object({
 });
 
 export function parseCourseDetails(input: unknown): NormalizedCourseDetails {
-  const legacy = CourseDetailsLegacySchema.safeParse(input);
-  if (legacy.success) return fromParts(legacy.data.data.title, legacy.data.data.chapters);
+  const dataEnvelope = CourseDetailsDataSchema.safeParse(input);
+  if (dataEnvelope.success) return fromParts(dataEnvelope.data.data.title, dataEnvelope.data.data.chapters);
 
   const current = CourseDetailsCurrentSchema.parse(input);
   return fromParts(current.course.title, current.course.chapters);

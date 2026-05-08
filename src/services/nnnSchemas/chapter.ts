@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { NormalizedChapterDetails } from './types.js';
 
-const ChapterDetailsLegacySchema = z.object({
+const ChapterDetailsDataSchema = z.object({
   data: z.object({
     title: z.string().optional(),
     sections: z.array(
@@ -27,11 +27,11 @@ const ChapterDetailsCurrentSchema = z.union([
 ]);
 
 export function parseChapterDetails(input: unknown): NormalizedChapterDetails {
-  const legacy = ChapterDetailsLegacySchema.safeParse(input);
-  if (legacy.success) {
+  const dataEnvelope = ChapterDetailsDataSchema.safeParse(input);
+  if (dataEnvelope.success) {
     return {
-      ...(legacy.data.data.title ? { title: legacy.data.data.title } : {}),
-      sections: legacy.data.data.sections.map((s) => ({
+      ...(dataEnvelope.data.data.title ? { title: dataEnvelope.data.data.title } : {}),
+      sections: dataEnvelope.data.data.sections.map((s) => ({
         id: typeof s.content_id === 'string' ? Number(s.content_id) : (s.content_id ?? s.id),
         ...(s.title ? { title: s.title } : {}),
         kind: s.section_type === 'lesson' ? 'lesson' : 'other',

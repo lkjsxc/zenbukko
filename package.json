@@ -1,6 +1,5 @@
 {
   "name": "course-archive-toolkit",
-  "version": "2.0.0",
   "private": true,
   "description": "Local course archive and transcription toolkit (Node 22 + TypeScript)",
   "type": "module",

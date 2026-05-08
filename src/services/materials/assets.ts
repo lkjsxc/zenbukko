@@ -16,12 +16,6 @@ export function stableAssetFilename(url: URL): string {
   return `${safeBasename(baseNoExt)}_${hash}${ext}`;
 }
 
-export function legacyAssetFilename(url: URL): string {
-  const ext = path.extname(url.pathname);
-  const safe = safeBasename(path.basename(url.pathname) || 'file');
-  return ext ? safe : `${safe}.bin`;
-}
-
 function extractCandidateUrlsFromHtml(html: string): string[] {
   const urls = new Set<string>();
   const attrRe = /\b(?:href|src)=("|')([^"']+)(\1)/gi;
