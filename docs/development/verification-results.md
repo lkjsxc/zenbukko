@@ -2,7 +2,7 @@
 
 ## Date
 
-May 3, 2026.
+May 8, 2026.
 
 ## Local
 
@@ -14,12 +14,13 @@ May 3, 2026.
 ## Docker
 
 - `docker compose config`: passed.
-- `docker compose build zenbukko`: passed, including CPU whisper.cpp build and model download.
+- `docker compose --profile gpu config --services`: passed.
+- `docker compose build zenbukko`: passed, including CPU whisper.cpp build, model download, Poppler, and NDLOCR-Lite install.
+- `docker compose run --rm --entrypoint /bin/sh zenbukko -c 'command -v ndlocr-lite; command -v pdftoppm; ndlocr-lite --help | head -35'`: passed.
 - `docker compose run --rm --entrypoint npm zenbukko run type-check`: passed.
 - `docker compose run --rm --entrypoint npm zenbukko run lint`: passed.
-- `docker compose run --rm --entrypoint npm zenbukko test`: passed.
+- `docker compose run --rm --entrypoint npm zenbukko run test`: passed.
 - `docker compose run --rm --entrypoint npm zenbukko run check:lines`: passed.
-- `docker compose --profile gpu build zenbukko-gpu`: passed, including CPU and CUDA whisper.cpp builds and model download.
 
 ## Data Backfill
 
@@ -29,4 +30,4 @@ May 3, 2026.
 
 ## Not Verified
 
-CUDA runtime execution was not verified. The GPU image build passed, but no GPU transcription job was run.
+The GPU image was not rebuilt after the local OCR packaging change. CUDA runtime execution was not verified.

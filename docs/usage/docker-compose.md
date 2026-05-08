@@ -16,9 +16,10 @@ Run Zenbukko with repeatable local volumes and optional GPU image support.
 ```sh
 docker compose config
 docker compose build zenbukko
+docker compose run --rm --entrypoint /bin/sh zenbukko -c 'command -v ndlocr-lite; command -v pdftoppm'
 docker compose run --rm --entrypoint npm zenbukko run type-check
 docker compose run --rm --entrypoint npm zenbukko run lint
-docker compose run --rm --entrypoint npm zenbukko test
+docker compose run --rm --entrypoint npm zenbukko run test
 docker compose --profile gpu build zenbukko-gpu
 ```
 
