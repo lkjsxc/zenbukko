@@ -10,6 +10,7 @@ FROM nvidia/cuda:${CUDA_VERSION}-devel-${CUDA_OS} AS build
 
 ARG NODE_VERSION=22.13.1
 ARG WHISPER_MODEL=large-v3-turbo
+ARG NDLOCR_LITE_REF=7c50c338a5324edfb3e441e7b2310878f5e0b494
 # RTX 30xx = 86
 ARG CMAKE_CUDA_ARCHITECTURES=86
 ARG CMAKE_BUILD_PARALLEL_LEVEL=2
@@ -22,6 +23,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
     python3 \
+    python3-venv \
     make \
     g++ \
     cmake \
@@ -50,6 +52,13 @@ RUN git clone https://github.com/ggerganov/whisper.cpp /app/whisper.cpp \
   && cmake -S /app/whisper.cpp -B /app/whisper.cpp/build-cuda -DCMAKE_BUILD_TYPE=Release -DGGML_CUDA=1 -DCMAKE_CUDA_ARCHITECTURES="${CMAKE_CUDA_ARCHITECTURES}" \
   && cmake --build /app/whisper.cpp/build-cuda --parallel "${CMAKE_BUILD_PARALLEL_LEVEL}" --config Release \
   && bash /app/whisper.cpp/models/download-ggml-model.sh "$WHISPER_MODEL"
+
+RUN git clone https://github.com/ndl-lab/ndlocr-lite /opt/ndlocr-lite \
+  && git -C /opt/ndlocr-lite checkout "$NDLOCR_LITE_REF" \
+  && python3 -m venv /opt/ndlocr-lite-venv \
+  && /opt/ndlocr-lite-venv/bin/pip install --upgrade pip \
+  && /opt/ndlocr-lite-venv/bin/pip install /opt/ndlocr-lite \
+  && rm -rf /root/.cache/pip
 
 # Install Node.js from official tarball (keeps us on CUDA base images)
 RUN curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" \
@@ -82,6 +91,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     gnupg \
     xz-utils \
+    python3 \
+    poppler-utils \
     ffmpeg \
   && install -d -m 0755 /etc/apt/keyrings \
   && curl -fsSL https://dl.google.com/linux/linux_signing_key.pub \
@@ -99,8 +110,12 @@ RUN curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-l
 ENV PUPPETEER_SKIP_DOWNLOAD=1
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
 ENV ZENBUKKO_WHISPER_BACKEND=auto
+ENV PATH="/opt/ndlocr-lite-venv/bin:${PATH}"
+ENV ZENBUKKO_NDLOCR_CMD=ndlocr-lite
 
 COPY --from=build /app /app
+COPY --from=build /opt/ndlocr-lite /opt/ndlocr-lite
+COPY --from=build /opt/ndlocr-lite-venv /opt/ndlocr-lite-venv
 
 RUN useradd -m -u 1000 node \
   && chown -R node:node /app

@@ -24,7 +24,8 @@ export async function downloadUrlToFile(
 
   await ensureDir(path.dirname(opts.outFilePath));
 
-  const writeStream = createWriteStream(opts.outFilePath);
+  const tempPath = `${opts.outFilePath}.part-${process.pid}-${Date.now()}`;
+  const writeStream = createWriteStream(tempPath);
 
   try {
     if (!res.body) throw new Error(`No response body when downloading ${url.toString()}`);
@@ -42,8 +43,15 @@ export async function downloadUrlToFile(
         await once(writeStream, 'drain');
       }
     }
-  } finally {
     writeStream.end();
-    await fs.chmod(opts.outFilePath, 0o644).catch(() => undefined);
+    await once(writeStream, 'finish');
+    await fs.chmod(tempPath, 0o644).catch(() => undefined);
+    await fs.rename(tempPath, opts.outFilePath);
+  } catch (e) {
+    writeStream.destroy();
+    await fs.rm(tempPath, { force: true });
+    throw e;
+  } finally {
+    await fs.rm(tempPath, { force: true });
   }
 }

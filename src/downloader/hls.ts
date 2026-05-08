@@ -37,7 +37,8 @@ export async function downloadHlsToFile(m3u8Url: URL, opts: HlsDownloadOptions):
 
   await ensureDir(path.dirname(opts.outFilePath));
 
-  const writeStream = createWriteStream(opts.outFilePath);
+  const tempPath = `${opts.outFilePath}.part-${process.pid}-${Date.now()}`;
+  const writeStream = createWriteStream(tempPath);
   try {
     for (let i = 0; i < media.segmentUrls.length; i++) {
       opts.onProgress?.({ segmentIndex: i + 1, segmentCount: media.segmentUrls.length });
@@ -63,9 +64,16 @@ export async function downloadHlsToFile(m3u8Url: URL, opts: HlsDownloadOptions):
         }
       }
     }
-  } finally {
     writeStream.end();
-    await fs.chmod(opts.outFilePath, 0o644).catch(() => undefined);
+    await once(writeStream, 'finish');
+    await fs.chmod(tempPath, 0o644).catch(() => undefined);
+    await fs.rename(tempPath, opts.outFilePath);
+  } catch (e) {
+    writeStream.destroy();
+    await fs.rm(tempPath, { force: true });
+    throw e;
+  } finally {
+    await fs.rm(tempPath, { force: true });
   }
 }
 

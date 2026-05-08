@@ -13,6 +13,9 @@ services:
       ZENBUKKO_SESSION_PATH: /data/session.json
       OUTPUT_DIR: /data/downloads
       PUPPETEER_HEADLESS: "true"
+      ZENBUKKO_OCR_BACKEND: ${ZENBUKKO_OCR_BACKEND:-local}
+      ZENBUKKO_NDLOCR_CMD: ${ZENBUKKO_NDLOCR_CMD:-ndlocr-lite}
+      ZENBUKKO_NDLOCR_DEVICE: ${ZENBUKKO_NDLOCR_DEVICE:-cpu}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-flash-lite}
 
@@ -34,6 +37,9 @@ services:
       OUTPUT_DIR: /data/downloads
       PUPPETEER_HEADLESS: "true"
       WEB_PORT: "8787"
+      ZENBUKKO_OCR_BACKEND: ${ZENBUKKO_OCR_BACKEND:-local}
+      ZENBUKKO_NDLOCR_CMD: ${ZENBUKKO_NDLOCR_CMD:-ndlocr-lite}
+      ZENBUKKO_NDLOCR_DEVICE: ${ZENBUKKO_NDLOCR_DEVICE:-cpu}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-flash-lite}
 
@@ -54,6 +60,9 @@ services:
       ZENBUKKO_SESSION_PATH: /data/session.json
       OUTPUT_DIR: /data/downloads
       PUPPETEER_HEADLESS: "true"
+      ZENBUKKO_OCR_BACKEND: ${ZENBUKKO_OCR_BACKEND:-local}
+      ZENBUKKO_NDLOCR_CMD: ${ZENBUKKO_NDLOCR_CMD:-ndlocr-lite}
+      ZENBUKKO_NDLOCR_DEVICE: ${ZENBUKKO_NDLOCR_DEVICE:-cpu}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-flash-lite}
 
@@ -100,6 +109,9 @@ services:
       OUTPUT_DIR: /data/downloads
       PUPPETEER_HEADLESS: "true"
       WEB_PORT: "8787"
+      ZENBUKKO_OCR_BACKEND: ${ZENBUKKO_OCR_BACKEND:-local}
+      ZENBUKKO_NDLOCR_CMD: ${ZENBUKKO_NDLOCR_CMD:-ndlocr-lite}
+      ZENBUKKO_NDLOCR_DEVICE: ${ZENBUKKO_NDLOCR_DEVICE:-cpu}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-flash-lite}
       NVIDIA_VISIBLE_DEVICES: all

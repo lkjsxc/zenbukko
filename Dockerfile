@@ -2,6 +2,7 @@
 FROM node:22-bookworm-slim
 
 ARG WHISPER_MODEL=large-v3-turbo
+ARG NDLOCR_LITE_REF=7c50c338a5324edfb3e441e7b2310878f5e0b494
 
 WORKDIR /app
 
@@ -12,11 +13,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   curl \
     git \
     python3 \
+    python3-venv \
     make \
     g++ \
     cmake \
     pkg-config \
     ffmpeg \
+    poppler-utils \
     chromium \
     fonts-liberation \
     libasound2 \
@@ -59,6 +62,16 @@ RUN git clone https://github.com/ggerganov/whisper.cpp /app/whisper.cpp \
   && cmake -S /app/whisper.cpp -B /app/whisper.cpp/build-cpu -DCMAKE_BUILD_TYPE=Release \
   && cmake --build /app/whisper.cpp/build-cpu -j --config Release \
   && bash /app/whisper.cpp/models/download-ggml-model.sh "$WHISPER_MODEL"
+
+RUN git clone https://github.com/ndl-lab/ndlocr-lite /opt/ndlocr-lite \
+  && git -C /opt/ndlocr-lite checkout "$NDLOCR_LITE_REF" \
+  && python3 -m venv /opt/ndlocr-lite-venv \
+  && /opt/ndlocr-lite-venv/bin/pip install --upgrade pip \
+  && /opt/ndlocr-lite-venv/bin/pip install /opt/ndlocr-lite \
+  && rm -rf /root/.cache/pip
+
+ENV PATH="/opt/ndlocr-lite-venv/bin:${PATH}"
+ENV ZENBUKKO_NDLOCR_CMD=ndlocr-lite
 
 COPY package.json package-lock.json* ./
 RUN npm ci
