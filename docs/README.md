@@ -10,6 +10,8 @@ This tree is the source of truth for expected behavior. Implementation changes s
 - [`usage/`](usage/README.md): operator workflows for local CLI, web UI, and Docker.
 - [`features/`](features/README.md): user-visible feature contracts.
 - [`reference/`](reference/README.md): config, HTTP API, file layout, and troubleshooting.
+- [`llm/`](llm/README.md): machine-consumable indexes and cross-reference pointers.
+- [`reference/outputs/`](reference/outputs/README.md): stable output-artifact contract.
 - [`development/`](development/README.md): code style, tests, commits, verification.
 
 ## Invariants
@@ -17,7 +19,7 @@ This tree is the source of truth for expected behavior. Implementation changes s
 - Every directory under `docs/` has a `README.md`.
 - Markdown files stay under 300 lines.
 - Source files stay under 200 lines unless explicitly generated and exempted by policy.
-- Documentation describes ideal behavior, not only the current implementation.
+- Documentation defaults to stable behavior contracts first, then implementation notes.
 
 ## Failure Behavior
 

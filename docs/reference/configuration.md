@@ -11,20 +11,23 @@ Document environment variables and browser settings precedence.
 - `LOG_LEVEL`: `silent|error|warn|info|debug`.
 - `PUPPETEER_HEADLESS`: `true|false`.
 - `WEB_PORT`: default web port.
-- `GEMINI_API_KEY`: Gemini key.
-- `GEMINI_MODEL`: default `gemini-3.1-flash-lite`.
+- `GEMINI_API_KEY`: cloud OCR key for Google Gemini (optional when local OCR is selected).
+- `GEMINI_MODEL`: cloud OCR model, default `gemini-3.1-flash-lite`.
 - `ZENBUKKO_WHISPER_BACKEND`: `auto|cpu|cuda`.
+- `ZENBUKKO_OCR_BACKEND`: `local|gemini` (default `local`).
 
 ## Web Settings
 
 Stored at `/data/web/settings.json`:
 
+- `ocrBackend`
 - `geminiApiKey`
 - `geminiModel`
 - `ocrMode`
 - `ocrServiceTier`
+- `ocrRetries`
+- `ocrTimeoutMs`
 - `chapterRange`
-- OCR retry and timeout defaults
 
 ## Precedence
 

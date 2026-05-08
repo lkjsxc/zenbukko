@@ -26,7 +26,7 @@ Define ownership for source modules so refactors stay narrow.
 - `src/services/nnnClient.ts`: authenticated NNN API client and lesson resolution.
 - `src/services/nnnSchemas.ts`: response normalization.
 - `src/services/materials.ts`: material page fetch, asset extraction, and offline index writing.
-- `src/services/geminiOcr.ts`: OCR workflow entrypoint and result manifest writing.
+- `src/services/geminiOcr.ts`: OCR workflow entrypoint and result manifest writing (backend abstraction point).
 - `src/services/courseScraper.ts`: browser scraping for enrolled courses.
 
 ## Utilities

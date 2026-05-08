@@ -11,3 +11,4 @@ Keep implementation changes reviewable and aligned with documentation.
 - [`commits.md`](commits.md): commit sequence guidance.
 - [`verification.md`](verification.md): local and Docker verification.
 - [`verification-results.md`](verification-results.md): latest verification notes.
+- [`runbooks/`](runbooks/README.md): operational checklists for recurring tasks.

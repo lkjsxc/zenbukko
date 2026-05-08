@@ -29,7 +29,7 @@ downloads/
 - `_transcription.txt`, `.srt`, `.vtt`: whisper.cpp outputs.
 - `index.html`: offline material index.
 - `materials_manifest.json`: material source pages and downloaded assets.
-- `*_ocr.md`: per-PDF Gemini Markdown.
+- `*_ocr.md`: per-PDF OCR Markdown.
 - `materials_ocr.md`: aggregate OCR Markdown.
 - `materials_ocr_manifest.json`: OCR plan and result record.
 - `chapter-<chapterId>_ocr.md`: chapter-level OCR text, grouped by lesson.

@@ -11,7 +11,7 @@ Describe the ideal module boundary for material processing.
 3. `materials/pdf` converts supported saved sources into PDFs.
 4. `geminiOcrDiscovery` resolves manifest PDF entries.
 5. `geminiOcrPlan` builds runnable OCR tasks.
-6. Gemini execution modules produce OCR text.
+6. OCR execution modules produce OCR text according to selected backend.
 7. OCR writing modules persist per-PDF Markdown and lesson manifests.
 8. Chapter aggregation concatenates lesson OCR aggregates in chapter order.
 

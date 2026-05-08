@@ -18,7 +18,7 @@ Describe the stable runtime boundaries for maintainers and LLM agents.
 
 - Browser session JSON saved at `ZENBUKKO_SESSION_PATH` or `/data/session.json`.
 - NNN course IDs, chapter IDs, lesson IDs, or one-based chapter ranges.
-- Gemini API key and OCR settings from web settings or environment.
+- OCR settings and optional cloud API key from web settings or environment.
 - Whisper model name and optional backend selection.
 
 ## Outputs

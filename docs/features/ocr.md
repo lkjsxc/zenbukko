@@ -1,19 +1,20 @@
-# OCR Legacy Pointer
+# OCR
 
 ## Purpose
 
-This file is retained as a short pointer. The authoritative OCR specification is [`ocr/`](ocr/README.md).
+Define OCR contracts independent of any one OCR provider.
 
 ## Required Behavior
 
 - Discover normalized PDFs from `materials_manifest.json`.
-- Use Gemini Batch and Flex according to configured mode.
+- Select OCR backend by default policy (`local` preferred, `cloud` fallback).
 - Write one Markdown file per PDF, one lesson aggregate, and chapter aggregates.
-- Record model, mode, tier, source PDFs, output paths, and errors.
+- Record backend, mode, tier (when applicable), source PDFs, output paths, and errors.
+- Keep manifest and output contracts stable across backends.
 
 ## Files
 
-- [`ocr/pipeline.md`](ocr/pipeline.md)
-- [`ocr/gemini-modes.md`](ocr/gemini-modes.md)
-- [`ocr/chapter-aggregation.md`](ocr/chapter-aggregation.md)
-- [`ocr/manifest.md`](ocr/manifest.md)
+- [`ocr/pipeline.md`](ocr/pipeline.md): planning, execution, and artifact writes.
+- [`ocr/backends/`](ocr/backends/README.md): backend routing and backend-specific behavior.
+- [`ocr/chapter-aggregation.md`](ocr/chapter-aggregation.md): chapter-level text output.
+- [`ocr/manifest.md`](ocr/manifest.md): run result contract.

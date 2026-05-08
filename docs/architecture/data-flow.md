@@ -34,9 +34,9 @@ Show how requests move through Zenbukko and where persistent artifacts are writt
 6. OCR runs against the collected material directories after material capture has completed.
 7. PDF discovery prefers manifest asset PDF entries and avoids duplicate reference-page PDFs when per-asset PDFs exist.
 8. Planning skips existing Markdown unless `force` is set.
-9. `auto` mode selects Batch for multi-PDF/background work and Flex for single or recovery work.
-10. Batch uploads PDFs to the Gemini Files API and sends inline batch requests using file URIs.
-11. Failed Batch items retry through Flex unless Standard is explicitly selected.
+9. `auto` mode prefers local OCR backend first, then cloud fallback.
+10. Cloud Batch uploads PDFs to the Gemini Files API and sends inline batch requests using file URIs.
+11. Failed cloud Batch items retry through Flex unless Standard is explicitly selected.
 12. Markdown and `materials_ocr_manifest.json` are written next to source materials.
 13. Chapter OCR aggregates concatenate lesson `materials_ocr.md` files under each chapter directory.
 

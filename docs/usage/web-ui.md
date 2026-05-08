@@ -15,9 +15,9 @@ docker compose up zenbukko-web
 
 - Session JSON can be pasted into the Session panel.
 - Existing `session.json` is loaded by `GET /api/session` and pre-filled.
-- Gemini settings are stored locally under `/data/web/settings.json`.
+- OCR settings are stored locally under `/data/web/settings.json`.
 - Study jobs accept learning URL, chapter range, explicit chapter IDs, lesson IDs, materials, transcription, and OCR settings.
-- Saved Gemini settings are applied when web jobs run.
+- Saved OCR settings are applied when web jobs run.
 
 ## Outputs
 

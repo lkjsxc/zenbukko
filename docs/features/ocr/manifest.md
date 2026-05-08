@@ -7,10 +7,11 @@ Record what OCR attempted and what it produced.
 ## Fields
 
 - `generatedAt`: ISO timestamp.
-- `model`: Gemini model name.
+- `ocrBackend`: selected OCR backend.
+- `model`: OCR model name for cloud backends.
 - `requestedMode`: requested OCR mode.
 - `plannedMode`: actual plan mode.
-- `serviceTier`: requested service tier.
+- `serviceTier`: requested cloud service tier.
 - `pdfs`: absolute PDF paths discovered for OCR.
 - `results`: per-PDF status entries.
 - `aggregatePath`: optional aggregate Markdown path.
@@ -19,7 +20,8 @@ Record what OCR attempted and what it produced.
 
 - `written`: Markdown was written in this run.
 - `skipped`: Markdown already existed or the source was rejected before OCR.
-- `failed`: Gemini or file processing failed.
+- `failed`: OCR or file processing failed.
+- `localUnavailable`: local backend was requested but not available.
 
 ## Invariants
 

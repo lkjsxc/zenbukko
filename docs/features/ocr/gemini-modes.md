@@ -1,16 +1,16 @@
-# Gemini Modes
+# Gemini Cloud Mode
 
 ## Purpose
 
-Define Gemini execution choices for cost, latency, and recovery.
+Define execution behavior when the OCR backend is Google Gemini.
 
 ## Auto Mode
 
-`auto` selects Batch for multiple runnable PDFs. It selects Flex for a single runnable PDF, all-skipped work, or Batch recovery.
+`auto` uses Batch for multiple runnable PDFs and Flex for single work, all-skipped runs, or Batch recovery.
 
 ## Batch Mode
 
-Batch uploads PDFs through the Gemini Files API and sends inline requests that reference uploaded file URIs. The batch job name is recorded for each successful batch-written output.
+Batch uploads PDFs through the Gemini Files API and uses inline requests that reference uploaded file URIs. The batch job name is recorded for each successful batch-written output.
 
 ## Flex Mode
 

@@ -9,5 +9,5 @@ User-visible behavior contracts for Zenbukko features.
 - [`sessions.md`](sessions.md): session import and storage.
 - [`chapter-selection.md`](chapter-selection.md): range parsing and ID mapping.
 - [`materials/`](materials/README.md): material download and PDF normalization behavior.
-- [`ocr/`](ocr/README.md): Gemini PDF OCR behavior.
+- [`ocr/`](ocr/README.md): OCR behavior across local and cloud backends.
 - [`transcription.md`](transcription.md): whisper.cpp behavior.

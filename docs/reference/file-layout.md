@@ -31,6 +31,8 @@ docker-compose.yml
 
 ## Material Outputs
 
+See [`outputs/`](outputs/README.md) for the artifact-level contract.
+
 ```text
 reference_*.html
 assets/*

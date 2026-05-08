@@ -7,10 +7,11 @@
 ## Top-Level Fields
 
 - `generatedAt`: ISO timestamp.
-- `model`: Gemini model.
+- `ocrBackend`: selected OCR backend.
+- `model`: OCR model name for cloud backends.
 - `requestedMode`: requested OCR mode.
 - `plannedMode`: selected execution mode.
-- `serviceTier`: Gemini service tier.
+- `serviceTier`: cloud service tier.
 - `pdfs`: discovered source PDF paths.
 - `results`: per-PDF result records.
 - `aggregatePath`: optional aggregate Markdown path.
@@ -19,7 +20,7 @@
 
 - `pdfPath`: source PDF.
 - `markdownPath`: optional Markdown output.
-- `status`: `written`, `skipped`, or `failed`.
+- `status`: `written`, `skipped`, `failed`, or `localUnavailable`.
 - `message`: optional reason.
-- `mode`: optional Gemini execution mode.
-- `batchJobName`: optional Batch API job name.
+- `mode`: optional cloud execution mode.
+- `batchJobName`: optional cloud batch job name.

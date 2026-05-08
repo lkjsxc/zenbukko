@@ -31,7 +31,7 @@ Remaining headings are normalized below the lesson section so the chapter file r
 
 ## Backfill
 
-`zenbukko rebuild-chapter-ocr --input <downloads-or-course-dir>` rebuilds chapter OCR files from existing local `materials_ocr.md` files without calling Gemini or NNN.
+`zenbukko rebuild-chapter-ocr --input <downloads-or-course-dir>` rebuilds chapter OCR files from existing local `materials_ocr.md` files without calling OCR backends or NNN.
 
 The command infers chapter IDs from material manifest reference URLs. If a manifest does not expose a chapter ID, it can fall back to an existing `chapter-*_transcription.md` file in the chapter directory.
 

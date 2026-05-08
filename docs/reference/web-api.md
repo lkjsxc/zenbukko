@@ -6,11 +6,11 @@ Define the local web server contract.
 
 ## Endpoints
 
-- `GET /api/status`: session existence, output directory, Gemini configuration, model.
+- `GET /api/status`: session existence, output directory, OCR configuration, selected backend.
 - `GET /api/session`: normalized existing session and formatted JSON for UI prefill.
 - `POST /api/session`: save normalized session JSON.
 - `GET /api/settings`: effective browser settings and defaults.
-- `POST /api/settings`: persist browser Gemini/OCR settings.
+- `POST /api/settings`: persist browser OCR settings.
 - `GET /api/courses`: scrape authenticated course list.
 - `GET /api/jobs`: list persisted jobs.
 - `POST /api/jobs`: enqueue `download`, `download-all`, or `ocr-materials`.
@@ -20,7 +20,7 @@ Define the local web server contract.
 
 ## Job Request Fields
 
-Download requests may include `chapterRange`, `chapters`, `lessonIds`, `ocrMode`, and `ocrServiceTier`. `chapterRange` is resolved before downloader lesson resolution.
+Download requests may include `chapterRange`, `chapters`, `lessonIds`, `ocrBackend`, `ocrMode`, and `ocrServiceTier`. `chapterRange` is resolved before downloader lesson resolution.
 
 Download jobs that run OCR rebuild chapter OCR aggregates after lesson OCR finishes. Standalone OCR jobs rebuild chapter OCR aggregates when their input is inside the standard downloads layout.
 

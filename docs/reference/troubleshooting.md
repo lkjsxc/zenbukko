@@ -8,9 +8,9 @@ Run `zenbukko auth` or paste a valid session JSON into the web UI. Verify `ZENBU
 
 Run `zenbukko list-courses --format json` and inspect whether the account has visible courses and on-demand labels.
 
-## Gemini OCR Fails
+## OCR Backend Fails
 
-Verify `GEMINI_API_KEY`, model name, PDF size, network access, and whether Flex capacity is returning 429 or 503. Retry later or use Batch for larger work.
+For cloud OCR failures, verify API key, model name, PDF size, network access, and whether Flex capacity is returning 429 or 503. Retry later or use Batch for larger work.
 
 ## Whisper Fails
 

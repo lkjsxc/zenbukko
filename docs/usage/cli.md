@@ -26,14 +26,14 @@ zenbukko transcribe --input lesson.ts --format txt
 
 ## OCR Options
 
-- `--ocr-mode auto|batch|flex` controls OCR planning.
-- `--ocr-service-tier flex|standard` controls synchronous fallback tier.
-- `auto` chooses Batch for multi-PDF/background work and Flex for single/small work and Batch recovery.
+- `--ocr-mode auto|batch|flex` controls cloud OCR planning.
+- `--ocr-service-tier flex|standard` controls cloud synchronous tier.
+- `auto` prefers local OCR when available, then uses cloud Batch for multi-PDF work and Flex for small or recovery work.
 
 ## Local Rebuilds
 
-`rebuild-chapter-ocr` scans existing downloaded lesson materials and rewrites `chapter-<chapterId>_ocr.md` files. It does not call Gemini and is the preferred way to backfill chapter OCR after older runs.
+`rebuild-chapter-ocr` scans existing downloaded lesson materials and rewrites `chapter-<chapterId>_ocr.md` files. It does not call OCR services and is the preferred way to backfill chapter OCR after older runs.
 
 ## Failure Behavior
 
-Commands exit non-zero when required session data, course data, Gemini keys, local binaries, or output writes fail.
+Commands exit non-zero when required session data, course data, OCR provider credentials, local binaries, or output writes fail.
