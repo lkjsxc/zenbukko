@@ -58,7 +58,12 @@ async function rasterizePdf(pdfPath: string, imageDir: string, pageDpi: number):
 async function runNdlocr(command: string, imageDir: string, outDir: string, device: LocalOcrDevice, enableTcy: boolean): Promise<void> {
   const args = ['--sourcedir', imageDir, '--output', outDir, '--device', device];
   if (enableTcy) args.push('--enable-tcy');
-  await runCommand(command, args);
+  try {
+    await runCommand(command, args);
+  } catch (e) {
+    if (!enableTcy || !String(e instanceof Error ? e.message : e).includes('tcy_wrapper')) throw e;
+    await runCommand(command, args.filter((arg) => arg !== '--enable-tcy'));
+  }
 }
 
 async function collectPageText(outDir: string): Promise<{
