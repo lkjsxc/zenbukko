@@ -2,7 +2,7 @@
 
 ## Date
 
-May 8, 2026.
+May 14, 2026.
 
 ## Local
 
@@ -13,21 +13,23 @@ May 8, 2026.
 
 ## Docker
 
-- `docker compose config`: passed.
+- `docker compose config --quiet`: passed.
 - `docker compose --profile gpu config --services`: passed.
-- `docker compose build zenbukko`: passed, including CPU whisper.cpp build, model download, Poppler, and NDLOCR-Lite install.
-- `docker compose run --rm --entrypoint /bin/sh zenbukko -c 'command -v ndlocr-lite; command -v pdftoppm; ndlocr-lite --help | head -35'`: passed.
+- `docker compose build zenbukko`: passed.
+- `docker compose --profile gpu build zenbukko-gpu zenbukko-web-gpu`: passed.
+- `docker compose run --rm --entrypoint /bin/sh zenbukko -c 'command -v ndlocr-lite; command -v pdftoppm; command -v chromium'`: passed.
 - `docker compose run --rm --entrypoint npm zenbukko run type-check`: passed.
 - `docker compose run --rm --entrypoint npm zenbukko run lint`: passed.
 - `docker compose run --rm --entrypoint npm zenbukko run test`: passed.
 - `docker compose run --rm --entrypoint npm zenbukko run check:lines`: passed.
+- `docker compose run --rm --entrypoint npm zenbukko run smoke:local-ocr`: passed.
 
-## Data Backfill
+## Smoke Details
 
-- `docker compose run --rm zenbukko rebuild-chapter-ocr --input /data/downloads`: passed.
-- Wrote 20 ignored local `chapter-<chapterId>_ocr.md` files across the current downloaded data.
-- Sample output uses `## NN lesson-<lessonId>` sections and demoted OCR headings.
+- The local OCR smoke generated a synthetic PDF under `/tmp`.
+- The smoke covered material OCR and chapter OCR writes.
+- The smoke confirmed the TCY retry path after NDLOCR-Lite reported a missing `tcy_wrapper` module.
 
 ## Not Verified
 
-The GPU image was not rebuilt after the local OCR packaging change. CUDA runtime execution was not verified.
+CUDA runtime execution against a physical GPU was not exercised in this run.
