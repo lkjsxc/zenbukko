@@ -11,7 +11,7 @@ Keep the documentation-first upgrade reviewable.
 3. Web refactor with no intended behavior change.
 4. Downloader/materials/NNN/OCR refactor with no intended behavior change.
 5. Session prefill, web settings, and chapter range support.
-6. OCR backend-neutral behavior and local-default migration.
+6. OCR backend-neutral behavior and automatic backend selection.
 7. Whisper CPU/CUDA Docker build changes.
 8. Final docs updates, lint cleanup, and verification notes.
 

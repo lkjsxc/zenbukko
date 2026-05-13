@@ -18,6 +18,8 @@ docker compose run --rm --entrypoint npm zenbukko run check:lines
 docker compose --profile gpu build zenbukko-gpu
 ```
 
+Docker-gated OCR smoke checks must run from a built image with sample input mounted under `/data`.
+
 ## Local
 
 ```sh
@@ -35,4 +37,4 @@ docker compose run --rm zenbukko rebuild-chapter-ocr --input /data/downloads
 
 ## Notes
 
-If CUDA runtime is unavailable, record that only the GPU image build was verified.
+If CUDA runtime is unavailable, record that only the GPU image build was verified and NDLOCR CUDA execution was not verified.

@@ -7,15 +7,19 @@ Use Zenbukko from a local browser while the server runs inside or outside Docker
 ## Start
 
 ```sh
-zenbukko web --host 0.0.0.0 --port 8787
+zenbukko web --port 8787
 docker compose up zenbukko-web
 ```
+
+Default local use binds to loopback and requires the generated browser token shown by the server. Treat that token like a local credential.
+Use `--host 0.0.0.0` only for an explicitly protected remote environment.
 
 ## Inputs
 
 - Session JSON can be pasted into the Session panel.
 - Existing `session.json` is loaded by `GET /api/session` and pre-filled.
 - OCR settings are stored locally under `/data/web/settings.json`.
+- `ocrBackend` accepts `auto`, `local`, or `gemini`; the default is `auto`.
 - Study jobs accept learning URL, chapter range, explicit chapter IDs, lesson IDs, materials, transcription, and OCR settings.
 - Saved OCR settings are applied when web jobs run.
 

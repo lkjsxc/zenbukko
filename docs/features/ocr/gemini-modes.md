@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Define execution behavior when the OCR backend is Google Gemini.
+Define execution behavior when the OCR backend is Google Gemini. `ocrMode` values on this page do not affect local OCR.
 
 ## Auto Mode
 

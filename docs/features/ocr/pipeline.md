@@ -12,11 +12,12 @@ Define how normalized PDFs become Markdown outputs, independent of provider.
 4. Build OCR tasks and skip existing Markdown only when it is newer than the source PDF unless `force` is true.
 5. Reject oversized PDFs before backend execution.
 6. Select backend:
-   - default: local-first,
-   - fallback: cloud when local backend is unavailable.
+   - `auto`: local OCR first, then Gemini recovery when configured,
+   - `local`: local OCR only,
+   - `gemini`: Gemini OCR only.
 7. Execute backend-specific mode:
    - local: synchronous local execution,
-   - cloud: Batch or Flex according to mode and tier.
+   - Gemini: Batch or Flex according to `ocrMode` and tier.
 8. Normalize backend OCR Markdown responses.
 9. Write one `*_ocr.md` per PDF.
 10. Write lesson-level `materials_ocr.md` and `materials_ocr_manifest.json`.
@@ -26,7 +27,7 @@ Define how normalized PDFs become Markdown outputs, independent of provider.
 
 - Normalized PDF files.
 - OCR backend selection and preference.
-- Cloud OCR credentials, model, mode, tier, retry, and timeout settings when applicable.
+- Gemini credentials, model, mode, tier, retry, and timeout settings when applicable.
 
 ## Failure Behavior
 

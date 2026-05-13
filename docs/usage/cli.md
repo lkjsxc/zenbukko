@@ -26,9 +26,11 @@ zenbukko transcribe --input lesson.ts --format txt
 
 ## OCR Options
 
-- `--ocr-mode auto|batch|flex` controls cloud OCR planning.
-- `--ocr-service-tier flex|standard` controls cloud synchronous tier.
-- `auto` prefers local OCR when available, then uses cloud Batch for multi-PDF work and Flex for small or recovery work.
+- `--ocr-backend auto|local|gemini` selects OCR backend policy; the default is `auto`.
+- `--ocr-mode auto|batch|flex` controls Gemini OCR planning.
+- `--ocr-service-tier flex|standard` controls Gemini synchronous tier.
+- `ocrBackend=auto` prefers local OCR when available, then uses Gemini recovery when configured.
+- `ocrMode=auto` uses Gemini Batch for multi-PDF work and Flex for small or recovery work.
 
 ## Local Rebuilds
 

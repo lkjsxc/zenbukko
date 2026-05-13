@@ -6,9 +6,10 @@ Define OCR provider behavior without tying feature contracts to a single vendor.
 
 ## Contract
 
-- Backends are selected by policy:
-  - `local` is preferred by default.
-  - `gemini` is the documented cloud fallback.
+- Backends are selected with `ocrBackend=auto|local|gemini`.
+- The default is `auto`.
+- `auto` tries local OCR first and uses Gemini only when recovery is configured.
+- `ocrMode` applies only to Gemini planning.
 - Output contracts remain the same (`*_ocr.md`, lesson aggregate, chapter aggregate, manifest).
 - Manifest entries describe the active backend for each run.
 

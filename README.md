@@ -27,5 +27,6 @@ docker compose build zenbukko
 - [`docs/llm/`](docs/llm/README.md): LLM-friendly index for cross-references and schema contracts.
 - [`docs/usage/`](docs/usage/README.md): CLI, web UI, Docker Compose, and outputs.
 - [`docs/features/`](docs/features/README.md): sessions, chapter selection, materials, OCR, and transcription.
+- [`docs/decisions/`](docs/decisions/README.md): accepted behavior decisions.
 - [`docs/reference/`](docs/reference/README.md): configuration, API, file layout, troubleshooting.
 - [`docs/development/`](docs/development/README.md): coding rules, tests, commits, verification.

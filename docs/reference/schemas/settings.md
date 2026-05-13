@@ -6,10 +6,10 @@ Browser settings persist operator preferences under `/data/web/settings.json`.
 
 ## Fields
 
-- `ocrBackend`: `local` or `gemini` (default `local`).
+- `ocrBackend`: `auto`, `local`, or `gemini` (default `auto`).
 - `geminiApiKey`: optional Gemini key for cloud OCR.
 - `geminiModel`: cloud OCR model, default `gemini-3.1-flash-lite`.
-- `ocrMode`: `auto`, `batch`, or `flex`.
+- `ocrMode`: `auto`, `batch`, or `flex`; Gemini planning only.
 - `ocrServiceTier`: `flex` or `standard`.
 - `chapterRange`: one-based chapter ordinal range expression.
 - `ocrRetries`: retry count for Flex recovery.
@@ -19,4 +19,4 @@ Browser settings persist operator preferences under `/data/web/settings.json`.
 ## Precedence
 
 Web settings override environment variables. Environment variables override built-in defaults.
-- Request normalization also defaults omitted fields to safe local values (`ocrBackend=local`, local executable settings, and defaults for local OCR flags).
+- Request normalization defaults omitted OCR backend selection to `ocrBackend=auto`, local executable settings, and defaults for local OCR flags.

@@ -4,6 +4,8 @@
 
 Define the local web server contract.
 
+Default browser access uses loopback plus a generated token.
+
 ## Endpoints
 
 - `GET /api/status`: session existence, output directory, OCR configuration, selected backend.
@@ -20,7 +22,7 @@ Define the local web server contract.
 
 ## Job Request Fields
 
-Download requests may include `chapterRange`, `chapters`, `lessonIds`, `ocrBackend`, `ocrMode`, and `ocrServiceTier`. `chapterRange` is resolved before downloader lesson resolution.
+Download requests may include `chapterRange`, `chapters`, `lessonIds`, `ocrBackend`, `ocrMode`, and `ocrServiceTier`. `ocrBackend` accepts `auto`, `local`, or `gemini`; `ocrMode` is used only for Gemini planning. `chapterRange` is resolved before downloader lesson resolution.
 
 Download jobs that run OCR rebuild chapter OCR aggregates after lesson OCR finishes. Standalone OCR jobs rebuild chapter OCR aggregates when their input is inside the standard downloads layout.
 

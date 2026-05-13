@@ -4,6 +4,11 @@
 
 Track all generated artifacts with stable names and layout expectations.
 
+## Files
+
+- [`artifact-names.md`](artifact-names.md): stable generated file names.
+- [`aggregation.md`](aggregation.md): lesson and chapter aggregation rules.
+
 ## OCR Outputs
 
 - `*_ocr.md`: one Markdown file per normalized PDF.

@@ -9,6 +9,7 @@ This tree is the source of truth for expected behavior. Implementation changes s
 - [`architecture/`](architecture/README.md): system boundaries, module ownership, data flow.
 - [`usage/`](usage/README.md): operator workflows for local CLI, web UI, and Docker.
 - [`features/`](features/README.md): user-visible feature contracts.
+- [`decisions/`](decisions/README.md): accepted behavior decisions and rationale.
 - [`reference/`](reference/README.md): config, HTTP API, file layout, and troubleshooting.
 - [`llm/`](llm/README.md): machine-consumable indexes and cross-reference pointers.
 - [`reference/outputs/`](reference/outputs/README.md): stable output-artifact contract.
@@ -20,6 +21,7 @@ This tree is the source of truth for expected behavior. Implementation changes s
 - Markdown files stay under 300 lines.
 - Source files stay under 200 lines unless explicitly generated and exempted by policy.
 - Documentation defaults to stable behavior contracts first, then implementation notes.
+- Feature topics use directories with child pages instead of duplicate flat pointer files.
 
 ## Failure Behavior
 

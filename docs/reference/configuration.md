@@ -14,7 +14,7 @@ Document environment variables and browser settings precedence.
 - `GEMINI_API_KEY`: cloud OCR key for Google Gemini (optional when local OCR is selected).
 - `GEMINI_MODEL`: cloud OCR model, default `gemini-3.1-flash-lite`.
 - `ZENBUKKO_WHISPER_BACKEND`: `auto|cpu|cuda`.
-- `ZENBUKKO_OCR_BACKEND`: `local|gemini` (default `local`).
+- `ZENBUKKO_OCR_BACKEND`: `auto|local|gemini` (default `auto`).
 
 ## Web Settings
 
@@ -23,7 +23,7 @@ Stored at `/data/web/settings.json`:
 - `ocrBackend`
 - `geminiApiKey`
 - `geminiModel`
-- `ocrMode`
+- `ocrMode` (Gemini planning only)
 - `ocrServiceTier`
 - `ocrRetries`
 - `ocrTimeoutMs`

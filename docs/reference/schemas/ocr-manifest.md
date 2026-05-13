@@ -8,7 +8,7 @@
 
 - `generatedAt`: ISO timestamp.
 - `ocrBackend`: selected OCR backend.
-- `model`: OCR model name for cloud backends.
+- `model`: OCR model name for Gemini runs.
 - `requestedMode`: requested OCR mode.
 - `plannedMode`: selected execution mode.
 - `serviceTier`: cloud service tier.
@@ -20,7 +20,9 @@
 
 - `pdfPath`: source PDF.
 - `markdownPath`: optional Markdown output.
-- `status`: `written`, `skipped`, `failed`, or `localUnavailable`.
+- `status`: `written`, `skipped`, or `failed`.
 - `message`: optional reason.
-- `mode`: optional cloud execution mode.
+- `finalBackend`: optional backend that produced the result.
+- `mode`: optional execution mode.
 - `batchJobName`: optional cloud batch job name.
+- `attempts`: optional ordered backend attempts for `ocrBackend=auto`.

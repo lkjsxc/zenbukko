@@ -15,7 +15,7 @@ Convert captured materials into a single OCR input format before Gemini sees the
 
 ## Unsupported Inputs
 
-- Office documents, spreadsheets, presentations, archives, binary blobs, SVG, fonts, and scripts are preserved but skipped for OCR.
+- Office files, spreadsheets, presentations, archives, binary blobs, SVG, fonts, and scripts are preserved but explicitly skipped for OCR.
 - Unsupported inputs must include a conversion status and message in the manifest.
 
 ## Output Rules

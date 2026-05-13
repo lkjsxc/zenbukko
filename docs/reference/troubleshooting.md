@@ -10,7 +10,9 @@ Run `zenbukko list-courses --format json` and inspect whether the account has vi
 
 ## OCR Backend Fails
 
-For cloud OCR failures, verify API key, model name, PDF size, network access, and whether Flex capacity is returning 429 or 503. Retry later or use Batch for larger work.
+For local OCR failures, verify `ndlocr-lite`, Poppler, PDF readability, and Docker image readiness when using Compose.
+
+For Gemini OCR failures, verify API key, model name, PDF size, network access, and whether Flex capacity is returning 429 or 503. Retry later or use Batch for larger work.
 
 ## Whisper Fails
 
