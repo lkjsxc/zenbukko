@@ -1,18 +1,20 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import type { OcrBackend, OcrPdfResult } from './types.js';
+import type { LocalOcrDevice, OcrBackend, OcrPdfResult } from './types.js';
 
 export async function writeOcrManifest(
   inputDir: string,
   manifest: {
+    ocrBackend: OcrBackend;
     backend: OcrBackend;
     model?: string;
     requestedMode?: string;
     plannedMode?: string;
     serviceTier?: string;
     localCommand?: string;
-    localDevice?: string;
+    localDevice?: LocalOcrDevice;
     pageDpi?: number;
+    ndlocrEnableTcy?: boolean;
     pdfs: string[];
     results: OcrPdfResult[];
     aggregatePath?: string;

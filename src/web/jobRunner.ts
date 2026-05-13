@@ -89,8 +89,8 @@ function ocrTierFrom(value: unknown, fallback: 'flex' | 'standard'): 'flex' | 's
   return value === 'flex' || value === 'standard' ? value : fallback;
 }
 
-function ocrBackendFrom(value: unknown, fallback: 'local' | 'gemini'): 'local' | 'gemini' {
-  return value === 'local' || value === 'gemini' ? value : fallback;
+function ocrBackendFrom(value: unknown, fallback: 'auto' | 'local' | 'gemini'): 'auto' | 'local' | 'gemini' {
+  return value === 'auto' || value === 'local' || value === 'gemini' ? value : fallback;
 }
 
 function ocrDeviceFrom(value: unknown, fallback: 'cpu' | 'cuda'): 'cpu' | 'cuda' {

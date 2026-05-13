@@ -20,13 +20,13 @@ const NewSessionSchema = z.object({
   cookies: z.array(CookieSchema),
 });
 
-// Legacy format used by old/: { cookies: "a=b; c=d", created_at: "..." }
-const LegacySessionSchema = z.object({
+// Cookie-header import shape: { cookies: "a=b; c=d", created_at: "..." }
+const CookieHeaderSessionSchema = z.object({
   cookies: z.string(),
   created_at: z.string().optional(),
 });
 
-const SessionSchema = z.union([NewSessionSchema, LegacySessionSchema]);
+const SessionSchema = z.union([NewSessionSchema, CookieHeaderSessionSchema]);
 
 export type StoredCookie = z.infer<typeof CookieSchema>;
 export type StoredSession =

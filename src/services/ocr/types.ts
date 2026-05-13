@@ -1,19 +1,34 @@
 import type { Logger } from '../../utils/log.js';
 import type { OcrMode, OcrServiceTier } from './plan.js';
 
-export type OcrBackend = 'local' | 'gemini';
+export type OcrBackend = 'auto' | 'local' | 'gemini';
+export type OcrFinalBackend = 'local' | 'gemini';
 export type LocalOcrDevice = 'cpu' | 'cuda';
 export type OcrRunMode = 'batch' | 'flex' | 'local';
+export type OcrAttemptStatus = 'written' | 'failed' | 'skipped';
+
+export type OcrAttempt = {
+  backend: OcrFinalBackend;
+  mode: OcrRunMode;
+  status: OcrAttemptStatus;
+  message?: string;
+};
 
 export type OcrPdfResult = {
   pdfPath: string;
   markdownPath?: string;
   status: 'written' | 'skipped' | 'failed';
   backend: OcrBackend;
+  finalBackend?: OcrFinalBackend;
   message?: string;
   mode?: OcrRunMode;
   batchJobName?: string;
   artifactDir?: string;
+  pageCount?: number;
+  emptyPageCount?: number;
+  elapsedMs?: number;
+  rawOutputPaths?: string[];
+  attempts?: OcrAttempt[];
 };
 
 export type OcrMaterialsResult = {

@@ -13,9 +13,11 @@ services:
       ZENBUKKO_SESSION_PATH: /data/session.json
       OUTPUT_DIR: /data/downloads
       PUPPETEER_HEADLESS: "true"
-      ZENBUKKO_OCR_BACKEND: ${ZENBUKKO_OCR_BACKEND:-local}
+      ZENBUKKO_OCR_BACKEND: ${ZENBUKKO_OCR_BACKEND:-auto}
       ZENBUKKO_NDLOCR_CMD: ${ZENBUKKO_NDLOCR_CMD:-ndlocr-lite}
       ZENBUKKO_NDLOCR_DEVICE: ${ZENBUKKO_NDLOCR_DEVICE:-cpu}
+      ZENBUKKO_OCR_PAGE_DPI: ${ZENBUKKO_OCR_PAGE_DPI:-300}
+      ZENBUKKO_NDLOCR_ENABLE_TCY: ${ZENBUKKO_NDLOCR_ENABLE_TCY:-true}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-flash-lite}
 
@@ -27,7 +29,7 @@ services:
         WHISPER_MODEL: ${WHISPER_MODEL:-large-v3-turbo}
     image: zenbukko:local
     working_dir: /app
-    command: ["web"]
+    command: ["web", "--host", "0.0.0.0"]
     ports:
       - "127.0.0.1:8787:8787"
     volumes:
@@ -37,9 +39,11 @@ services:
       OUTPUT_DIR: /data/downloads
       PUPPETEER_HEADLESS: "true"
       WEB_PORT: "8787"
-      ZENBUKKO_OCR_BACKEND: ${ZENBUKKO_OCR_BACKEND:-local}
+      ZENBUKKO_OCR_BACKEND: ${ZENBUKKO_OCR_BACKEND:-auto}
       ZENBUKKO_NDLOCR_CMD: ${ZENBUKKO_NDLOCR_CMD:-ndlocr-lite}
       ZENBUKKO_NDLOCR_DEVICE: ${ZENBUKKO_NDLOCR_DEVICE:-cpu}
+      ZENBUKKO_OCR_PAGE_DPI: ${ZENBUKKO_OCR_PAGE_DPI:-300}
+      ZENBUKKO_NDLOCR_ENABLE_TCY: ${ZENBUKKO_NDLOCR_ENABLE_TCY:-true}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-flash-lite}
 
@@ -60,9 +64,11 @@ services:
       ZENBUKKO_SESSION_PATH: /data/session.json
       OUTPUT_DIR: /data/downloads
       PUPPETEER_HEADLESS: "true"
-      ZENBUKKO_OCR_BACKEND: ${ZENBUKKO_OCR_BACKEND:-local}
+      ZENBUKKO_OCR_BACKEND: ${ZENBUKKO_OCR_BACKEND:-auto}
       ZENBUKKO_NDLOCR_CMD: ${ZENBUKKO_NDLOCR_CMD:-ndlocr-lite}
-      ZENBUKKO_NDLOCR_DEVICE: ${ZENBUKKO_NDLOCR_DEVICE:-cpu}
+      ZENBUKKO_NDLOCR_DEVICE: ${ZENBUKKO_NDLOCR_DEVICE:-cuda}
+      ZENBUKKO_OCR_PAGE_DPI: ${ZENBUKKO_OCR_PAGE_DPI:-300}
+      ZENBUKKO_NDLOCR_ENABLE_TCY: ${ZENBUKKO_NDLOCR_ENABLE_TCY:-true}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-flash-lite}
 
@@ -99,7 +105,7 @@ services:
         CMAKE_BUILD_PARALLEL_LEVEL: ${ZENBUKKO_CMAKE_BUILD_PARALLEL_LEVEL:-2}
     image: zenbukko:local-gpu-web
     working_dir: /app
-    command: ["web"]
+    command: ["web", "--host", "0.0.0.0"]
     ports:
       - "127.0.0.1:8787:8787"
     volumes:
@@ -109,9 +115,11 @@ services:
       OUTPUT_DIR: /data/downloads
       PUPPETEER_HEADLESS: "true"
       WEB_PORT: "8787"
-      ZENBUKKO_OCR_BACKEND: ${ZENBUKKO_OCR_BACKEND:-local}
+      ZENBUKKO_OCR_BACKEND: ${ZENBUKKO_OCR_BACKEND:-auto}
       ZENBUKKO_NDLOCR_CMD: ${ZENBUKKO_NDLOCR_CMD:-ndlocr-lite}
-      ZENBUKKO_NDLOCR_DEVICE: ${ZENBUKKO_NDLOCR_DEVICE:-cpu}
+      ZENBUKKO_NDLOCR_DEVICE: ${ZENBUKKO_NDLOCR_DEVICE:-cuda}
+      ZENBUKKO_OCR_PAGE_DPI: ${ZENBUKKO_OCR_PAGE_DPI:-300}
+      ZENBUKKO_NDLOCR_ENABLE_TCY: ${ZENBUKKO_NDLOCR_ENABLE_TCY:-true}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-flash-lite}
       NVIDIA_VISIBLE_DEVICES: all

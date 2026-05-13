@@ -16,6 +16,7 @@
     "ci:docker": "docker compose build zenbukko",
     "lint": "eslint .",
     "test": "node --import tsx --test tests/**/*.test.ts",
+    "smoke:local-ocr": "tsx scripts/smoke-local-ocr.ts",
     "check:lines": "tsx scripts/check-lines.ts",
     "format": "prettier -w ."
   },

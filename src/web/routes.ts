@@ -7,13 +7,19 @@ import { scrapeMyCoursesDetailed } from '../services/courseScraper.js';
 import { buildSessionPrefill, parseStoredSession, SessionStore } from '../session/sessionStore.js';
 import { fileExists, readTextFileIfExists } from '../utils/fs.js';
 import type { Logger } from '../utils/log.js';
+import { requireWebToken } from './auth.js';
 import { listOutputs } from './outputs.js';
 import { normalizeJobRequest } from './requests.js';
 import type { WebJobQueue } from './queue.js';
 import { getEffectiveWebSettings, saveWebSettings } from './settings.js';
 import type { JobKind, JobRecord, PublicJob } from './types.js';
 
-export function registerWebRoutes(app: express.Express, params: { config: AppConfig; logger: Logger; queue: WebJobQueue; webDir: string }): void {
+type RouteParams = { config: AppConfig; logger: Logger; queue: WebJobQueue; webDir: string; token: string };
+
+export function registerWebRoutes(app: express.Express, params: RouteParams): void {
+  const requireToken = requireWebToken(params.token);
+  const requireEventToken = requireWebToken(params.token, { allowQueryToken: true });
+
   app.get('/', asyncHandler(async (_req, res) => {
     res.type('html').send(await readFile(path.join(process.cwd(), 'src', 'web', 'static', 'index.html'), 'utf8'));
   }));
@@ -24,29 +30,30 @@ export function registerWebRoutes(app: express.Express, params: { config: AppCon
       outputDir: params.config.outputDir,
       geminiConfigured: Boolean((await getEffectiveWebSettings(params.config, params.webDir)).geminiApiKey),
       model: (await getEffectiveWebSettings(params.config, params.webDir)).geminiModel,
+      authRequired: true,
     });
   }));
 
-  app.get('/api/session', asyncHandler(async (_req, res) => {
+  app.get('/api/session', requireToken, asyncHandler(async (_req, res) => {
     res.json(buildSessionPrefill(await new SessionStore(params.config.sessionPath).load()));
   }));
 
-  app.post('/api/session', asyncHandler(async (req, res) => {
+  app.post('/api/session', requireToken, asyncHandler(async (req, res) => {
     const raw = typeof req.body?.session === 'string' ? JSON.parse(req.body.session) : req.body?.session;
     await new SessionStore(params.config.sessionPath).save(parseStoredSession(raw));
     res.json({ ok: true, sessionPath: params.config.sessionPath });
   }));
 
-  app.get('/api/settings', asyncHandler(async (_req, res) => {
+  app.get('/api/settings', requireToken, asyncHandler(async (_req, res) => {
     res.json({ settings: await getEffectiveWebSettings(params.config, params.webDir) });
   }));
 
-  app.post('/api/settings', asyncHandler(async (req, res) => {
+  app.post('/api/settings', requireToken, asyncHandler(async (req, res) => {
     await saveWebSettings(params.webDir, req.body?.settings ?? req.body ?? {});
     res.json({ settings: await getEffectiveWebSettings(params.config, params.webDir) });
   }));
 
-  app.get('/api/courses', asyncHandler(async (_req, res) => {
+  app.get('/api/courses', requireToken, asyncHandler(async (_req, res) => {
     const session = await new SessionStore(params.config.sessionPath).load();
     if (!session) {
       res.status(404).json({ error: 'No session imported yet.' });
@@ -55,11 +62,11 @@ export function registerWebRoutes(app: express.Express, params: { config: AppCon
     res.json({ courses: await scrapeMyCoursesDetailed({ session, headless: params.config.puppeteerHeadless }) });
   }));
 
-  app.get('/api/jobs', (_req, res) => res.json({ jobs: params.queue.list().map(publicJob) }));
-  app.get('/api/jobs/:id', asyncHandler(async (req, res) => sendJob(params.queue, req, res)));
-  app.get('/api/jobs/:id/events', asyncHandler(async (req, res) => streamJob(params.queue, req, res)));
-  app.post('/api/jobs', asyncHandler(async (req, res) => enqueueJob(params.queue, req, res)));
-  app.get('/api/outputs', asyncHandler(async (_req, res) => {
+  app.get('/api/jobs', requireToken, (_req, res) => res.json({ jobs: params.queue.list().map(publicJob) }));
+  app.get('/api/jobs/:id', requireToken, asyncHandler(async (req, res) => sendJob(params.queue, req, res)));
+  app.get('/api/jobs/:id/events', requireEventToken, asyncHandler(async (req, res) => streamJob(params.queue, req, res)));
+  app.post('/api/jobs', requireToken, asyncHandler(async (req, res) => enqueueJob(params.queue, req, res)));
+  app.get('/api/outputs', requireToken, asyncHandler(async (_req, res) => {
     res.json({ outputs: await listOutputs(params.config.outputDir) });
   }));
 }

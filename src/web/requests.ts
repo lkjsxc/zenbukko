@@ -6,7 +6,7 @@ export function normalizeJobRequest(kind: JobKind, body: Record<string, unknown>
   if (kind === 'ocr-materials') {
     return {
       inputDir: stringFrom(body.inputDir, ''),
-      ocrBackend: stringFrom(body.ocrBackend, 'local'),
+      ocrBackend: stringFrom(body.ocrBackend, 'auto'),
       ocrModel: stringFrom(body.ocrModel, DEFAULT_GEMINI_MODEL),
       ocrForce: booleanFrom(body.ocrForce, false),
       ocrMode: stringFrom(body.ocrMode, 'auto'),
@@ -15,9 +15,9 @@ export function normalizeJobRequest(kind: JobKind, body: Record<string, unknown>
       ocrTimeoutMs: numberFrom(body.ocrTimeoutMs, 900_000),
       ndlocrCommand: stringFrom(body.ndlocrCommand, 'ndlocr-lite'),
       ndlocrDevice: stringFrom(body.ndlocrDevice, 'cpu'),
-      ocrPageDpi: numberFrom(body.ocrPageDpi, 200),
+      ocrPageDpi: numberFrom(body.ocrPageDpi, 300),
       ocrKeepIntermediates: booleanFrom(body.ocrKeepIntermediates, false),
-      ndlocrEnableTcy: booleanFrom(body.ndlocrEnableTcy, false),
+      ndlocrEnableTcy: booleanFrom(body.ndlocrEnableTcy, true),
     };
   }
 
@@ -34,7 +34,7 @@ export function normalizeJobRequest(kind: JobKind, body: Record<string, unknown>
     materials: booleanFrom(body.materials, false),
     deleteMediaAfterTranscribe: booleanFrom(body.deleteMediaAfterTranscribe, true),
     ocrMaterials: booleanFrom(body.ocrMaterials, false),
-    ocrBackend: stringFrom(body.ocrBackend, 'local'),
+    ocrBackend: stringFrom(body.ocrBackend, 'auto'),
     ocrModel: stringFrom(body.ocrModel, DEFAULT_GEMINI_MODEL),
     ocrForce: booleanFrom(body.ocrForce, false),
     ocrMode: stringFrom(body.ocrMode, 'auto'),
@@ -43,9 +43,9 @@ export function normalizeJobRequest(kind: JobKind, body: Record<string, unknown>
     ocrTimeoutMs: numberFrom(body.ocrTimeoutMs, 900_000),
     ndlocrCommand: stringFrom(body.ndlocrCommand, 'ndlocr-lite'),
     ndlocrDevice: stringFrom(body.ndlocrDevice, 'cpu'),
-    ocrPageDpi: numberFrom(body.ocrPageDpi, 200),
+    ocrPageDpi: numberFrom(body.ocrPageDpi, 300),
     ocrKeepIntermediates: booleanFrom(body.ocrKeepIntermediates, false),
-    ndlocrEnableTcy: booleanFrom(body.ndlocrEnableTcy, false),
+    ndlocrEnableTcy: booleanFrom(body.ndlocrEnableTcy, true),
   };
 
   if (kind === 'download-all') return common;

@@ -6,6 +6,15 @@ import type { LocalOcrDevice } from './types.js';
 import type { OcrTask } from './plan.js';
 import { normalizeMarkdown } from './text.js';
 
+export type LocalOcrOutput = {
+  markdown: string;
+  artifactDir?: string;
+  pageCount: number;
+  emptyPageCount: number;
+  elapsedMs: number;
+  rawOutputPaths?: string[];
+};
+
 export async function runLocalOcrTask(params: {
   task: OcrTask;
   command: string;
@@ -13,7 +22,8 @@ export async function runLocalOcrTask(params: {
   pageDpi: number;
   keepIntermediates: boolean;
   enableTcy: boolean;
-}): Promise<{ markdown: string; artifactDir?: string }> {
+}): Promise<LocalOcrOutput> {
+  const started = Date.now();
   const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'zenbukko-ocr-'));
   const imageDir = path.join(workDir, 'pages');
   const outDir = path.join(workDir, 'out');
@@ -22,10 +32,19 @@ export async function runLocalOcrTask(params: {
   try {
     await rasterizePdf(params.task.pdfPath, imageDir, params.pageDpi);
     await runNdlocr(params.command, imageDir, outDir, params.device, params.enableTcy);
-    const text = await collectPageText(outDir);
-    const markdown = normalizeMarkdown(toMarkdown(path.basename(params.task.pdfPath), text));
-    if (params.keepIntermediates) return { markdown, artifactDir: workDir };
-    return { markdown };
+    const pages = await collectPageText(outDir);
+    const markdown = normalizeMarkdown(toMarkdown(path.basename(params.task.pdfPath), pages.nonEmpty));
+    const output: LocalOcrOutput = {
+      markdown,
+      pageCount: pages.total,
+      emptyPageCount: pages.empty,
+      elapsedMs: Date.now() - started,
+    };
+    if (params.keepIntermediates) {
+      output.artifactDir = workDir;
+      output.rawOutputPaths = pages.files;
+    }
+    return output;
   } finally {
     if (!params.keepIntermediates) await fs.rm(workDir, { recursive: true, force: true });
   }
@@ -42,15 +61,22 @@ async function runNdlocr(command: string, imageDir: string, outDir: string, devi
   await runCommand(command, args);
 }
 
-async function collectPageText(outDir: string): Promise<Array<{ name: string; text: string }>> {
+async function collectPageText(outDir: string): Promise<{
+  total: number;
+  empty: number;
+  files: string[];
+  nonEmpty: Array<{ name: string; text: string }>;
+}> {
   const files = (await walk(outDir)).filter((file) => file.toLowerCase().endsWith('.txt')).sort((a, b) => a.localeCompare(b));
-  const pages = [];
+  const nonEmpty = [];
+  let empty = 0;
   for (const file of files) {
     const text = (await fs.readFile(file, 'utf8')).trim();
-    if (text) pages.push({ name: path.basename(file, '.txt'), text });
+    if (text) nonEmpty.push({ name: path.basename(file, '.txt'), text });
+    else empty += 1;
   }
-  if (pages.length === 0) throw new Error('NDLOCR-Lite did not produce any non-empty text output.');
-  return pages;
+  if (nonEmpty.length === 0) throw new Error('NDLOCR-Lite did not produce any non-empty text output.');
+  return { total: files.length, empty, files, nonEmpty };
 }
 
 function toMarkdown(pdfName: string, pages: Array<{ name: string; text: string }>): string {

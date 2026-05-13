@@ -7,7 +7,7 @@ import { ensureDir, readTextFileIfExists } from '../utils/fs.js';
 const SettingsSchema = z.object({
   geminiApiKey: z.string().optional(),
   geminiModel: z.string().optional(),
-  ocrBackend: z.enum(['local', 'gemini']).optional(),
+  ocrBackend: z.enum(['auto', 'local', 'gemini']).optional(),
   ocrMode: z.enum(['auto', 'batch', 'flex']).optional(),
   ocrServiceTier: z.enum(['flex', 'standard']).optional(),
   chapterRange: z.string().optional(),
@@ -25,7 +25,7 @@ export type WebSettings = z.infer<typeof SettingsSchema>;
 export type EffectiveWebSettings = {
   geminiApiKey: string;
   geminiModel: string;
-  ocrBackend: 'local' | 'gemini';
+  ocrBackend: 'auto' | 'local' | 'gemini';
   ocrMode: 'auto' | 'batch' | 'flex';
   ocrServiceTier: 'flex' | 'standard';
   chapterRange: string;

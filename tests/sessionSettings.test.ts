@@ -99,7 +99,7 @@ test('normalizeJobRequest preserves standalone OCR settings without secrets', ()
     ndlocrDevice: 'cpu',
     ocrPageDpi: 250,
     ocrKeepIntermediates: false,
-    ndlocrEnableTcy: false,
+    ndlocrEnableTcy: true,
   });
 });
 
@@ -110,12 +110,12 @@ test('normalizeJobRequest uses the default Gemini model when OCR model is omitte
   assert.equal(request.ocrModel, DEFAULT_GEMINI_MODEL);
 });
 
-test('normalizeJobRequest defaults OCR backend to local for omitted values', () => {
+test('normalizeJobRequest defaults OCR backend to auto for omitted values', () => {
   const request = normalizeJobRequest('ocr-materials', {});
-  assert.equal(request.ocrBackend, 'local');
+  assert.equal(request.ocrBackend, 'auto');
   assert.equal(request.ndlocrCommand, 'ndlocr-lite');
   assert.equal(request.ndlocrDevice, 'cpu');
-  assert.equal(request.ocrPageDpi, 200);
+  assert.equal(request.ocrPageDpi, 300);
   assert.equal(request.ocrKeepIntermediates, false);
-  assert.equal(request.ndlocrEnableTcy, false);
+  assert.equal(request.ndlocrEnableTcy, true);
 });

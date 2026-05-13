@@ -39,16 +39,16 @@
     <section><h2>Courses</h2><table><thead><tr><th>ID</th><th>Title</th><th>Source</th></tr></thead><tbody id="courses"></tbody></table></section>
     <section>
       <h2>OCR Settings</h2>
-      <label>Backend</label><select id="ocrBackend"><option value="local">local</option><option value="gemini">gemini</option></select>
+      <label>Backend</label><select id="ocrBackend"><option value="auto">auto</option><option value="local">local</option><option value="gemini">gemini</option></select>
       <label>API key</label><input id="geminiApiKey" type="password" autocomplete="off" />
       <label>Gemini model</label><input id="geminiModel" value="gemini-3.1-flash-lite" />
       <label>OCR mode</label><select id="ocrMode"><option>auto</option><option>batch</option><option>flex</option></select>
       <label>OCR service tier</label><select id="ocrServiceTier"><option>flex</option><option>standard</option></select>
       <label>NDLOCR-Lite command</label><input id="ndlocrCommand" value="ndlocr-lite" />
       <label>NDLOCR-Lite device</label><select id="ndlocrDevice"><option>cpu</option><option>cuda</option></select>
-      <label>Local OCR page DPI</label><input id="ocrPageDpi" value="200" />
+      <label>Local OCR page DPI</label><input id="ocrPageDpi" value="300" />
       <label class="check"><input type="checkbox" id="ocrKeepIntermediates" /> Keep local OCR intermediates</label>
-      <label class="check"><input type="checkbox" id="ndlocrEnableTcy" /> Enable tate-chu-yoko handling</label>
+      <label class="check"><input type="checkbox" id="ndlocrEnableTcy" checked /> Enable tate-chu-yoko handling</label>
       <div class="row top"><button id="saveSettings">Save Settings</button></div>
     </section>
     <section><h2>Standalone OCR</h2><label>Input directory</label><input id="ocrInput" value="/data/downloads" /><div class="row top"><button id="startOcr">Start OCR</button></div></section>

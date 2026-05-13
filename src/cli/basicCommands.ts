@@ -23,16 +23,17 @@ export function registerBasicCommands(program: Command): void {
   program.command('ocr-materials')
     .description('Run PDF OCR for downloaded lesson materials')
     .requiredOption('--input <path>', 'Downloads, course, lesson, or materials directory to scan for PDFs')
-    .option('--ocr-backend <backend>', 'local|gemini', 'local')
+    .option('--ocr-backend <backend>', 'auto|local|gemini')
     .option('--model <name>', 'Gemini model name', DEFAULT_GEMINI_MODEL)
     .option('--force', 'Re-run OCR even when markdown output already exists', false)
-    .option('--ocr-mode <mode>', 'auto|batch|flex', 'auto')
-    .option('--ocr-service-tier <tier>', 'flex|standard', 'flex')
-    .option('--ndlocr-command <path>', 'NDLOCR-Lite executable', 'ndlocr-lite')
-    .option('--ndlocr-device <device>', 'cpu|cuda', 'cpu')
-    .option('--ocr-page-dpi <n>', 'PDF rasterization DPI for local OCR', (v) => Number(v), 200)
+    .option('--ocr-mode <mode>', 'auto|batch|flex')
+    .option('--ocr-service-tier <tier>', 'flex|standard')
+    .option('--ndlocr-command <path>', 'NDLOCR-Lite executable')
+    .option('--ndlocr-device <device>', 'cpu|cuda')
+    .option('--ocr-page-dpi <n>', 'PDF rasterization DPI for local OCR', (v) => Number(v))
     .option('--ocr-keep-intermediates', 'Keep local OCR page images and raw output', false)
-    .option('--ndlocr-enable-tcy', 'Enable NDLOCR-Lite tate-chu-yoko handling', false)
+    .option('--ndlocr-enable-tcy', 'Enable NDLOCR-Lite tate-chu-yoko handling')
+    .option('--no-ndlocr-enable-tcy', 'Disable NDLOCR-Lite tate-chu-yoko handling')
     .action(async (cmd) => {
       const ctx = makeContext(program);
       await ocrMaterialsCommand({
@@ -49,7 +50,7 @@ export function registerBasicCommands(program: Command): void {
         ndlocrDevice: deviceFrom(cmd.ndlocrDevice, ctx.cfg.ndlocrDevice),
         ocrPageDpi: numberOption(cmd.ocrPageDpi, ctx.cfg.ocrPageDpi),
         ocrKeepIntermediates: Boolean(cmd.ocrKeepIntermediates) || ctx.cfg.ocrKeepIntermediates,
-        ndlocrEnableTcy: Boolean(cmd.ndlocrEnableTcy) || ctx.cfg.ndlocrEnableTcy,
+        ndlocrEnableTcy: booleanOption(cmd.ndlocrEnableTcy, ctx.cfg.ndlocrEnableTcy),
         logger: ctx.logger,
       });
     });
@@ -62,10 +63,10 @@ export function registerBasicCommands(program: Command): void {
       await rebuildChapterOcr({ inputDir: String(cmd.input), logger: ctx.logger });
     });
 
-  program.command('web').description('Start the local Docker-friendly web UI').option('--host <host>', 'Bind host', '0.0.0.0').option('--port <port>', 'Bind port', (v) => Number(v)).action(async (cmd) => {
+  program.command('web').description('Start the local Docker-friendly web UI').option('--host <host>', 'Bind host', '127.0.0.1').option('--port <port>', 'Bind port', (v) => Number(v)).action(async (cmd) => {
     const ctx = makeContext(program);
     await startWebServer({
-      host: String(cmd.host ?? '0.0.0.0'),
+      host: String(cmd.host ?? '127.0.0.1'),
       port: typeof cmd.port === 'number' && Number.isFinite(cmd.port) ? (cmd.port as number) : ctx.cfg.webPort,
       config: ctx.cfg,
       logger: ctx.logger,
@@ -108,8 +109,8 @@ function tierFrom(value: unknown, fallback: 'flex' | 'standard'): 'flex' | 'stan
   return value === 'flex' || value === 'standard' ? value : fallback;
 }
 
-function backendFrom(value: unknown, fallback: 'local' | 'gemini'): 'local' | 'gemini' {
-  return value === 'local' || value === 'gemini' ? value : fallback;
+function backendFrom(value: unknown, fallback: 'auto' | 'local' | 'gemini'): 'auto' | 'local' | 'gemini' {
+  return value === 'auto' || value === 'local' || value === 'gemini' ? value : fallback;
 }
 
 function deviceFrom(value: unknown, fallback: 'cpu' | 'cuda'): 'cpu' | 'cuda' {
@@ -118,6 +119,10 @@ function deviceFrom(value: unknown, fallback: 'cpu' | 'cuda'): 'cpu' | 'cuda' {
 
 function numberOption(value: unknown, fallback: number): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+}
+
+function booleanOption(value: unknown, fallback: boolean): boolean {
+  return typeof value === 'boolean' ? value : fallback;
 }
 
 function stringOption(value: unknown, fallback: string): string {

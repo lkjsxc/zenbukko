@@ -1,9 +1,11 @@
 const $ = (id) => document.getElementById(id);
 const DEFAULT_GEMINI_MODEL = 'gemini-3.1-flash-lite';
+const TOKEN_STORAGE_KEY = 'zenbukko.webToken';
+const webToken = loadWebToken();
 let eventSource;
 
 async function api(path, options) {
-  const res = await fetch(path, options);
+  const res = await fetch(path, withToken(options));
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || res.statusText);
   return data;
@@ -24,14 +26,14 @@ async function loadSettings() {
   const s = data.settings || {};
   $('geminiApiKey').value = s.geminiApiKey || '';
   $('geminiModel').value = s.geminiModel || DEFAULT_GEMINI_MODEL;
-  $('ocrBackend').value = s.ocrBackend || 'local';
+  $('ocrBackend').value = s.ocrBackend || 'auto';
   $('ocrMode').value = s.ocrMode || 'auto';
   $('ocrServiceTier').value = s.ocrServiceTier || 'flex';
   $('ndlocrCommand').value = s.ndlocrCommand || 'ndlocr-lite';
   $('ndlocrDevice').value = s.ndlocrDevice || 'cpu';
-  $('ocrPageDpi').value = s.ocrPageDpi || 200;
+  $('ocrPageDpi').value = s.ocrPageDpi || 300;
   $('ocrKeepIntermediates').checked = Boolean(s.ocrKeepIntermediates);
-  $('ndlocrEnableTcy').checked = Boolean(s.ndlocrEnableTcy);
+  $('ndlocrEnableTcy').checked = s.ndlocrEnableTcy !== false;
   $('chapterRange').value = s.chapterRange || '';
 }
 
@@ -45,7 +47,7 @@ async function openJob(id) {
   if (eventSource) eventSource.close();
   await api('/api/jobs/' + id);
   $('log').textContent = '';
-  eventSource = new EventSource('/api/jobs/' + id + '/events');
+  eventSource = new EventSource(eventUrl(id));
   eventSource.onmessage = (ev) => {
     $('log').textContent += JSON.parse(ev.data) + '\n';
     $('log').scrollTop = $('log').scrollHeight;
@@ -115,7 +117,7 @@ function collectSettings(includeSecret) {
     ocrServiceTier: $('ocrServiceTier').value,
     ndlocrCommand: $('ndlocrCommand').value,
     ndlocrDevice: $('ndlocrDevice').value,
-    ocrPageDpi: Number($('ocrPageDpi').value || 200),
+    ocrPageDpi: Number($('ocrPageDpi').value || 300),
     ocrKeepIntermediates: $('ocrKeepIntermediates').checked,
     ndlocrEnableTcy: $('ndlocrEnableTcy').checked,
     chapterRange: $('chapterRange').value,
@@ -138,6 +140,31 @@ function escapeHtml(s) {
 
 function alertError(e) {
   alert(e.message || String(e));
+}
+
+function loadWebToken() {
+  const url = new URL(window.location.href);
+  const token = url.searchParams.get('token') || localStorage.getItem(TOKEN_STORAGE_KEY) || '';
+  if (url.searchParams.has('token')) {
+    url.searchParams.delete('token');
+    window.history.replaceState({}, document.title, url.pathname + url.search + url.hash);
+  }
+  if (token) localStorage.setItem(TOKEN_STORAGE_KEY, token);
+  return token;
+}
+
+function withToken(options) {
+  const next = { ...(options || {}) };
+  const headers = new Headers(next.headers || {});
+  if (webToken) headers.set('X-Zenbukko-Token', webToken);
+  next.headers = headers;
+  return next;
+}
+
+function eventUrl(id) {
+  const url = new URL('/api/jobs/' + id + '/events', window.location.origin);
+  if (webToken) url.searchParams.set('token', webToken);
+  return url.pathname + url.search;
 }
 
 refreshStatus().catch(console.error);

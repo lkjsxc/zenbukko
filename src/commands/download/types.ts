@@ -18,7 +18,7 @@ export type DownloadCommandParams = {
   materials: boolean;
   deleteMediaAfterTranscribe: boolean;
   ocrMaterials: boolean;
-  ocrBackend: 'local' | 'gemini';
+  ocrBackend: 'auto' | 'local' | 'gemini';
   ocrModel: string;
   ocrForce: boolean;
   ocrMode?: 'auto' | 'batch' | 'flex';

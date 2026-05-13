@@ -13,7 +13,7 @@ const EnvSchema = z
     LOG_LEVEL: z.enum(['silent', 'error', 'warn', 'info', 'debug']).optional(),
     GEMINI_API_KEY: z.string().optional(),
     GEMINI_MODEL: z.string().optional(),
-    ZENBUKKO_OCR_BACKEND: z.enum(['local', 'gemini']).optional(),
+    ZENBUKKO_OCR_BACKEND: z.enum(['auto', 'local', 'gemini']).optional(),
     ZENBUKKO_OCR_MODE: z.enum(['auto', 'batch', 'flex']).optional(),
     ZENBUKKO_OCR_SERVICE_TIER: z.enum(['flex', 'standard']).optional(),
     ZENBUKKO_OCR_RETRIES: z.string().optional().transform((v) => parseOptionalInt(v)),
@@ -45,7 +45,7 @@ export type AppConfig = {
   puppeteerHeadless: boolean;
   geminiApiKey?: string;
   geminiModel: string;
-  ocrBackend: 'local' | 'gemini';
+  ocrBackend: 'auto' | 'local' | 'gemini';
   ocrMode: 'auto' | 'batch' | 'flex';
   ocrServiceTier: 'flex' | 'standard';
   ocrRetries: number;
@@ -66,16 +66,16 @@ export function loadConfig(): AppConfig {
   const logLevel = env.LOG_LEVEL ?? 'info';
   const puppeteerHeadless = env.PUPPETEER_HEADLESS ?? false;
   const geminiModel = env.GEMINI_MODEL ?? DEFAULT_GEMINI_MODEL;
-  const ocrBackend = env.ZENBUKKO_OCR_BACKEND ?? 'local';
+  const ocrBackend = env.ZENBUKKO_OCR_BACKEND ?? 'auto';
   const ocrMode = env.ZENBUKKO_OCR_MODE ?? 'auto';
   const ocrServiceTier = env.ZENBUKKO_OCR_SERVICE_TIER ?? 'flex';
   const ocrRetries = env.ZENBUKKO_OCR_RETRIES ?? 3;
   const ocrTimeoutMs = env.ZENBUKKO_OCR_TIMEOUT_MS ?? 900_000;
   const ndlocrCommand = env.ZENBUKKO_NDLOCR_CMD?.trim() || 'ndlocr-lite';
   const ndlocrDevice = env.ZENBUKKO_NDLOCR_DEVICE ?? 'cpu';
-  const ocrPageDpi = env.ZENBUKKO_OCR_PAGE_DPI ?? 200;
+  const ocrPageDpi = env.ZENBUKKO_OCR_PAGE_DPI ?? 300;
   const ocrKeepIntermediates = env.ZENBUKKO_OCR_KEEP_INTERMEDIATES ?? false;
-  const ndlocrEnableTcy = env.ZENBUKKO_NDLOCR_ENABLE_TCY ?? false;
+  const ndlocrEnableTcy = env.ZENBUKKO_NDLOCR_ENABLE_TCY ?? true;
   const webPort = env.WEB_PORT ?? 8787;
 
   return {
