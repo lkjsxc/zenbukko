@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { buildSessionPrefill, parseStoredSession } from '../src/session/sessionStore.js';
+import {
+  buildSessionPrefill,
+  buildSessionWriteError,
+  parseStoredSession,
+} from '../src/session/sessionStore.js';
 import { mergeWebSettings } from '../src/web/settings.js';
 import { normalizeJobRequest } from '../src/web/requests.js';
 import { DEFAULT_GEMINI_MODEL } from '../src/geminiDefaults.js';
@@ -31,6 +35,13 @@ test('buildSessionPrefill returns normalized formatted session text', () => {
   const payload = buildSessionPrefill(session);
   assert.equal(payload.exists, true);
   assert.match(payload.text, /"cookieHeader": "a=b"/);
+});
+
+test('buildSessionWriteError explains root-owned data directories', () => {
+  const cause = Object.assign(new Error('permission denied'), { code: 'EACCES' });
+  const error = buildSessionWriteError('/work/zenbukko/data/session.json', cause);
+  assert.match(error.message, /Cannot write session file/);
+  assert.match(error.message, /sudo chown -R/);
 });
 
 test('mergeWebSettings gives saved browser values precedence over env defaults', () => {

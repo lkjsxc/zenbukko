@@ -60,9 +60,30 @@ export class SessionStore {
   }
 
   async save(session: StoredSession): Promise<void> {
-    await ensureDir(path.dirname(this.sessionPath));
-    await fs.writeFile(this.sessionPath, JSON.stringify(session, null, 2), 'utf8');
+    try {
+      await ensureDir(path.dirname(this.sessionPath));
+      await fs.writeFile(this.sessionPath, JSON.stringify(session, null, 2), 'utf8');
+    } catch (error) {
+      throw buildSessionWriteError(this.sessionPath, error);
+    }
   }
+}
+
+export function buildSessionWriteError(sessionPath: string, error: unknown): Error {
+  if (isNodeFileError(error) && error.code === 'EACCES') {
+    return new Error(
+      [
+        `Cannot write session file: ${sessionPath}`,
+        'The data directory is not writable by the current user.',
+        'If Docker created it as root, run:',
+        `sudo chown -R "$(id -u):$(id -g)" ${path.dirname(sessionPath)}`,
+      ].join('\n'),
+      { cause: error },
+    );
+  }
+
+  if (error instanceof Error) return error;
+  return new Error(String(error));
 }
 
 export function parseStoredSession(value: unknown): StoredSession {
@@ -146,4 +167,8 @@ function parseCookieHeader(cookieHeader: string): StoredCookie[] {
       };
     })
     .filter((c) => c.name.length > 0);
+}
+
+function isNodeFileError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && 'code' in error;
 }

@@ -41,6 +41,18 @@ Whisper rebuilds are expected only when these inputs change:
 
 The repository `./data` directory is mounted at `/data`. Session, settings, jobs, and downloads should be considered local private data.
 
+Create the host directory before running Compose so Docker does not create it as root:
+
+```sh
+mkdir -p data
+```
+
+If `zenbukko auth` cannot write `data/session.json` after a Docker run, restore ownership:
+
+```sh
+sudo chown -R "$(id -u):$(id -g)" data
+```
+
 ## Failure Behavior
 
 GPU image build verification does not prove NDLOCR CUDA runtime execution unless a compatible NVIDIA runtime is available.
