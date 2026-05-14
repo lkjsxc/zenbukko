@@ -18,7 +18,8 @@ async function refreshStatus() {
 
 async function loadSession() {
   const data = await api('/api/session');
-  if (data.text) $('sessionInput').value = data.text;
+  setSessionState(data.exists);
+  $('sessionInput').value = data.text || '';
 }
 
 async function loadSettings() {
@@ -79,6 +80,7 @@ $('saveSession').onclick = async () => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ session: $('sessionInput').value }),
   });
+  setSessionState(true);
   await refreshStatus();
 };
 
@@ -140,6 +142,14 @@ function escapeHtml(s) {
 
 function alertError(e) {
   alert(e.message || String(e));
+}
+
+function setSessionState(exists) {
+  const el = $('sessionState');
+  el.className = 'notice ' + (exists ? 'ready' : 'missing');
+  el.textContent = exists
+    ? 'Saved session loaded automatically. Course and study jobs will use it.'
+    : 'No saved session found. Paste session JSON once, then save it.';
 }
 
 function loadWebToken() {

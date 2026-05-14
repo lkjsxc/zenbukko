@@ -16,8 +16,8 @@ Use `--host 0.0.0.0` only for an explicitly protected remote environment.
 
 ## Inputs
 
-- Session JSON can be pasted into the Session panel.
-- Existing `session.json` is loaded by `GET /api/session` and pre-filled.
+- Existing `session.json` is read automatically when the page opens.
+- Session JSON only needs to be pasted when no saved session exists or the operator wants to replace it.
 - OCR settings are stored locally under `/data/web/settings.json`.
 - `ocrBackend` accepts `auto`, `local`, or `gemini`; the default is `auto`.
 - Study jobs accept learning URL, chapter range, explicit chapter IDs, lesson IDs, materials, transcription, and OCR settings.
