@@ -2,9 +2,9 @@
 
 ## Purpose
 
-Define the local web server contract.
+Define the browser-facing API contract.
 
-Default browser access uses loopback plus a generated token.
+Web exposes these endpoints at same origin and proxies them to Core API. Default browser access uses loopback plus a generated Web token. Core API also serves these routes internally without its own token.
 
 ## Endpoints
 
@@ -19,6 +19,7 @@ Default browser access uses loopback plus a generated token.
 - `GET /api/jobs/:id`: job metadata and log.
 - `GET /api/jobs/:id/events`: Server-Sent Events log stream.
 - `GET /api/outputs`: recent generated files.
+- `GET /healthz`: Core API health check, not proxied by Web for browser use.
 
 ## Job Request Fields
 

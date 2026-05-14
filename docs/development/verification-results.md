@@ -10,19 +10,12 @@ May 14, 2026.
 - `npm run lint`: passed.
 - `npm test`: passed.
 - `npm run check:lines`: passed.
+- `npm run build`: passed.
 
 ## Docker
 
 - `docker compose config --quiet`: passed.
 - `docker compose --profile gpu config --services`: passed.
-- `docker compose build zenbukko`: passed.
-- `docker compose --profile gpu build zenbukko-gpu zenbukko-web-gpu`: passed.
-- `docker compose run --rm --entrypoint /bin/sh zenbukko -c 'command -v ndlocr-lite; command -v pdftoppm; command -v chromium'`: passed.
-- `docker compose run --rm --entrypoint npm zenbukko run type-check`: passed.
-- `docker compose run --rm --entrypoint npm zenbukko run lint`: passed.
-- `docker compose run --rm --entrypoint npm zenbukko run test`: passed.
-- `docker compose run --rm --entrypoint npm zenbukko run check:lines`: passed.
-- `docker compose run --rm --entrypoint npm zenbukko run smoke:local-ocr`: passed.
 
 ## Smoke Details
 
@@ -32,4 +25,5 @@ May 14, 2026.
 
 ## Not Verified
 
+Docker image builds and Docker-run npm checks were not exercised in this split update.
 CUDA runtime execution against a physical GPU was not exercised in this run.

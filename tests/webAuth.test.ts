@@ -5,10 +5,11 @@ import path from 'node:path';
 import { test } from 'node:test';
 import express from 'express';
 import type { AppConfig } from '../src/config.js';
+import { registerApiRoutes } from '../src/api/routes.js';
+import type { ApiJobQueue } from '../src/api/queue.js';
+import type { JobRecord } from '../src/api/types.js';
 import { loadOrCreateWebToken, WEB_TOKEN_HEADER } from '../src/web/auth.js';
-import { registerWebRoutes } from '../src/web/routes.js';
-import type { WebJobQueue } from '../src/web/queue.js';
-import type { JobRecord } from '../src/web/types.js';
+import { registerApiProxy } from '../src/web/proxy.js';
 import { Logger } from '../src/utils/log.js';
 
 const token = 'test-token-that-is-long-enough-for-route-auth';
@@ -24,52 +25,88 @@ test('web token is generated under web data dir and reused', async () => {
   assert.ok(first.length >= 32);
 });
 
-test('status is public and reports web auth requirement', async () => {
-  await withApp(async (baseUrl) => {
-    const res = await fetch(`${baseUrl}/api/status`);
-    const body = await res.json() as { authRequired?: boolean };
-
+test('Core API exposes healthz without web auth', async () => {
+  await withApiRoutes(async (baseUrl) => {
+    const res = await fetch(`${baseUrl}/healthz`);
     assert.equal(res.status, 200);
-    assert.equal(body.authRequired, true);
+    assert.deepEqual(await res.json(), { ok: true });
   });
 });
 
-test('sensitive web APIs require X-Zenbukko-Token', async () => {
-  await withApp(async (baseUrl) => {
+test('web proxy leaves status public and preserves browser API shape', async () => {
+  await withProxy(async (baseUrl) => {
+    const res = await fetch(`${baseUrl}/api/status`);
+    const body = await res.json() as { authRequired?: boolean; model?: string };
+
+    assert.equal(res.status, 200);
+    assert.equal(body.authRequired, true);
+    assert.equal(body.model, 'model');
+  });
+});
+
+test('sensitive web APIs require X-Zenbukko-Token before proxying', async () => {
+  await withProxy(async (baseUrl) => {
     for (const endpoint of ['/api/session', '/api/settings', '/api/courses', '/api/jobs', '/api/outputs']) {
-      const denied = await fetch(`${baseUrl}${endpoint}`);
-      assert.equal(denied.status, 401);
+      assert.equal((await fetch(`${baseUrl}${endpoint}`)).status, 401);
     }
 
     const allowed = await fetch(`${baseUrl}/api/settings`, { headers: { [WEB_TOKEN_HEADER]: token } });
     assert.equal(allowed.status, 200);
+    assert.deepEqual(await allowed.json(), { settings: { ok: true } });
+  });
+});
+
+test('authorized JSON requests proxy to Core API unchanged', async () => {
+  await withProxy(async (baseUrl) => {
+    const res = await fetch(`${baseUrl}/api/settings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', [WEB_TOKEN_HEADER]: token },
+      body: JSON.stringify({ settings: { geminiModel: 'proxy-model' } }),
+    });
+    assert.equal(res.status, 200);
+    assert.deepEqual(await res.json(), { received: { settings: { geminiModel: 'proxy-model' } } });
   });
 });
 
 test('job event stream accepts token query parameter for SSE', async () => {
-  const job = await makeJob();
-  await withApp(async (baseUrl) => {
-    const denied = await fetch(`${baseUrl}/api/jobs/${job.id}/events`);
-    const allowed = await fetch(`${baseUrl}/api/jobs/${job.id}/events?token=${encodeURIComponent(token)}`);
+  await withProxy(async (baseUrl) => {
+    const denied = await fetch(`${baseUrl}/api/jobs/job-1/events`);
+    const allowed = await fetch(`${baseUrl}/api/jobs/job-1/events?token=${encodeURIComponent(token)}`);
 
     assert.equal(denied.status, 401);
     assert.equal(allowed.status, 200);
-    await allowed.body?.cancel();
-  }, job);
+    assert.match(await allowed.text(), /data: "line one"/);
+  });
 });
 
-async function withApp(run: (baseUrl: string) => Promise<void>, job?: JobRecord): Promise<void> {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'zenbukko-web-routes-'));
-  const app = express();
-  app.use(express.json());
-  registerWebRoutes(app, {
-    config: configFor(root),
-    logger: new Logger('silent'),
-    queue: queueFor(job),
-    webDir: path.join(root, 'web'),
-    token,
+async function withProxy(run: (baseUrl: string) => Promise<void>): Promise<void> {
+  const api = express();
+  api.use(express.json());
+  api.get('/api/status', (_req, res) => res.json({ authRequired: true, model: 'model' }));
+  api.get('/api/settings', (_req, res) => res.json({ settings: { ok: true } }));
+  api.post('/api/settings', (req, res) => res.json({ received: req.body }));
+  for (const p of ['/api/session', '/api/courses', '/api/jobs', '/api/outputs']) api.get(p, (_req, res) => res.json({ ok: true }));
+  api.get('/api/jobs/job-1/events', (_req, res) => {
+    res.writeHead(200, { 'Content-Type': 'text/event-stream' });
+    res.end('data: "line one"\n\n');
   });
 
+  await withServer(api, async (apiUrl) => {
+    const web = express();
+    registerApiProxy(web, { apiUrl, token });
+    await withServer(web, run);
+  });
+}
+
+async function withApiRoutes(run: (baseUrl: string) => Promise<void>): Promise<void> {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'zenbukko-api-routes-'));
+  const app = express();
+  app.use(express.json());
+  registerApiRoutes(app, { config: configFor(root), logger: new Logger('silent'), queue: queueFor(), stateDir: path.join(root, 'api') });
+  await withServer(app, run);
+}
+
+async function withServer(app: express.Express, run: (baseUrl: string) => Promise<void>): Promise<void> {
   const server = app.listen(0);
   try {
     const address = server.address();
@@ -98,21 +135,16 @@ function configFor(root: string): AppConfig {
     ocrKeepIntermediates: false,
     ndlocrEnableTcy: false,
     webPort: 8787,
+    apiPort: 8788,
+    apiUrl: 'http://127.0.0.1:8788',
+    webDataDir: path.join(root, 'web-ui'),
   };
 }
 
-function queueFor(job?: JobRecord): WebJobQueue {
+function queueFor(job?: JobRecord): ApiJobQueue {
   return {
     list: () => job ? [job] : [],
     get: (id: string) => job?.id === id ? job : undefined,
     subscribe: () => () => undefined,
-  } as unknown as WebJobQueue;
-}
-
-async function makeJob(): Promise<JobRecord> {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'zenbukko-web-job-'));
-  const logPath = path.join(root, 'job.log');
-  await fs.writeFile(logPath, 'line one\n', 'utf8');
-  const now = new Date().toISOString();
-  return { id: 'job-1', kind: 'download', status: 'running', createdAt: now, updatedAt: now, title: 'Job', request: {}, logPath };
+  } as unknown as ApiJobQueue;
 }

@@ -5,8 +5,8 @@ import {
   buildSessionWriteError,
   parseStoredSession,
 } from '../src/session/sessionStore.js';
-import { mergeWebSettings } from '../src/web/settings.js';
-import { normalizeJobRequest } from '../src/web/requests.js';
+import { mergeApiSettings } from '../src/api/settings.js';
+import { normalizeJobRequest } from '../src/api/requests.js';
 import { DEFAULT_GEMINI_MODEL } from '../src/geminiDefaults.js';
 import type { AppConfig } from '../src/config.js';
 
@@ -28,6 +28,9 @@ const cfg: AppConfig = {
   ocrKeepIntermediates: true,
   ndlocrEnableTcy: true,
   webPort: 8787,
+  apiPort: 8788,
+  apiUrl: 'http://127.0.0.1:8788',
+  webDataDir: '/data/web-ui',
 };
 
 test('buildSessionPrefill returns normalized formatted session text', () => {
@@ -44,8 +47,8 @@ test('buildSessionWriteError explains root-owned data directories', () => {
   assert.match(error.message, /sudo chown -R/);
 });
 
-test('mergeWebSettings gives saved browser values precedence over env defaults', () => {
-  const effective = mergeWebSettings(cfg, {
+test('mergeApiSettings gives saved browser values precedence over env defaults', () => {
+  const effective = mergeApiSettings(cfg, {
     geminiApiKey: 'saved-key',
     geminiModel: 'saved-model',
     ocrBackend: 'local',
@@ -75,8 +78,8 @@ test('mergeWebSettings gives saved browser values precedence over env defaults',
   });
 });
 
-test('mergeWebSettings uses configured OCR command defaults when request settings are not saved', () => {
-  const effective = mergeWebSettings(cfg, { chapterRange: '1-3' });
+test('mergeApiSettings uses configured OCR command defaults when request settings are not saved', () => {
+  const effective = mergeApiSettings(cfg, { chapterRange: '1-3' });
   assert.equal(effective.ocrBackend, 'gemini');
   assert.equal(effective.ndlocrCommand, 'ndlocr-cmd');
   assert.equal(effective.ocrPageDpi, 250);

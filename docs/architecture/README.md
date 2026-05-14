@@ -13,6 +13,6 @@ Zenbukko is a local-first Node 22 TypeScript application with CLI, web, download
 
 ## Invariants
 
-- CLI and web call shared service modules instead of duplicating behavior.
-- Long-running web work runs through the persisted job queue.
-- Session, settings, downloads, jobs, and generated OCR manifests live under `/data` in Docker.
+- CLI and Core API call shared service modules instead of duplicating behavior.
+- Long-running browser-created work runs through the API persisted job queue.
+- Session, settings, downloads, jobs, and generated OCR manifests live under API-owned `/data` in Docker.

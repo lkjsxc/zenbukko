@@ -6,7 +6,6 @@ import { transcribeCommand } from '../commands/transcribe.js';
 import { DEFAULT_GEMINI_MODEL } from '../geminiDefaults.js';
 import { ocrMaterialsCommand } from '../services/geminiOcr.js';
 import { rebuildChapterOcr } from '../services/chapterOcr.js';
-import { startWebServer } from '../web/server.js';
 import { headlessFrom, makeContext } from './context.js';
 
 export function registerBasicCommands(program: Command): void {
@@ -62,16 +61,6 @@ export function registerBasicCommands(program: Command): void {
       const ctx = makeContext(program);
       await rebuildChapterOcr({ inputDir: String(cmd.input), logger: ctx.logger });
     });
-
-  program.command('web').description('Start the local Docker-friendly web UI').option('--host <host>', 'Bind host', '127.0.0.1').option('--port <port>', 'Bind port', (v) => Number(v)).action(async (cmd) => {
-    const ctx = makeContext(program);
-    await startWebServer({
-      host: String(cmd.host ?? '127.0.0.1'),
-      port: typeof cmd.port === 'number' && Number.isFinite(cmd.port) ? (cmd.port as number) : ctx.cfg.webPort,
-      config: ctx.cfg,
-      logger: ctx.logger,
-    });
-  });
 
   program.command('setup-whisper')
     .description('Clone and build whisper.cpp, and download a model')

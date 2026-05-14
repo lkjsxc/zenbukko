@@ -15,14 +15,16 @@ Show how requests move through Zenbukko and where persistent artifacts are writt
 7. If materials are enabled, all selected lesson materials are fetched and normalized first.
 8. Media download, transcription, cleanup, and OCR run only after the material capture phase.
 
-## Web Flow
+## Web/Core Flow
 
-1. Express serves static UI files.
-2. Browser reads `/api/status`, `/api/session`, and `/api/settings`.
-3. Job forms submit normalized JSON to `/api/jobs`.
-4. `WebJobQueue` persists job records and logs under `/data/web/jobs`.
-5. Jobs call the same workflow functions as the CLI.
-6. Logs stream through Server-Sent Events.
+1. `zenbukko web` serves static UI files and stores only its browser token.
+2. Browser reads and writes same-origin `/api/*` through the Web proxy.
+3. The Web proxy allows public `GET /api/status` and requires the browser token for sensitive `/api/*`.
+4. `zenbukko api` receives proxied requests on port `8788`.
+5. Job forms submit normalized JSON to Core API `/api/jobs`.
+6. `ApiJobQueue` persists job records and logs under API-owned state.
+7. Jobs call the same workflow functions as the CLI.
+8. Logs stream through Server-Sent Events via the Web proxy.
 
 ## Materials And OCR Flow
 

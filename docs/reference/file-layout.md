@@ -8,9 +8,10 @@ Identify persistent and generated paths.
 
 ```text
 /data/session.json
-/data/web/settings.json
-/data/web/jobs/*.json
-/data/web/jobs/*.log
+/data/api/settings.json
+/data/api/jobs/*.json
+/data/api/jobs/*.log
+/data/web-ui/token.json
 /data/downloads/
   course-<courseId>/
     <chapterOrdinal>/
@@ -26,6 +27,7 @@ docs/
 data/
 Dockerfile
 Dockerfile.gpu
+Dockerfile.web
 docker-compose.yml
 ```
 

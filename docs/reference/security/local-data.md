@@ -3,8 +3,9 @@
 ## Private Paths
 
 - Session JSON contains browser cookie material.
-- `/data/web/settings.json` can contain Gemini credentials.
-- `/data/web/jobs` contains operator actions and logs.
+- `/data/api/settings.json` can contain Gemini credentials.
+- `/data/api/jobs` contains operator actions and logs.
+- `/data/web-ui/token.json` contains the Web browser token.
 - `/data/downloads` contains course material and generated outputs.
 
 ## Handling

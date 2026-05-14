@@ -20,9 +20,9 @@ const SettingsSchema = z.object({
   ndlocrEnableTcy: z.boolean().optional(),
 });
 
-export type WebSettings = z.infer<typeof SettingsSchema>;
+export type ApiSettings = z.infer<typeof SettingsSchema>;
 
-export type EffectiveWebSettings = {
+export type EffectiveApiSettings = {
   geminiApiKey: string;
   geminiModel: string;
   ocrBackend: 'auto' | 'local' | 'gemini';
@@ -38,24 +38,24 @@ export type EffectiveWebSettings = {
   ndlocrEnableTcy: boolean;
 };
 
-export async function loadWebSettings(webDir: string): Promise<WebSettings> {
-  const raw = await readTextFileIfExists(settingsPath(webDir));
+export async function loadApiSettings(stateDir: string): Promise<ApiSettings> {
+  const raw = await readTextFileIfExists(settingsPath(stateDir));
   if (!raw) return {};
   return SettingsSchema.parse(JSON.parse(raw));
 }
 
-export async function saveWebSettings(webDir: string, value: unknown): Promise<WebSettings> {
+export async function saveApiSettings(stateDir: string, value: unknown): Promise<ApiSettings> {
   const parsed = SettingsSchema.parse(value);
-  await ensureDir(webDir);
-  await fs.writeFile(settingsPath(webDir), JSON.stringify(parsed, null, 2), 'utf8');
+  await ensureDir(stateDir);
+  await fs.writeFile(settingsPath(stateDir), JSON.stringify(parsed, null, 2), 'utf8');
   return parsed;
 }
 
-export async function getEffectiveWebSettings(cfg: AppConfig, webDir: string): Promise<EffectiveWebSettings> {
-  return mergeWebSettings(cfg, await loadWebSettings(webDir));
+export async function getEffectiveApiSettings(cfg: AppConfig, stateDir: string): Promise<EffectiveApiSettings> {
+  return mergeApiSettings(cfg, await loadApiSettings(stateDir));
 }
 
-export function mergeWebSettings(cfg: AppConfig, saved: WebSettings): EffectiveWebSettings {
+export function mergeApiSettings(cfg: AppConfig, saved: ApiSettings): EffectiveApiSettings {
   return {
     geminiApiKey: saved.geminiApiKey?.trim() || cfg.geminiApiKey || '',
     geminiModel: saved.geminiModel?.trim() || cfg.geminiModel,
@@ -73,6 +73,6 @@ export function mergeWebSettings(cfg: AppConfig, saved: WebSettings): EffectiveW
   };
 }
 
-function settingsPath(webDir: string): string {
-  return path.join(webDir, 'settings.json');
+function settingsPath(stateDir: string): string {
+  return path.join(stateDir, 'settings.json');
 }

@@ -12,13 +12,19 @@ Define ownership for source modules so refactors stay narrow.
 - `src/commands/setupWhisper.ts`: whisper.cpp clone/build/model installation.
 - `src/commands/transcribe.ts`: local media-to-transcript workflow.
 
+## Core API
+
+- `src/api/server.ts`: Core API Express assembly on port `8788`.
+- `src/api/routes.ts`: `/api/*` and `/healthz` route registration.
+- `src/api/queue.ts`: persisted job queue and log streaming.
+- `src/api/settings.ts`: settings persistence and precedence.
+- `src/api/requests.ts`: request normalization and validation.
+
 ## Web
 
-- `src/web/server.ts`: Express assembly.
-- `src/web/routes.ts`: HTTP route registration.
-- `src/web/queue.ts`: persisted job queue and log streaming.
-- `src/web/settings.ts`: browser settings persistence and precedence.
-- `src/web/requests.ts`: request normalization and validation.
+- `src/web/server.ts`: static UI server assembly on port `8787`.
+- `src/web/auth.ts`: generated browser token loading and validation.
+- `src/web/proxy.ts`: browser token enforcement and `/api/*` proxying to Core API.
 - `src/web/static/`: browser HTML, CSS, and JavaScript.
 
 ## Services

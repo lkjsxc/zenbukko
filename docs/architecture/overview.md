@@ -7,7 +7,8 @@ Describe the stable runtime boundaries for maintainers and LLM agents.
 ## Runtime Boundaries
 
 - `src/index.ts` defines CLI commands and translates command options into service calls.
-- `src/web/` owns Express routes, static UI assets, request parsing, persisted settings, and job queueing.
+- `src/api/` owns the Core API, session/settings state, jobs, outputs, and queue execution.
+- `src/web/` owns static UI assets, generated browser token checks, and same-origin `/api/*` proxying.
 - `src/commands/` owns user workflows that are also callable from web jobs.
 - `src/services/` owns remote NNN scraping/API clients, material downloads, OCR, and cleanup helpers.
 - `src/downloader/` owns file and HLS transfer primitives.
@@ -18,13 +19,13 @@ Describe the stable runtime boundaries for maintainers and LLM agents.
 
 - Browser session JSON saved at `ZENBUKKO_SESSION_PATH` or `/data/session.json`.
 - NNN course IDs, chapter IDs, lesson IDs, or one-based chapter ranges.
-- OCR settings and optional cloud API key from web settings or environment.
+- OCR settings and optional cloud API key from Core API settings or environment.
 - Whisper model name and optional backend selection.
 
 ## Outputs
 
 - Course folders under `OUTPUT_DIR` or `/data/downloads`.
-- Lesson media, materials, transcripts, OCR Markdown, chapter Markdown, manifests, and job logs.
+- Lesson media, materials, transcripts, OCR Markdown, chapter Markdown, manifests, and API job logs.
 
 ## Failure Behavior
 

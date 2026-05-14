@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Browser settings persist operator preferences under `/data/web/settings.json`.
+API settings persist operator preferences under `/data/api/settings.json` in Compose.
 
 ## Fields
 
@@ -18,5 +18,5 @@ Browser settings persist operator preferences under `/data/web/settings.json`.
 
 ## Precedence
 
-Web settings override environment variables. Environment variables override built-in defaults.
+API settings override environment variables for browser-created jobs. Environment variables override built-in defaults.
 - Request normalization defaults omitted OCR backend selection to `ocrBackend=auto`, local executable settings, and defaults for local OCR flags.

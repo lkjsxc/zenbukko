@@ -23,6 +23,9 @@ const EnvSchema = z
     ZENBUKKO_OCR_PAGE_DPI: z.string().optional().transform((v) => parseOptionalInt(v)),
     ZENBUKKO_OCR_KEEP_INTERMEDIATES: z.string().optional().transform((v) => parseOptionalBool(v)),
     ZENBUKKO_NDLOCR_ENABLE_TCY: z.string().optional().transform((v) => parseOptionalBool(v)),
+    ZENBUKKO_API_PORT: z.string().optional().transform((v) => parseOptionalInt(v)),
+    ZENBUKKO_API_URL: z.string().optional(),
+    ZENBUKKO_WEB_DATA_DIR: z.string().optional(),
     WEB_PORT: z
       .string()
       .optional()
@@ -56,6 +59,9 @@ export type AppConfig = {
   ocrKeepIntermediates: boolean;
   ndlocrEnableTcy: boolean;
   webPort: number;
+  apiPort: number;
+  apiUrl: string;
+  webDataDir: string;
 };
 
 export function loadConfig(): AppConfig {
@@ -77,6 +83,9 @@ export function loadConfig(): AppConfig {
   const ocrKeepIntermediates = env.ZENBUKKO_OCR_KEEP_INTERMEDIATES ?? false;
   const ndlocrEnableTcy = env.ZENBUKKO_NDLOCR_ENABLE_TCY ?? true;
   const webPort = env.WEB_PORT ?? 8787;
+  const apiPort = env.ZENBUKKO_API_PORT ?? 8788;
+  const apiUrl = env.ZENBUKKO_API_URL?.trim() || 'http://127.0.0.1:8788';
+  const webDataDir = path.resolve(env.ZENBUKKO_WEB_DATA_DIR ?? path.join('data', 'web-ui'));
 
   return {
     sessionPath,
@@ -96,6 +105,9 @@ export function loadConfig(): AppConfig {
     ocrKeepIntermediates,
     ndlocrEnableTcy,
     webPort,
+    apiPort,
+    apiUrl,
+    webDataDir,
   };
 }
 

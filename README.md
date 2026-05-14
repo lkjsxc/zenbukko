@@ -12,13 +12,14 @@ npm run type-check
 npm run lint
 npm test
 docker compose config
-docker compose build zenbukko
+docker compose build zenbukko-api zenbukko-web
 ```
 
 ## Main Entrypoints
 
 - CLI: `zenbukko auth`, `zenbukko list-courses`, `zenbukko download`, `zenbukko download-all`, `zenbukko ocr-materials`, `zenbukko setup-whisper`, `zenbukko transcribe`.
-- Web UI: `zenbukko web` or `docker compose up zenbukko-web`.
+- Servers: `zenbukko api` for Core API and `zenbukko web` for static UI/proxy.
+- Web UI: run `zenbukko api` and `zenbukko web`, or `docker compose up zenbukko-web`.
 - Docker data: bind `./data` to `/data`; session defaults to `/data/session.json`; downloads default to `/data/downloads`.
 
 ## Documentation Index

@@ -3,6 +3,7 @@
 import { Command } from 'commander';
 import { registerBasicCommands } from './cli/basicCommands.js';
 import { registerDownloadCommands } from './cli/downloadCommands.js';
+import { registerServerCommands } from './cli/serverCommands.js';
 
 const program = new Command();
 
@@ -15,5 +16,6 @@ program
 
 registerBasicCommands(program);
 registerDownloadCommands(program);
+registerServerCommands(program);
 
 await program.parseAsync(process.argv);

@@ -5,10 +5,10 @@ import { ocrMaterialsCommand } from '../services/geminiOcr.js';
 import type { Logger } from '../utils/log.js';
 import type { JobRecord } from './types.js';
 import { booleanFrom, numberFrom, optionalNumberArray, stringFrom } from './requestUtils.js';
-import { getEffectiveWebSettings } from './settings.js';
+import { getEffectiveApiSettings } from './settings.js';
 
-export async function runJob(job: JobRecord, cfg: AppConfig, webDir: string, logger: Logger): Promise<void> {
-  const settings = await getEffectiveWebSettings(cfg, webDir);
+export async function runJob(job: JobRecord, cfg: AppConfig, stateDir: string, logger: Logger): Promise<void> {
+  const settings = await getEffectiveApiSettings(cfg, stateDir);
   if (job.kind === 'ocr-materials') {
     const backend = ocrBackendFrom(job.request.ocrBackend, settings.ocrBackend);
     if (backend === 'gemini') requireGeminiKey(settings.geminiApiKey);

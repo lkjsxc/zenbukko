@@ -8,14 +8,14 @@ import { runJob } from './jobRunner.js';
 import { JobLogger } from './jobLogger.js';
 import type { JobKind, JobRecord } from './types.js';
 
-export class WebJobQueue {
+export class ApiJobQueue {
   private readonly events = new EventEmitter();
   private readonly jobs = new Map<string, JobRecord>();
   private running = false;
 
   public constructor(
     private readonly cfg: AppConfig,
-    private readonly webDir: string,
+    private readonly stateDir: string,
     private readonly baseLogger: Logger,
   ) {}
 
@@ -27,7 +27,7 @@ export class WebJobQueue {
       const job = JSON.parse(await fs.readFile(path.join(this.jobsDir, entry.name), 'utf8')) as JobRecord;
       if (job.status === 'running') {
         job.status = 'failed';
-        job.error = 'Marked failed after web server restart.';
+        job.error = 'Marked failed after API server restart.';
         job.updatedAt = new Date().toISOString();
         await this.persist(job);
       }
@@ -62,7 +62,7 @@ export class WebJobQueue {
   }
 
   private get jobsDir(): string {
-    return path.join(this.webDir, 'jobs');
+    return path.join(this.stateDir, 'jobs');
   }
 
   private async drain(): Promise<void> {
@@ -86,14 +86,14 @@ export class WebJobQueue {
     const logger = new JobLogger(this.cfg.logLevel, job.logPath, (line) => this.events.emit(`job:${job.id}`, line));
     try {
       logger.info(`Starting job ${job.id}: ${job.title}`);
-      await runJob(job, this.cfg, this.webDir, logger);
+      await runJob(job, this.cfg, this.stateDir, logger);
       job.status = 'succeeded';
       logger.info(`Job succeeded: ${job.id}`);
     } catch (e) {
       job.status = 'failed';
       job.error = e instanceof Error ? e.message : String(e);
       logger.error(`Job failed: ${job.error}`);
-      this.baseLogger.error(`Web job failed: ${job.id} (${job.error})`);
+      this.baseLogger.error(`API job failed: ${job.id} (${job.error})`);
     } finally {
       job.updatedAt = new Date().toISOString();
       await this.persist(job);

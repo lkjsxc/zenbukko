@@ -13,9 +13,13 @@ zenbukko download --course-id 12345 --chapter-range 1-3 --materials
 zenbukko download-all --materials --ocr-materials
 zenbukko ocr-materials --input /data/downloads/course-12345
 zenbukko rebuild-chapter-ocr --input /data/downloads
+zenbukko api --host 127.0.0.1 --port 8788
+zenbukko web --host 127.0.0.1 --port 8787 --api-url http://127.0.0.1:8788
 zenbukko setup-whisper --backend auto --model large-v3-turbo
 zenbukko transcribe --input lesson.ts --format txt
 ```
+
+`api` starts the Core API that owns `/api/*`, `/healthz`, jobs, settings, outputs, OCR, transcription, and downloads. `web` starts the static UI and same-origin proxy.
 
 ## Chapter Selection
 
