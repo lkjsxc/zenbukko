@@ -8,6 +8,7 @@ Commands used before declaring the upgrade complete.
 
 ```sh
 docker compose config
+docker compose --profile cpu config --services
 docker compose --profile gpu config --services
 docker compose build zenbukko-api zenbukko-web
 docker compose run --rm --entrypoint /bin/sh zenbukko-api -c 'command -v ndlocr-lite; command -v pdftoppm'

@@ -15,6 +15,7 @@ May 14, 2026.
 ## Docker
 
 - `docker compose config --quiet`: passed.
+- `docker compose --profile cpu config --services`: passed.
 - `docker compose --profile gpu config --services`: passed.
 
 ## Smoke Details

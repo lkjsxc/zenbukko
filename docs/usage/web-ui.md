@@ -9,7 +9,7 @@ Use Zenbukko from a local browser while the server runs inside or outside Docker
 ```sh
 zenbukko api --port 8788
 zenbukko web --port 8787
-docker compose up zenbukko-web
+docker compose --profile cpu up zenbukko-web
 ```
 
 Default local use runs Core API on `127.0.0.1:8788` and Web on `127.0.0.1:8787`.

@@ -1,5 +1,6 @@
 services:
   zenbukko-api:
+    profiles: ["cpu"]
     build:
       context: .
       dockerfile: Dockerfile
@@ -26,6 +27,7 @@ services:
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-flash-lite}
 
   zenbukko-web:
+    profiles: ["cpu"]
     build:
       context: .
       dockerfile: Dockerfile.web

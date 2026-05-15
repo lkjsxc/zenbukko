@@ -6,16 +6,25 @@ Run Zenbukko with repeatable local volumes and optional GPU image support.
 
 ## Services
 
-- `zenbukko-api`: Core API and CLI-capable service, internal port `8788`.
-- `zenbukko-web`: lightweight Web UI and `/api/*` proxy on `127.0.0.1:8787`.
+- `zenbukko-api`: CPU Core API and CLI-capable service under the `cpu` profile.
+- `zenbukko-web`: CPU lightweight Web UI and `/api/*` proxy under the `cpu` profile.
 - `zenbukko-api-gpu`: GPU Core API service behind the `gpu` profile.
 - `zenbukko-web-gpu`: GPU Web proxy on `127.0.0.1:8789` behind the `gpu` profile.
 - GPU API services are the NDLOCR CUDA path when the NVIDIA runtime is available.
+
+Use exactly one runtime profile for `up`:
+
+```sh
+docker compose --profile cpu up --build
+docker compose --profile gpu up --build
+```
 
 ## Commands
 
 ```sh
 docker compose config
+docker compose --profile cpu config --services
+docker compose --profile gpu config --services
 docker compose build zenbukko-api zenbukko-web
 docker compose run --rm --entrypoint /bin/sh zenbukko-api -c 'command -v ndlocr-lite; command -v pdftoppm'
 docker compose run --rm --entrypoint npm zenbukko-api run type-check
