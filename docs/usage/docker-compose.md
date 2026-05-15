@@ -43,11 +43,13 @@ The API service mounts `./data` at `/data`. Session, settings, jobs, and downloa
 
 The Web service mounts only `./data/web-ui` at `/web-data` for its generated browser token. It does not receive `/data/downloads`, Chromium, OCR binaries, or Whisper.
 
-Create the host directory before running Compose so Docker does not create it as root:
+Create the host data directory before running Compose:
 
 ```sh
 mkdir -p data data/web-ui
 ```
+
+The Web image repairs `/web-data` ownership at startup before dropping to the `node` user, so an auto-created `data/web-ui` bind mount is still writable by the Web process.
 
 If `zenbukko auth` cannot write `data/session.json` after a Docker run, restore ownership:
 
