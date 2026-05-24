@@ -13,6 +13,7 @@ Cover shared parsing and planning behavior without requiring external services.
 - OCR task planning.
 - Markdown normalization.
 - Chapter OCR aggregation and backfill discovery.
+- Report prompt source discovery and template output.
 - Line-limit enforcement.
 
 ## Commands

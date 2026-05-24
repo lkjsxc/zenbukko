@@ -17,7 +17,7 @@ docker compose build zenbukko-api zenbukko-web
 
 ## Main Entrypoints
 
-- CLI: `zenbukko auth`, `zenbukko list-courses`, `zenbukko download`, `zenbukko download-all`, `zenbukko ocr-materials`, `zenbukko setup-whisper`, `zenbukko transcribe`.
+- CLI: `zenbukko auth`, `zenbukko list-courses`, `zenbukko download`, `zenbukko download-all`, `zenbukko ocr-materials`, `zenbukko build-report-prompt`, `zenbukko setup-whisper`, `zenbukko transcribe`.
 - Servers: `zenbukko api` for Core API and `zenbukko web` for static UI/proxy.
 - Web UI: run `zenbukko api` and `zenbukko web`, or `docker compose --profile cpu up zenbukko-web`.
 - Docker data: bind `./data` to `/data`; session defaults to `/data/session.json`; downloads default to `/data/downloads`.
@@ -27,7 +27,7 @@ docker compose build zenbukko-api zenbukko-web
 - [`docs/architecture/`](docs/architecture/README.md): module layout and data flow.
 - [`docs/llm/`](docs/llm/README.md): LLM-friendly index for cross-references and schema contracts.
 - [`docs/usage/`](docs/usage/README.md): CLI, web UI, Docker Compose, and outputs.
-- [`docs/features/`](docs/features/README.md): sessions, chapter selection, materials, OCR, and transcription.
+- [`docs/features/`](docs/features/README.md): sessions, chapter selection, materials, OCR, transcription, and report prompts.
 - [`docs/decisions/`](docs/decisions/README.md): accepted behavior decisions.
 - [`docs/reference/`](docs/reference/README.md): configuration, API, file layout, troubleshooting.
 - [`docs/development/`](docs/development/README.md): coding rules, tests, commits, verification.

@@ -24,6 +24,8 @@ Track all generated artifacts with stable names and layout expectations.
 - `materials_manifest.json`: per-lesson material capture and conversion state.
 - `index.html`: offline material browser entrypoint.
 - `chapter-<chapterId>_transcription.md`: chapter-level transcript aggregate.
+- `report_prompt.md`: report prompt built from local OCR and transcript
+  artifacts.
 
 ## Invariants
 

@@ -11,3 +11,5 @@ User-visible behavior contracts for Zenbukko features.
 - [`materials/`](materials/README.md): material download and PDF normalization behavior.
 - [`ocr/`](ocr/README.md): OCR behavior across local and Gemini backends.
 - [`transcription/`](transcription/README.md): whisper.cpp behavior.
+- [`report-prompts/`](report-prompts/README.md): prompt generation from OCR and
+  transcripts.

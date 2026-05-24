@@ -17,3 +17,4 @@
 - Materials: [`../features/materials/`](../features/materials/README.md)
 - OCR: [`../features/ocr/`](../features/ocr/README.md)
 - Transcription: [`../features/transcription/`](../features/transcription/README.md)
+- Report prompts: [`../features/report-prompts/`](../features/report-prompts/README.md)

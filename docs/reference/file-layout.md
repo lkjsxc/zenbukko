@@ -17,6 +17,7 @@ Identify persistent and generated paths.
     <chapterOrdinal>/
       chapter-<chapterId>_ocr.md
       chapter-<chapterId>_transcription.md
+      report_prompt.md
 ```
 
 ## Repository Paths
@@ -46,6 +47,7 @@ materials_ocr.md
 materials_ocr_manifest.json
 chapter-<chapterId>_ocr.md
 chapter-<chapterId>_transcription.md
+report_prompt.md
 ```
 
 ## Invariants

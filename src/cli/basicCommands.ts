@@ -5,6 +5,7 @@ import { setupWhisperCommand } from '../commands/setupWhisper.js';
 import { transcribeCommand } from '../commands/transcribe.js';
 import { DEFAULT_GEMINI_MODEL } from '../geminiDefaults.js';
 import { ocrMaterialsCommand } from '../services/geminiOcr.js';
+import { buildReportPrompt, type BuildReportPromptParams } from '../services/reportPrompt.js';
 import { rebuildChapterOcr } from '../services/chapterOcr.js';
 import { headlessFrom, makeContext } from './context.js';
 
@@ -62,6 +63,26 @@ export function registerBasicCommands(program: Command): void {
       await rebuildChapterOcr({ inputDir: String(cmd.input), logger: ctx.logger });
     });
 
+  program.command('build-report-prompt')
+    .description('Build a report prompt from existing OCR and transcript artifacts')
+    .requiredOption('--input <path>', 'Downloads, course, chapter, lesson, or materials directory to scan')
+    .option('--output <path>', 'Output prompt path')
+    .option('--course-name <name>', 'Course name to embed in the prompt')
+    .option('--topic <text>', 'Report topic from the submission page')
+    .action(async (cmd) => {
+      const ctx = makeContext(program);
+      const request: BuildReportPromptParams = { inputDir: String(cmd.input) };
+      const outputPath = optionalString(cmd.output);
+      const courseName = optionalString(cmd.courseName);
+      const topic = optionalString(cmd.topic);
+      if (outputPath) request.outputPath = outputPath;
+      if (courseName) request.courseName = courseName;
+      if (topic) request.topic = topic;
+      const result = await buildReportPrompt(request);
+      ctx.logger.info(`Wrote report prompt: ${result.outputPath}`);
+      ctx.logger.info(`Included ${result.sources.length} source artifact(s).`);
+    });
+
   program.command('setup-whisper')
     .description('Clone and build whisper.cpp, and download a model')
     .option('--model <name>', 'Whisper model name', 'large-v3-turbo')
@@ -116,6 +137,10 @@ function booleanOption(value: unknown, fallback: boolean): boolean {
 
 function stringOption(value: unknown, fallback: string): string {
   return typeof value === 'string' && value.trim() ? value.trim() : fallback;
+}
+
+function optionalString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined;
 }
 
 function whisperBackendFrom(value: unknown): 'auto' | 'cpu' | 'cuda' | 'both' {

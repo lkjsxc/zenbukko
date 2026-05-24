@@ -13,6 +13,7 @@ zenbukko download --course-id 12345 --chapter-range 1-3 --materials
 zenbukko download-all --materials --ocr-materials
 zenbukko ocr-materials --input /data/downloads/course-12345
 zenbukko rebuild-chapter-ocr --input /data/downloads
+zenbukko build-report-prompt --input /data/downloads/course-12345/01 --course-name "Mathematics History"
 zenbukko api --host 127.0.0.1 --port 8788
 zenbukko web --host 127.0.0.1 --port 8787 --api-url http://127.0.0.1:8788
 zenbukko setup-whisper --backend auto --model large-v3-turbo
@@ -39,6 +40,12 @@ zenbukko transcribe --input lesson.ts --format txt
 ## Local Rebuilds
 
 `rebuild-chapter-ocr` scans existing downloaded lesson materials and rewrites `chapter-<chapterId>_ocr.md` files. It does not call OCR services and is the preferred way to backfill chapter OCR after older runs.
+
+## Report Prompts
+
+`build-report-prompt` scans existing OCR and transcript artifacts and writes a
+prompt that leaves the report topic as `{{REPORT_TOPIC}}` unless `--topic` is
+provided. It does not generate the final report body.
 
 ## Failure Behavior
 
