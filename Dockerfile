@@ -77,7 +77,9 @@ COPY package.json package-lock.json* ./
 RUN npm ci
 
 COPY tsconfig.json ./
+COPY web-ui/package.json web-ui/package-lock.json* ./web-ui/
 COPY src ./src
+COPY web-ui ./web-ui
 
 RUN npm run build
 

@@ -58,9 +58,20 @@ Create the host data directory before running Compose:
 mkdir -p data data/web-ui
 ```
 
-The Web image repairs `/web-data` ownership at startup before dropping to the `node` user, so an auto-created `data/web-ui` bind mount is still writable by the Web process.
+The API image runs as the container `node` user. On hosts where the local user
+is not UID `1000`, make the bind mount writable by that container user before
+starting the API:
 
-If `zenbukko auth` cannot write `data/session.json` after a Docker run, restore ownership:
+```sh
+sudo chown -R 1000:1000 data
+```
+
+The Web image repairs `/web-data` ownership at startup before dropping to the
+`node` user, so an auto-created `data/web-ui` bind mount is still writable by
+the Web process.
+
+If local CLI runs need to write `data/session.json` after Docker use, restore
+host ownership:
 
 ```sh
 sudo chown -R "$(id -u):$(id -g)" data
