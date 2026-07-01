@@ -57,7 +57,7 @@ async function runNdlocr(command: string, imageDir: string, outDir: string, devi
   try {
     await runCommand(command, args, 'ocr-command-failed');
   } catch (e) {
-    if (!enableTcy || !String(e instanceof Error ? e.message : e).includes('tcy_wrapper')) throw e;
+    if (!enableTcy) throw e;
     await runCommand(command, args.filter((arg) => arg !== '--enable-tcy'), 'ocr-command-failed');
   }
 }
