@@ -31,22 +31,25 @@ zenbukko transcribe --input lesson.ts --format txt
 
 ## OCR Options
 
-- `--ocr-backend auto|local|gemini` selects OCR backend policy; the default is `auto`.
-- `--ocr-mode auto|batch|flex` controls Gemini OCR planning.
-- `--ocr-service-tier flex|standard` controls Gemini synchronous tier.
-- `ocrBackend=auto` prefers local OCR when available, then uses Gemini recovery when configured.
-- `ocrMode=auto` uses Gemini Batch for multi-PDF work and Flex for small or recovery work.
+`--ocr-materials` enables local OCR after material capture.
+
+Local OCR flags are available on `download`, `download-all`, and `ocr-materials`:
+
+- `--ndlocr-command <path>` selects the OCR executable.
+- `--ndlocr-device cpu|cuda` selects local device.
+- `--ocr-page-dpi <n>` selects PDF rasterization DPI.
+- `--ocr-keep-intermediates` retains local page images and raw text output.
+- `--ndlocr-enable-tcy` and `--no-ndlocr-enable-tcy` control tate-chu-yoko handling.
+- `--ocr-force` or `--force` reruns OCR even when Markdown is fresh.
 
 ## Local Rebuilds
 
-`rebuild-chapter-ocr` scans existing downloaded lesson materials and rewrites `chapter-<chapterId>_ocr.md` files. It does not call OCR services and is the preferred way to backfill chapter OCR after older runs.
+`rebuild-chapter-ocr` scans existing downloaded lesson materials and rewrites `chapter-<chapterId>_ocr.md` files. It does not call OCR tools and is the preferred way to backfill chapter OCR after older runs.
 
 ## Report Prompts
 
-`build-report-prompt` scans existing OCR and transcript artifacts and writes a
-prompt that leaves the report topic as `{{REPORT_TOPIC}}` unless `--topic` is
-provided. It does not generate the final report body.
+`build-report-prompt` scans existing OCR and transcript artifacts and writes a prompt that leaves the report topic as `{{REPORT_TOPIC}}` unless `--topic` is provided. It does not generate the final report body.
 
 ## Failure Behavior
 
-Commands exit non-zero when required session data, course data, OCR provider credentials, local binaries, or output writes fail.
+Commands exit non-zero when required session data, course data, local binaries, or output writes fail.

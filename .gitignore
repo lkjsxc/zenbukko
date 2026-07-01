@@ -4,3 +4,4 @@ web-ui/node_modules/
 
 # Output/artifacts
 data/
+tmp/

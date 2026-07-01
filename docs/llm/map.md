@@ -8,8 +8,10 @@
 4. [`../reference/schemas/`](../reference/schemas/README.md)
 5. [`../reference/outputs/`](../reference/outputs/README.md)
 6. [`../reference/security/`](../reference/security/README.md)
-7. [`../architecture/`](../architecture/README.md)
-8. [`../development/verification.md`](../development/verification.md)
+7. [`../usage/native-setup.md`](../usage/native-setup.md)
+8. [`../usage/docker-compose.md`](../usage/docker-compose.md)
+9. [`../architecture/`](../architecture/README.md)
+10. [`../development/verification.md`](../development/verification.md)
 
 ## Topic Pointers
 
@@ -20,3 +22,4 @@
 - OCR: [`../features/ocr/`](../features/ocr/README.md)
 - Transcription: [`../features/transcription/`](../features/transcription/README.md)
 - Report prompts: [`../features/report-prompts/`](../features/report-prompts/README.md)
+- Local setup: [`../usage/native-setup.md`](../usage/native-setup.md)

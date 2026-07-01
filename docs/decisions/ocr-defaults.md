@@ -1,14 +1,13 @@
-# OCR Defaults
+# Local OCR Defaults
 
 ## Decision
 
-`ocrBackend` accepts `auto`, `local`, or `gemini`; the default is `auto`.
+Zenbukko OCR is local-only. The default OCR runner is NDLOCR-Lite through the command `ndlocr-lite`, using `cpu`, 300 DPI, no retained intermediates, and tate-chu-yoko handling enabled.
 
 ## Consequences
 
-- `auto` attempts local OCR before Gemini recovery.
-- `local` never requires a cloud API key.
-- `gemini` requires Gemini credentials.
-- `ocrMode` is a Gemini planning setting only.
+- PDFs never leave the local machine or container for OCR.
+- API keys, remote model names, and provider execution modes are not accepted settings.
+- Missing local tools produce actionable diagnostics instead of switching execution paths.
 - Office files are preserved as assets and explicitly skipped for OCR.
-- GPU Docker services run NDLOCR with CUDA when the GPU runtime is available.
+- GPU Docker services are Linux NVIDIA CUDA only when the GPU runtime is available.

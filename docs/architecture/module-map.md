@@ -17,7 +17,7 @@ Define ownership for source modules so refactors stay narrow.
 - `src/api/server.ts`: Core API Express assembly on port `8788`.
 - `src/api/routes.ts`: `/api/*` and `/healthz` route registration.
 - `src/api/queue.ts`: persisted job queue and log streaming.
-- `src/api/settings.ts`: settings persistence and precedence.
+- `src/api/settings.ts`: local settings persistence and precedence.
 - `src/api/requests.ts`: request normalization and validation.
 
 ## Web
@@ -35,7 +35,7 @@ Define ownership for source modules so refactors stay narrow.
 - `src/services/nnnClient.ts`: authenticated NNN API client and lesson resolution.
 - `src/services/nnnSchemas.ts`: response normalization.
 - `src/services/materials.ts`: material page fetch, asset extraction, and offline index writing.
-- `src/services/geminiOcr.ts`: OCR workflow entrypoint and result manifest writing (backend abstraction point).
+- `src/services/ocr/`: local OCR discovery, planning, execution, aggregation, and manifest writing.
 - `src/services/courseScraper.ts`: browser scraping for enrolled courses.
 
 ## Utilities

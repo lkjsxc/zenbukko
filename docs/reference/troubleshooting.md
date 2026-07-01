@@ -8,11 +8,19 @@ Run `zenbukko auth` or paste a valid session JSON into the web UI. Verify `ZENBU
 
 Run `zenbukko list-courses --format json` and inspect whether the account has visible courses and on-demand labels.
 
-## OCR Backend Fails
+## Local OCR Fails
 
-For local OCR failures, verify `ndlocr-lite`, Poppler, PDF readability, and Docker image readiness when using Compose.
+Verify `ndlocr-lite`, Poppler `pdftoppm`, PDF readability, and Docker image readiness when using Compose.
 
-For Gemini OCR failures, verify API key, model name, PDF size, network access, and whether Flex capacity is returning 429 or 503. Retry later or use Batch for larger work.
+Useful checks:
+
+```sh
+command -v ndlocr-lite
+command -v pdftoppm
+zenbukko ocr-materials --input data/downloads --force
+```
+
+If CUDA is selected, confirm the local NDLOCR-Lite install supports CUDA on this Linux NVIDIA host. Otherwise select `cpu`.
 
 ## Whisper Fails
 
@@ -20,4 +28,4 @@ Run `zenbukko setup-whisper --backend auto --model large-v3-turbo`. Verify ffmpe
 
 ## GPU Not Used
 
-Check `ZENBUKKO_WHISPER_BACKEND`, Docker GPU profile, NVIDIA Container Toolkit, and whether CUDA whisper build artifacts exist.
+Check `ZENBUKKO_WHISPER_BACKEND`, Docker GPU profile, NVIDIA Container Toolkit, and whether CUDA whisper build artifacts exist. Docker GPU services are Linux NVIDIA CUDA only.

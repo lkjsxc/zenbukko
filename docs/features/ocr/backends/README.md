@@ -1,25 +1,22 @@
-# OCR Backends
+# Local OCR Runner
 
 ## Purpose
 
-Define OCR provider behavior without tying feature contracts to a single vendor.
+Define the only supported OCR execution path.
 
 ## Contract
 
-- Backends are selected with `ocrBackend=auto|local|gemini`.
-- The default is `auto`.
-- `auto` tries local OCR first and uses Gemini only when recovery is configured.
-- `ocrMode` applies only to Gemini planning.
-- Output contracts remain the same (`*_ocr.md`, lesson aggregate, chapter aggregate, manifest).
-- Manifest entries describe the active backend for each run.
+- OCR is local-only.
+- The runner uses local PDFs, Poppler `pdftoppm`, and NDLOCR-Lite.
+- Output contracts remain `*_ocr.md`, lesson aggregate, chapter aggregate, and manifest.
+- Manifest entries describe local command, device, page DPI, diagnostics, and artifacts.
 
 ## Files
 
-- [`local.md`](local.md): local backend contract and behavior.
-- [`gemini.md`](gemini.md): cloud backend execution details.
+- [`local.md`](local.md): local runner behavior and failure handling.
 
 ## Invariants
 
-- Local-first selection happens before local outputs are returned.
-- A missing local backend should not change file layout; it changes backend selection only.
-- Backend switches do not change manifest field names or required output paths.
+- A missing local executable is reported as a local preflight failure.
+- File layout is stable regardless of local execution success.
+- No OCR setting accepts remote model names, API keys, or provider mode names.

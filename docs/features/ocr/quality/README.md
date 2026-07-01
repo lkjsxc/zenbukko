@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Define minimum checks before OCR behavior is treated as ready.
+Define minimum checks before local OCR behavior is treated as ready.
 
 ## Files
 
@@ -12,4 +12,4 @@ Define minimum checks before OCR behavior is treated as ready.
 ## Invariants
 
 - Quality checks verify generated files, not only command exit status.
-- Local and Gemini runs keep the same output names and manifest fields.
+- Local runs keep stable output names and manifest fields.

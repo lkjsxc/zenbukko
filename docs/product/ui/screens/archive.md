@@ -10,6 +10,7 @@ Configure and start download or download-all jobs.
 - Visual chapter picker or advanced explicit IDs.
 - Toggles: transcribe, materials, PDF OCR, delete media after transcript.
 - Concurrency number input.
+- Local OCR settings inherited from Settings and overridable by job payload when exposed.
 
 ## Outputs
 
@@ -18,8 +19,9 @@ Configure and start download or download-all jobs.
 
 ## Invariants
 
-`chapterRange` and explicit `chapters` are mutually exclusive.
-Job-local chapter selection is not loaded from saved settings.
+`chapterRange` and explicit `chapters` are mutually exclusive. Job-local chapter selection is not loaded from saved settings.
+
+PDF OCR uses the local OCR settings returned by the API. No remote provider settings are included in the payload.
 
 ## Failure Behavior
 

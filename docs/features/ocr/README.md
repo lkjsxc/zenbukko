@@ -2,12 +2,12 @@
 
 ## Purpose
 
-OCR converts normalized material PDFs into Markdown using a configurable backend.
+OCR converts normalized material PDFs into Markdown using local tools only.
 
 ## Files
 
-- [`pipeline.md`](pipeline.md): OCR discovery, planning, execution, and output writing.
-- [`backends/`](backends/README.md): OCR backend strategy and backend-specific modes.
+- [`pipeline.md`](pipeline.md): discovery, planning, local execution, and output writing.
+- [`backends/`](backends/README.md): local OCR runner contract.
 - [`quality/`](quality/README.md): OCR quality gates and smoke checks.
 - [`chapter-aggregation.md`](chapter-aggregation.md): chapter-level OCR text contract.
 - [`manifest.md`](manifest.md): OCR result manifest contract.
@@ -15,12 +15,14 @@ OCR converts normalized material PDFs into Markdown using a configurable backend
 ## Invariants
 
 - OCR receives PDFs only.
+- PDFs are read from local disk and never leave the machine or container for OCR.
 - Material directories use `materials_manifest.json` PDF entries before recursive PDF fallback.
 - Standalone OCR refreshes manifest-backed material PDFs before discovery.
-- `ocrBackend=auto|local|gemini`; the default is `auto`.
-- `auto` uses local OCR first, then Gemini recovery when configured.
-- `ocrMode` controls only Gemini planning, not local OCR.
-- Local backends ignore Gemini-only settings and return deterministic local error codes.
-- Gemini can use batch or synchronous mode and recover through fallback unless standard execution is explicitly requested.
-- Each lesson material directory writes `materials_ocr.md`.
+- Local OCR uses Poppler `pdftoppm` and the configured NDLOCR-Lite command.
+- Local settings are command path, device, page DPI, intermediate retention, and tate-chu-yoko handling.
+- Each lesson material directory writes `materials_ocr.md` and `materials_ocr_manifest.json`.
 - Each chapter directory writes `chapter-<chapterId>_ocr.md` by concatenating lesson OCR aggregates in lesson order.
+
+## Failure Behavior
+
+One failed PDF must not erase successful Markdown from other PDFs. The manifest records skipped, written, and failed entries with actionable local diagnostics.

@@ -4,15 +4,15 @@
 
 Define the browser-facing API contract.
 
-Web exposes these endpoints at same origin and proxies them to Core API. Default browser access uses loopback plus a generated Web token. Core API also serves these routes internally without its own token.
+Web exposes these endpoints at same origin and proxies them to Core API. Default browser access uses trusted local or private-network exposure without a generated browser token.
 
 ## Endpoints
 
-- `GET /api/status`: session existence, output directory, OCR configuration, selected backend.
+- `GET /api/status`: session existence, output directory, local OCR readiness, and auth flag.
 - `GET /api/session`: normalized existing session and formatted JSON for UI prefill.
 - `POST /api/session`: save normalized session JSON.
-- `GET /api/settings`: effective browser settings and defaults.
-- `POST /api/settings`: persist browser OCR settings.
+- `GET /api/settings`: effective local settings and defaults.
+- `POST /api/settings`: persist local OCR settings.
 - `GET /api/courses`: scrape authenticated course list.
 - `GET /api/courses/:courseId`: course title and chapters for chapter picker.
 - `GET /api/courses/:courseId/chapters/:chapterId`: chapter sections for advanced filtering.
@@ -25,9 +25,15 @@ Web exposes these endpoints at same origin and proxies them to Core API. Default
 - `GET /api/outputs/download`: download a file under output directory.
 - `GET /healthz`: Core API health check, not proxied by Web for browser use.
 
+## Status Shape
+
+`GET /api/status` returns `sessionExists`, `outputDir`, `authRequired: false`, and `localOcr` with command, device, `ok`, and diagnostics.
+
 ## Job Request Fields
 
-Download requests may include `chapterRange`, `chapters`, `lessonIds`, `ocrBackend`, `ocrMode`, and `ocrServiceTier`. `ocrBackend` accepts `auto`, `local`, or `gemini`; `ocrMode` is used only for Gemini planning. `chapterRange` is resolved before downloader lesson resolution.
+Download requests may include `chapterRange`, `chapters`, `lessonIds`, transcription fields, material toggles, and local OCR fields. `chapterRange` is resolved before downloader lesson resolution.
+
+Local OCR fields are `ndlocrCommand`, `ndlocrDevice`, `ocrPageDpi`, `ocrKeepIntermediates`, `ndlocrEnableTcy`, and `ocrForce`.
 
 Download jobs that run OCR rebuild chapter OCR aggregates after lesson OCR finishes. Standalone OCR jobs rebuild chapter OCR aggregates when their input is inside the standard downloads layout.
 

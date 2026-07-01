@@ -3,7 +3,7 @@
 ## Private Paths
 
 - Session JSON contains browser cookie material.
-- `/data/api/settings.json` can contain Gemini credentials.
+- `/data/api/settings.json` contains local operator preferences.
 - `/data/api/jobs` contains operator actions and logs.
 - `/data/downloads` contains course material and generated outputs.
 

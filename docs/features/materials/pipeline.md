@@ -20,7 +20,7 @@ Define how lesson material pages become durable local artifacts.
 6. Normalize supported reference pages and assets into PDFs under `pdf/`.
 7. Write `materials_manifest.json` with source files, PDF outputs, and conversion status.
 8. Write `index.html` for offline inspection.
-9. After all selected lesson material directories are present, continue with media, transcription, and OCR.
+9. After all selected lesson material directories are present, continue with media, transcription, and local OCR.
 
 ## Outputs
 
@@ -38,4 +38,4 @@ Reference page fetch failures are recorded through logs and do not stop unrelate
 
 - Material capture must not be blocked by OCR or transcription for a previous lesson.
 - The first visible success signal for a large job is the full set of selected lesson material directories.
-- OCR consumes the material directories after capture, so slow Gemini or Whisper work cannot hide missing later materials.
+- OCR consumes the material directories after capture, so slow local processing cannot hide missing later materials.

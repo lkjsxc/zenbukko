@@ -11,7 +11,7 @@ Identify persistent and generated paths.
 /data/api/settings.json
 /data/api/jobs/*.json
 /data/api/jobs/*.log
-/data/web-ui/token.json
+/data/web-ui/
 /data/downloads/
   course-<courseId>/
     <chapterOrdinal>/

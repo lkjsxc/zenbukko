@@ -6,17 +6,26 @@ API settings persist operator preferences under `/data/api/settings.json` in Com
 
 ## Fields
 
-- `ocrBackend`: `auto`, `local`, or `gemini` (default `auto`).
-- `geminiApiKey`: optional Gemini key for cloud OCR.
-- `geminiModel`: cloud OCR model, default `gemini-3.1-flash-lite`.
-- `ocrMode`: `auto`, `batch`, or `flex`; Gemini planning only.
-- `ocrServiceTier`: `flex` or `standard`.
 - `chapterRange`: one-based chapter ordinal range expression.
-- `ocrRetries`: retry count for Flex recovery.
-- `ocrTimeoutMs`: timeout for Gemini OCR calls.
-- `ndlocrCommand`, `ndlocrDevice`, `ocrPageDpi`, `ocrKeepIntermediates`, `ndlocrEnableTcy`: local OCR knobs.
+- `ndlocrCommand`: OCR executable name or absolute path.
+- `ndlocrDevice`: `cpu` or `cuda`.
+- `ocrPageDpi`: PDF rasterization DPI, 72 through 600.
+- `ocrKeepIntermediates`: retain page images and raw text outputs.
+- `ndlocrEnableTcy`: enable tate-chu-yoko handling when supported by the local runner.
+
+## Defaults
+
+- `ndlocrCommand`: `ndlocr-lite`.
+- `ndlocrDevice`: `cpu`.
+- `ocrPageDpi`: `300`.
+- `ocrKeepIntermediates`: `false`.
+- `ndlocrEnableTcy`: `true`.
+- `chapterRange`: empty.
 
 ## Precedence
 
-API settings override environment variables for browser-created jobs. Environment variables override built-in defaults.
-- Request normalization defaults omitted OCR backend selection to `ocrBackend=auto`, local executable settings, and defaults for local OCR flags.
+API settings override environment variables for browser-created jobs. Environment variables override built-in defaults. Request fields override settings for a single job.
+
+## Validation
+
+Unknown fields are not returned by the API. Invalid device or DPI values fail settings validation.

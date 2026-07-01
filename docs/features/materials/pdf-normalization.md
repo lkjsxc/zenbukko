@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Convert captured materials into a single OCR input format before Gemini sees them.
+Convert captured materials into a single OCR input format before local OCR runs.
 
 ## Supported Inputs
 

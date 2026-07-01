@@ -8,7 +8,7 @@ This tree is the source of truth for expected behavior. Implementation changes s
 
 - [`product/`](product/README.md): Web UI product contracts, screens, design system.
 - [`architecture/`](architecture/README.md): system boundaries, module ownership, data flow.
-- [`usage/`](usage/README.md): operator workflows for local CLI, web UI, and Docker.
+- [`usage/`](usage/README.md): operator workflows for native CLI, web UI, Docker, and outputs.
 - [`features/`](features/README.md): user-visible feature contracts.
 - [`decisions/`](decisions/README.md): accepted behavior decisions and rationale.
 - [`reference/`](reference/README.md): config, HTTP API, file layout, and troubleshooting.
@@ -19,10 +19,12 @@ This tree is the source of truth for expected behavior. Implementation changes s
 ## Invariants
 
 - Every directory under `docs/` has a `README.md`.
-- Markdown files stay under 300 lines.
+- Markdown files stay under 200 lines.
 - Source files stay under 200 lines unless explicitly generated and exempted by policy.
 - Documentation defaults to stable behavior contracts first, then implementation notes.
 - Feature topics use directories with child pages instead of duplicate flat pointer files.
+- Zenbukko OCR uses only local executables and local files.
+- Transcription uses local whisper.cpp tooling.
 
 ## Failure Behavior
 

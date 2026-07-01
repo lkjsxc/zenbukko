@@ -2,13 +2,17 @@
 
 ## Locked Values
 
-- `ocrBackend=auto|local|gemini`; default `auto`.
-- `ocrMode=auto|batch|flex`; Gemini planning only.
-- Web access defaults to loopback plus generated token.
+- OCR is local-only.
+- Local OCR command default: `ndlocr-lite`.
+- Local OCR device default: `cpu`.
+- Local OCR page DPI default: `300`.
+- Local OCR retains intermediates only when requested.
+- Tate-chu-yoko handling is enabled by default.
+- Web access defaults to trusted loopback or private-network exposure without a browser token.
 - Core API defaults to loopback port `8788` and has no token by default.
-- Web defaults to loopback port `8787`, stores only token data, and proxies `/api/*`.
+- Web defaults to loopback port `8787` and proxies `/api/*`.
 - Office files are saved as assets and skipped for OCR.
-- GPU Docker API services are the NDLOCR CUDA path when runtime support exists.
+- GPU Docker API services are Linux NVIDIA CUDA only when runtime support exists.
 
 ## Output Contracts
 

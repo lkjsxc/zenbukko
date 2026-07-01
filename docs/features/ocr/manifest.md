@@ -2,16 +2,18 @@
 
 ## Purpose
 
-Record what OCR attempted and what it produced.
+Record what local OCR attempted and what it produced.
 
 ## Fields
 
 - `generatedAt`: ISO timestamp.
-- `ocrBackend`: selected OCR backend.
-- `model`: OCR model name for Gemini runs.
-- `requestedMode`: requested OCR mode.
-- `plannedMode`: actual plan mode.
-- `serviceTier`: requested cloud service tier.
+- `runner`: `local`.
+- `command`: OCR executable used for the run.
+- `device`: `cpu` or `cuda`.
+- `pageDpi`: Poppler rasterization DPI.
+- `keepIntermediates`: whether page images and raw outputs were retained.
+- `enableTcy`: whether tate-chu-yoko handling was requested.
+- `preflight`: local readiness result and diagnostics.
 - `pdfs`: absolute PDF paths discovered for OCR.
 - `results`: per-PDF status entries.
 - `aggregatePath`: optional aggregate Markdown path.
@@ -22,6 +24,8 @@ Record what OCR attempted and what it produced.
 - `skipped`: Markdown already existed or the source was rejected before OCR.
 - `failed`: OCR or file processing failed.
 
-## Invariants
+## Result Fields
 
-Every result includes `pdfPath`. Written results include `markdownPath`, `finalBackend`, and execution `mode`. Auto runs may include `attempts` so local failure and Gemini recovery stay inspectable.
+Every result includes `pdfPath` and `status`. Written results include `markdownPath`, `runner`, `elapsedMs`, and page counts when known.
+
+Failures include a readable `message` and may include `diagnosticCode`. Retained intermediate paths are recorded as `artifactDir` and `rawOutputPaths`.

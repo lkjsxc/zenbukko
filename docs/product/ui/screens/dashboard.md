@@ -12,7 +12,8 @@ Operator landing page showing system readiness and recent activity.
 
 ## Outputs
 
-- Status cards: session, Gemini key, output directory, model name.
+- Status cards: session, local OCR readiness, output directory.
+- Local OCR details: command, device, and concise diagnostics.
 - Recent jobs table (last 5).
 - Recent outputs list (last 5).
 - Quick links to Session, Courses, Archive.

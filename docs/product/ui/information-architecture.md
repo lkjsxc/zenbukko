@@ -14,7 +14,7 @@ Define screens and operator journeys.
 | Archive | `#/archive` | Configure and start study jobs |
 | Jobs | `#/jobs` | Monitor jobs and live logs |
 | Outputs | `#/outputs` | Browse generated artifacts |
-| Settings | `#/settings` | OCR and Gemini configuration |
+| Settings | `#/settings` | Local OCR configuration |
 
 ## Primary Journey
 
@@ -22,10 +22,10 @@ Session → Dashboard → Courses → Archive → Jobs → Outputs.
 
 ## Secondary Journeys
 
-- Standalone OCR via Archive advanced panel or future dedicated action.
+- Standalone OCR via Archive advanced panel or CLI.
 - Download all courses from Archive when session is ready.
 - Settings changes apply to subsequent jobs.
 
 ## Invariants
 
-Dashboard is default after successful auth. Session auto-loads on open when file exists.
+Dashboard is default after startup. Session auto-loads on open when file exists.

@@ -2,15 +2,14 @@
 
 ## Purpose
 
-Run Zenbukko with repeatable local volumes and optional GPU image support.
+Run Zenbukko with repeatable local volumes and optional Linux NVIDIA CUDA image support.
 
 ## Services
 
 - `zenbukko-api`: CPU Core API and CLI-capable service under the `cpu` profile.
 - `zenbukko-web`: CPU lightweight Web UI and `/api/*` proxy under the `cpu` profile.
-- `zenbukko-api-gpu`: GPU Core API service behind the `gpu` profile.
-- `zenbukko-web-gpu`: GPU Web proxy on `0.0.0.0:8787` behind the `gpu` profile.
-- GPU API services are the NDLOCR CUDA path when the NVIDIA runtime is available.
+- `zenbukko-api-gpu`: Linux NVIDIA CUDA Core API service behind the `gpu` profile.
+- `zenbukko-web-gpu`: Web proxy for the GPU API on `0.0.0.0:8787` behind the `gpu` profile.
 
 Use exactly one runtime profile for `up`:
 
@@ -19,24 +18,31 @@ docker compose --profile cpu up --build
 docker compose --profile gpu up --build
 ```
 
-Both Web services publish the UI on host `0.0.0.0:8787` so another machine on
-the reachable network can open `http://<host-ip>:8787/`.
+Both Web services publish the UI on host `0.0.0.0:8787` so another machine on the reachable network can open `http://<host-ip>:8787/`.
 
-## Commands
+## CPU Verification
 
 ```sh
 docker compose config
 docker compose --profile cpu config --services
-docker compose --profile gpu config --services
-docker compose build zenbukko-api zenbukko-web
-docker compose run --rm --entrypoint /bin/sh zenbukko-api -c 'command -v ndlocr-lite; command -v pdftoppm'
-docker compose run --rm --entrypoint npm zenbukko-api run type-check
-docker compose run --rm --entrypoint npm zenbukko-api run lint
-docker compose run --rm --entrypoint npm zenbukko-api run test
-docker compose --profile gpu build zenbukko-api-gpu zenbukko-web-gpu
+docker compose --profile cpu build zenbukko-api zenbukko-web
+docker compose --profile cpu run --rm --entrypoint /bin/sh zenbukko-api -c 'command -v ndlocr-lite; command -v pdftoppm'
+docker compose --profile cpu run --rm --entrypoint npm zenbukko-api run smoke:local-ocr
 ```
 
-OCR smoke checks that depend on packaged binaries are Docker-gated. Run them from built Docker images with sample inputs mounted under `/data`.
+CPU services run local OCR and local whisper.cpp in the container.
+
+## GPU Verification
+
+GPU services are Linux NVIDIA CUDA only. Run these only on a host with NVIDIA Container Toolkit and compatible hardware:
+
+```sh
+docker compose --profile gpu config
+docker compose --profile gpu build zenbukko-api-gpu zenbukko-web-gpu
+docker compose --profile gpu run --rm --entrypoint npm zenbukko-api-gpu run smoke:local-ocr
+```
+
+macOS and Windows operators should use native local setup or CPU containers. Do not expect Docker GPU acceleration outside the Linux NVIDIA CUDA profile.
 
 ## Build Cache
 
@@ -61,20 +67,15 @@ Create the host data directory before running Compose:
 mkdir -p data data/web-ui
 ```
 
-The API image runs as the container `node` user. On hosts where the local user
-is not UID `1000`, make the bind mount writable by that container user before
-starting the API:
+The API image runs as the container `node` user. On hosts where the local user is not UID `1000`, make the bind mount writable by that container user before starting the API:
 
 ```sh
 sudo chown -R 1000:1000 data
 ```
 
-The Web image repairs `/web-data` ownership at startup before dropping to the
-`node` user, so an auto-created `data/web-ui` bind mount is still writable by
-the Web process.
+The Web image repairs `/web-data` ownership at startup before dropping to the `node` user, so an auto-created `data/web-ui` bind mount is still writable by the Web process.
 
-If local CLI runs need to write `data/session.json` after Docker use, restore
-host ownership:
+If local CLI runs need to write `data/session.json` after Docker use, restore host ownership:
 
 ```sh
 sudo chown -R "$(id -u):$(id -g)" data
@@ -82,4 +83,4 @@ sudo chown -R "$(id -u):$(id -g)" data
 
 ## Failure Behavior
 
-GPU image build verification does not prove NDLOCR CUDA runtime execution unless a compatible NVIDIA runtime is available.
+GPU image build verification does not prove local CUDA OCR execution unless a compatible NVIDIA runtime is available.

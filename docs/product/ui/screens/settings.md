@@ -2,22 +2,24 @@
 
 ## Purpose
 
-Persist OCR and Gemini configuration.
+Persist local OCR configuration.
 
 ## Inputs
 
 - `GET /api/settings` on load.
-- Form fields for backend, API key, model, OCR mode, NDLOCR options.
+- Form fields for OCR command, device, page DPI, intermediate retention, and tate-chu-yoko handling.
 
 ## Outputs
 
 - `POST /api/settings` on save.
-- Collapsible advanced section for NDLOCR device, DPI, intermediates, tcy.
+- Collapsible advanced section for local OCR details.
 
 ## Invariants
 
-`chapterRange` is not a settings field exposed on Archive screen preload.
+- Settings expose only local OCR controls.
+- `chapterRange` is not a settings field exposed on Archive screen preload.
+- Rendered controls must be appended to the DOM and saved when changed.
 
 ## Failure Behavior
 
-Save errors via toast. Status pills update after successful save.
+Save errors appear via toast. Status pills update after successful save.
