@@ -33,11 +33,28 @@ const result = await ocrMaterialsCommand({
 
 assert.ok(result.results.some((entry) => entry.status === 'written'), 'expected at least one written OCR result');
 assert.ok(await hasText(path.join(materialsDir, 'materials_ocr.md')), 'expected materials_ocr.md');
-assert.ok(await hasText(path.join(materialsDir, 'materials_ocr_manifest.json')), 'expected materials_ocr_manifest.json');
+const manifestPath = path.join(materialsDir, 'materials_ocr_manifest.json');
+assert.ok(await hasText(manifestPath), 'expected materials_ocr_manifest.json');
+await assertLocalManifest(manifestPath);
 assert.ok(await hasText(path.join(chapterDir, 'chapter-777_ocr.md')), 'expected chapter OCR aggregate');
 logger.info(`Local OCR smoke passed in ${root}`);
 
 async function hasText(filePath: string): Promise<boolean> {
   const text = await fs.readFile(filePath, 'utf8').catch(() => '');
   return text.trim().length > 0;
+}
+
+async function assertLocalManifest(filePath: string): Promise<void> {
+  const manifest = JSON.parse(await fs.readFile(filePath, 'utf8')) as {
+    runner?: string;
+    command?: string;
+    device?: string;
+    preflight?: { ok?: boolean };
+    results?: Array<{ runner?: string; elapsedMs?: number }>;
+  };
+  assert.equal(manifest.runner, 'local');
+  assert.equal(manifest.command, process.env.ZENBUKKO_NDLOCR_CMD?.trim() || 'ndlocr-lite');
+  assert.equal(manifest.device, process.env.ZENBUKKO_NDLOCR_DEVICE === 'cuda' ? 'cuda' : 'cpu');
+  assert.equal(manifest.preflight?.ok, true);
+  assert.ok(manifest.results?.some((entry) => entry.runner === 'local' && typeof entry.elapsedMs === 'number'));
 }
