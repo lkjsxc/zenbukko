@@ -14,11 +14,15 @@ Web exposes these endpoints at same origin and proxies them to Core API. Default
 - `GET /api/settings`: effective browser settings and defaults.
 - `POST /api/settings`: persist browser OCR settings.
 - `GET /api/courses`: scrape authenticated course list.
+- `GET /api/courses/:courseId`: course title and chapters for chapter picker.
+- `GET /api/courses/:courseId/chapters/:chapterId`: chapter sections for advanced filtering.
 - `GET /api/jobs`: list persisted jobs.
 - `POST /api/jobs`: enqueue `download`, `download-all`, or `ocr-materials`.
 - `GET /api/jobs/:id`: job metadata and log.
 - `GET /api/jobs/:id/events`: Server-Sent Events log stream.
 - `GET /api/outputs`: recent generated files.
+- `GET /api/outputs/content`: text preview of a file under output directory.
+- `GET /api/outputs/download`: download a file under output directory.
 - `GET /healthz`: Core API health check, not proxied by Web for browser use.
 
 ## Job Request Fields

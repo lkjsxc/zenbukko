@@ -6,6 +6,7 @@ This tree is the source of truth for expected behavior. Implementation changes s
 
 ## Directories
 
+- [`product/`](product/README.md): Web UI product contracts, screens, design system.
 - [`architecture/`](architecture/README.md): system boundaries, module ownership, data flow.
 - [`usage/`](usage/README.md): operator workflows for local CLI, web UI, and Docker.
 - [`features/`](features/README.md): user-visible feature contracts.

@@ -28,6 +28,16 @@ npm run type-check
 npm run lint
 npm test
 npm run check:lines
+npm run build
+```
+
+## Web UI Smoke
+
+```sh
+npm run build
+zenbukko api --port 8788 &
+zenbukko web --port 8787 &
+# Open http://127.0.0.1:8787/?token=... and verify all nav routes render
 ```
 
 ## Data Backfill

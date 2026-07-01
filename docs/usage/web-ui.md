@@ -16,24 +16,34 @@ Default local use runs Core API on `127.0.0.1:8788` and Web on `127.0.0.1:8787`.
 The browser talks only to Web; Web proxies `/api/*` to Core API.
 
 Default Web access binds to loopback and requires the generated browser token shown by the server. Treat that token like a local credential.
-Use `--host 0.0.0.0` only for an explicitly protected remote environment.
+
+## Build
+
+```sh
+npm run build
+```
+
+UI source lives in `web-ui/`. Vite outputs to `dist/web/static/`.
+
+## Screens
+
+Navigate via hash routes: Dashboard, Session, Courses, Archive, Jobs, Outputs, Settings. See [`../product/ui/`](../product/ui/README.md).
 
 ## Inputs
 
 - Existing `session.json` is read automatically when the page opens.
 - Session JSON only needs to be pasted when no saved session exists or the operator wants to replace it.
 - OCR settings are stored by Core API under API-owned state.
-- `ocrBackend` accepts `auto`, `local`, or `gemini`; the default is `auto`.
-- Study jobs accept learning URL, chapter range, explicit chapter IDs, lesson IDs, materials, transcription, and OCR settings.
-- Saved OCR settings are applied when web jobs run.
+- Archive jobs accept learning URL, visual chapter selection, materials, transcription, and OCR options.
+- Course detail API powers the visual chapter picker.
 
 ## Outputs
 
 - Jobs and logs are persisted by Core API under `/data/api/jobs` in Compose.
 - Downloads and derived artifacts are written under `/data/downloads` by default.
-- The output list shows recent Markdown, transcript, HTML, JSON, and PDF files.
+- Outputs screen lists recent Markdown, transcript, HTML, JSON, and PDF files with preview and download.
 - Long log lines wrap inside the log panel instead of widening the page.
 
 ## Failure Behavior
 
-API errors are shown in the browser. Job failures preserve the log and final error message for later inspection.
+API errors are shown via toast notifications. Missing web token shows AuthGate. Job failures preserve the log and display error text in the job table.
