@@ -1,15 +1,13 @@
-# Web Loopback
+# Web Exposure
 
 ## Behavior
 
-- The default web flow binds to loopback.
-- Browser access requires a generated token.
-- Web enforces the token before proxying sensitive `/api/*` requests.
-- `GET /api/status` remains public for UI bootstrap.
-- Job SSE accepts the token query parameter because browser `EventSource` cannot set custom headers.
+- The default non-Docker web flow can bind to loopback for local operator use.
+- Docker Compose publishes the Web UI on `0.0.0.0:8787` for trusted-network access.
+- Browser access does not require a generated Zenbukko token.
+- Web proxies `/api/*` directly to Core API.
 - Core API has no token by default and should stay on loopback or an internal Compose network.
-- Docker web services publish loopback host ports by default.
 
 ## Operator Responsibility
 
-Do not expose the web service beyond trusted local access unless a separate access-control layer is provided.
+Expose the Web service only on trusted networks or behind a separate access-control layer. Session data, settings, jobs, and generated outputs are local private data.

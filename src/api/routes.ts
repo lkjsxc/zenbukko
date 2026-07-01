@@ -26,7 +26,7 @@ export function registerApiRoutes(app: express.Express, params: RouteParams): vo
       outputDir: params.config.outputDir,
       geminiConfigured: Boolean(settings.geminiApiKey),
       model: settings.geminiModel,
-      authRequired: true,
+      authRequired: false,
     });
   }));
 

@@ -17,9 +17,9 @@ Show how requests move through Zenbukko and where persistent artifacts are writt
 
 ## Web/Core Flow
 
-1. `zenbukko web` serves static UI files and stores only its browser token.
+1. `zenbukko web` serves static UI files.
 2. Browser reads and writes same-origin `/api/*` through the Web proxy.
-3. The Web proxy allows public `GET /api/status` and requires the browser token for sensitive `/api/*`.
+3. The Web proxy forwards API requests without a Zenbukko browser-token gate.
 4. `zenbukko api` receives proxied requests on port `8788`.
 5. Job forms submit normalized JSON to Core API `/api/jobs`.
 6. `ApiJobQueue` persists job records and logs under API-owned state.

@@ -53,7 +53,7 @@ Whisper rebuilds are expected only when these inputs change:
 
 The API service mounts `./data` at `/data`. Session, settings, jobs, and downloads should be considered local private data.
 
-The Web service mounts only `./data/web-ui` at `/web-data` for its generated browser token. It does not receive `/data/downloads`, Chromium, OCR binaries, or Whisper.
+The Web service mounts only `./data/web-ui` at `/web-data` for its lightweight runtime state. It does not receive `/data/downloads`, Chromium, OCR binaries, or Whisper.
 
 Create the host data directory before running Compose:
 

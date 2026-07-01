@@ -8,7 +8,7 @@ Describe the stable runtime boundaries for maintainers and LLM agents.
 
 - `src/index.ts` defines CLI commands and translates command options into service calls.
 - `src/api/` owns the Core API, session/settings state, jobs, outputs, and queue execution.
-- `src/web/` owns static UI serving, generated browser token checks, and same-origin `/api/*` proxying.
+- `src/web/` owns static UI serving and same-origin `/api/*` proxying.
 - `web-ui/` owns Vite-built TypeScript browser source; build output lands in `dist/web/static/`.
 - `src/commands/` owns user workflows that are also callable from web jobs.
 - `src/services/` owns remote NNN scraping/API clients, material downloads, OCR, and cleanup helpers.

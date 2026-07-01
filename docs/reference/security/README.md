@@ -6,7 +6,7 @@ Document local security boundaries for browser and data use.
 
 ## Files
 
-- [`web-loopback.md`](web-loopback.md): web binding and generated token behavior.
+- [`web-loopback.md`](web-loopback.md): web binding and trusted-network exposure.
 - [`local-data.md`](local-data.md): private data handling expectations.
 
 ## Invariants

@@ -23,8 +23,7 @@ Define ownership for source modules so refactors stay narrow.
 ## Web
 
 - `src/web/server.ts`: static UI server assembly on port `8787`.
-- `src/web/auth.ts`: generated browser token loading and validation.
-- `src/web/proxy.ts`: browser token enforcement and `/api/*` proxying to Core API.
+- `src/web/proxy.ts`: `/api/*` proxying to Core API without a Zenbukko browser-token gate.
 - `web-ui/`: Vite TypeScript browser source (views, components, styles).
 - `dist/web/static/`: built UI assets served by Express.
 - `src/api/courseRoutes.ts`: course detail endpoints for chapter picker.

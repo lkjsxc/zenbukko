@@ -4,9 +4,9 @@
 
 How the Web UI surfaces failures.
 
-## Auth Errors
+## Access Errors
 
-Missing or invalid web token: full-screen AuthGate with instructions to use token URL from server logs.
+Zenbukko does not add a browser-token gate. Network or upstream access failures surface as API errors.
 
 ## API Errors
 

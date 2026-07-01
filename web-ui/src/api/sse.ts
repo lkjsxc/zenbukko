@@ -1,13 +1,12 @@
 export type SseHandle = { close: () => void };
 
 export const openJobStream = (
-  token: string,
+  _token: string,
   jobId: string,
   onLine: (line: string) => void,
   onError: () => void,
 ): SseHandle => {
   const url = new URL(`/api/jobs/${jobId}/events`, window.location.origin);
-  if (token) url.searchParams.set('token', token);
   const es = new EventSource(url.pathname + url.search);
   let backoff = 1000;
 

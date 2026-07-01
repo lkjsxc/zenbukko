@@ -19,8 +19,8 @@ Product contract for the Zenbukko browser operator console.
 - Built with Vite + TypeScript from `web-ui/`.
 - Output served from `dist/web/static/`.
 - English copy only; dark theme only.
-- Web token required for sensitive `/api/*` calls.
+- Web access relies on trusted-network exposure; no browser token is required.
 
 ## Failure Behavior
 
-Missing token shows AuthGate. API errors show toast notifications.
+API errors show toast notifications.

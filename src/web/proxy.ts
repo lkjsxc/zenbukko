@@ -1,18 +1,11 @@
 import { Readable } from 'node:stream';
 import type express from 'express';
 import type { Request, Response } from 'express';
-import { requireWebToken } from './auth.js';
 
 const HOP_BY_HOP = new Set(['connection', 'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailer', 'transfer-encoding', 'upgrade']);
 
-export function registerApiProxy(app: express.Express, params: { apiUrl: string; token: string }): void {
-  const requireToken = requireWebToken(params.token);
-  const requireEventToken = requireWebToken(params.token, { allowQueryToken: true });
-
-  app.get('/api/status', (req, res) => void proxy(req, res, params.apiUrl));
-  app.get('/api/jobs/:id/events', requireEventToken, (req, res) => void proxy(req, res, params.apiUrl));
-  app.get('/api/outputs/download', requireEventToken, (req, res) => void proxy(req, res, params.apiUrl));
-  app.use('/api', requireToken, (req, res) => void proxy(req, res, params.apiUrl));
+export function registerApiProxy(app: express.Express, params: { apiUrl: string }): void {
+  app.use('/api', (req, res) => void proxy(req, res, params.apiUrl));
 }
 
 async function proxy(req: Request, res: Response, apiUrl: string): Promise<void> {

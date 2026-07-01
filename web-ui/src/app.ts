@@ -3,7 +3,7 @@ import { initialState, reduce } from './state/store.js';
 import { loadWebToken, apiFetch } from './api/client.js';
 import { openJobStream, type SseHandle } from './api/sse.js';
 import { parseHash, navigate } from './router/hash.js';
-import { renderNav, renderAuthGate, renderToast } from './components/shell.js';
+import { renderNav, renderToast } from './components/shell.js';
 import { renderDashboard } from './views/dashboard.js';
 import { renderSession } from './views/session.js';
 import { renderCourses } from './views/courses.js';
@@ -25,7 +25,6 @@ const dispatch: Dispatch = (event) => {
 };
 
 const refreshCore = async (): Promise<void> => {
-  if (!state.token) return;
   try {
     const [status, jobs, outputs, settings, session] = await Promise.all([
       apiFetch<AppState['status']>(state.token, '/api/status'),
@@ -76,11 +75,6 @@ const renderView = (): HTMLElement => {
 const render = (): void => {
   const root = document.getElementById('app');
   if (!root) return;
-
-  if (!state.token) {
-    root.replaceChildren(renderAuthGate());
-    return;
-  }
 
   const shell = el('div', { className: 'app-shell' });
   const header = el('header', { className: 'topbar' });

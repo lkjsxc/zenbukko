@@ -15,7 +15,7 @@ docker compose --profile cpu up zenbukko-web
 Default local use runs Core API on `127.0.0.1:8788` and Web on `127.0.0.1:8787`.
 The browser talks only to Web; Web proxies `/api/*` to Core API.
 
-Default Web access binds to loopback and requires the generated browser token shown by the server. Treat that token like a local credential.
+Docker Compose publishes Web on `0.0.0.0:8787` for trusted-network access. Zenbukko does not require a generated browser token.
 
 ## Build
 
@@ -46,4 +46,4 @@ Navigate via hash routes: Dashboard, Session, Courses, Archive, Jobs, Outputs, S
 
 ## Failure Behavior
 
-API errors are shown via toast notifications. Missing web token shows AuthGate. Job failures preserve the log and display error text in the job table.
+API errors are shown via toast notifications. Job failures preserve the log and display error text in the job table.

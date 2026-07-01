@@ -5,7 +5,6 @@
 - Session JSON contains browser cookie material.
 - `/data/api/settings.json` can contain Gemini credentials.
 - `/data/api/jobs` contains operator actions and logs.
-- `/data/web-ui/token.json` contains the Web browser token.
 - `/data/downloads` contains course material and generated outputs.
 
 ## Handling

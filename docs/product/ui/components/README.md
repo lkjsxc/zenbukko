@@ -10,4 +10,4 @@
 
 ## Shared Primitives
 
-Implemented in `web-ui/src/components/`: Button, Card, FormField, StatusPill, NavSidebar, AuthGate, EmptyState, LoadingSkeleton, DataTable.
+Implemented in `web-ui/src/components/`: Button, Card, FormField, StatusPill, NavSidebar, EmptyState, LoadingSkeleton, DataTable.

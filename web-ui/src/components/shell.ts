@@ -30,18 +30,6 @@ export const renderNav = (active: Route, onNavigate: (route: Route) => void): HT
   return nav;
 };
 
-export const renderAuthGate = (): HTMLElement => {
-  const root = el('div', { className: 'auth-gate' });
-  root.append(
-    el('h1', { text: 'Zenbukko' }),
-    el('p', {
-      className: 'muted',
-      text: 'A local web token is required. Copy the token URL from the server logs when starting zenbukko web, then open it in this browser.',
-    }),
-  );
-  return root;
-};
-
 export const renderToast = (
   message: string,
   kind: string,

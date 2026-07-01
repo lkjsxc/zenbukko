@@ -6,7 +6,6 @@ import type { Server } from 'node:http';
 import type { AppConfig } from '../config.js';
 import { ensureDir } from '../utils/fs.js';
 import type { Logger } from '../utils/log.js';
-import { loadOrCreateWebToken } from './auth.js';
 import { registerApiProxy } from './proxy.js';
 
 export async function startWebServer(params: {
@@ -16,30 +15,17 @@ export async function startWebServer(params: {
   config: AppConfig;
   logger: Logger;
 }): Promise<Server> {
-  const webDir = params.config.webDataDir;
-  await ensureDir(webDir);
-  const token = await loadOrCreateWebToken(webDir);
+  await ensureDir(params.config.webDataDir);
 
   const app = express();
   app.use(express.static(staticDir()));
-  registerApiProxy(app, { apiUrl: params.apiUrl, token });
+  registerApiProxy(app, { apiUrl: params.apiUrl });
 
   return app.listen(params.port, params.host, () => {
     params.logger.info(`Web UI listening on http://${params.host}:${params.port}`);
     params.logger.info(`Web UI proxying API requests to ${params.apiUrl}`);
-    params.logger.info(`Web UI token URL: ${buildTokenUrl(params.host, params.port, token)}`);
+    params.logger.info('Web UI access token is disabled; trusted-network access is required.');
   });
-}
-
-function buildTokenUrl(host: string, port: number, token: string): string {
-  const urlHost = host === '0.0.0.0' || host === '::' ? '127.0.0.1' : host;
-  const url = new URL(`http://${hostForUrl(urlHost)}:${port}/`);
-  url.searchParams.set('token', token);
-  return url.toString();
-}
-
-function hostForUrl(host: string): string {
-  return host.includes(':') && !host.startsWith('[') ? `[${host}]` : host;
 }
 
 function staticDir(): string {

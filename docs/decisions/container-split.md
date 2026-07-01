@@ -15,10 +15,7 @@ The browser container should not need downloads, session state, Chromium automat
 
 ## Locked Behavior
 
-- Web stores only its generated browser token under `ZENBUKKO_WEB_DATA_DIR`.
-- Web proxies `/api/*` to `ZENBUKKO_API_URL`.
-- `GET /api/status` is public.
-- Sensitive `/api/*` endpoints require the Web token before proxying.
-- SSE keeps query-token support for browser `EventSource`.
+- Web proxies `/api/*` to `ZENBUKKO_API_URL` without a Zenbukko browser-token gate.
+- `GET /api/status` reports `authRequired: false`.
 - Core API has no token by default and is bound to loopback locally or an internal Compose network.
 - Compose publishes only Web ports to the host.
