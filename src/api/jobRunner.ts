@@ -1,39 +1,24 @@
 import type { AppConfig } from '../config.js';
 import { downloadCommand } from '../commands/download.js';
 import { downloadAllCommand } from '../commands/downloadAll.js';
-import { ocrMaterialsCommand } from '../services/geminiOcr.js';
+import { ocrMaterialsCommand } from '../services/ocr/index.js';
 import type { Logger } from '../utils/log.js';
 import type { JobRecord } from './types.js';
 import { booleanFrom, numberFrom, optionalNumberArray, stringFrom } from './requestUtils.js';
-import { getEffectiveApiSettings } from './settings.js';
+import { getEffectiveApiSettings, type EffectiveApiSettings } from './settings.js';
 
 export async function runJob(job: JobRecord, cfg: AppConfig, stateDir: string, logger: Logger): Promise<void> {
   const settings = await getEffectiveApiSettings(cfg, stateDir);
   if (job.kind === 'ocr-materials') {
-    const backend = ocrBackendFrom(job.request.ocrBackend, settings.ocrBackend);
-    if (backend === 'gemini') requireGeminiKey(settings.geminiApiKey);
     await ocrMaterialsCommand({
       inputDir: stringFrom(job.request.inputDir, cfg.outputDir),
-      backend,
-      apiKey: settings.geminiApiKey,
-      model: stringFrom(job.request.ocrModel, settings.geminiModel),
       force: booleanFrom(job.request.ocrForce, false),
-      mode: ocrModeFrom(job.request.ocrMode, settings.ocrMode),
-      serviceTier: ocrTierFrom(job.request.ocrServiceTier, settings.ocrServiceTier),
-      retries: numberFrom(job.request.ocrRetries, settings.ocrRetries),
-      timeoutMs: numberFrom(job.request.ocrTimeoutMs, settings.ocrTimeoutMs),
-      ndlocrCommand: stringFrom(job.request.ndlocrCommand, settings.ndlocrCommand),
-      ndlocrDevice: ocrDeviceFrom(job.request.ndlocrDevice, settings.ndlocrDevice),
-      ocrPageDpi: numberFrom(job.request.ocrPageDpi, settings.ocrPageDpi),
-      ocrKeepIntermediates: booleanFrom(job.request.ocrKeepIntermediates, settings.ocrKeepIntermediates),
-      ndlocrEnableTcy: booleanFrom(job.request.ndlocrEnableTcy, settings.ndlocrEnableTcy),
+      ...localOcrFromRequest(job.request, settings),
       logger,
     });
     return;
   }
 
-  const backend = ocrBackendFrom(job.request.ocrBackend, settings.ocrBackend);
-  if (booleanFrom(job.request.ocrMaterials, false) && backend === 'gemini') requireGeminiKey(settings.geminiApiKey);
   const common = {
     sessionPath: cfg.sessionPath,
     outputDir: cfg.outputDir,
@@ -45,19 +30,8 @@ export async function runJob(job: JobRecord, cfg: AppConfig, stateDir: string, l
     deleteMediaAfterTranscribe: booleanFrom(job.request.deleteMediaAfterTranscribe, true),
     materials: booleanFrom(job.request.materials, false) || booleanFrom(job.request.ocrMaterials, false),
     ocrMaterials: booleanFrom(job.request.ocrMaterials, false),
-    ocrBackend: backend,
-    ocrModel: stringFrom(job.request.ocrModel, settings.geminiModel),
     ocrForce: booleanFrom(job.request.ocrForce, false),
-    ocrMode: ocrModeFrom(job.request.ocrMode, settings.ocrMode),
-    ocrServiceTier: ocrTierFrom(job.request.ocrServiceTier, settings.ocrServiceTier),
-    ocrRetries: numberFrom(job.request.ocrRetries, settings.ocrRetries),
-    ocrTimeoutMs: numberFrom(job.request.ocrTimeoutMs, settings.ocrTimeoutMs),
-    ndlocrCommand: stringFrom(job.request.ndlocrCommand, settings.ndlocrCommand),
-    ndlocrDevice: ocrDeviceFrom(job.request.ndlocrDevice, settings.ndlocrDevice),
-    ocrPageDpi: numberFrom(job.request.ocrPageDpi, settings.ocrPageDpi),
-    ocrKeepIntermediates: booleanFrom(job.request.ocrKeepIntermediates, settings.ocrKeepIntermediates),
-    ndlocrEnableTcy: booleanFrom(job.request.ndlocrEnableTcy, settings.ndlocrEnableTcy),
-    geminiApiKey: settings.geminiApiKey,
+    ...localOcrFromRequest(job.request, settings),
     logger,
   };
 
@@ -81,22 +55,16 @@ export async function runJob(job: JobRecord, cfg: AppConfig, stateDir: string, l
   });
 }
 
-function ocrModeFrom(value: unknown, fallback: 'auto' | 'batch' | 'flex'): 'auto' | 'batch' | 'flex' {
-  return value === 'auto' || value === 'batch' || value === 'flex' ? value : fallback;
-}
-
-function ocrTierFrom(value: unknown, fallback: 'flex' | 'standard'): 'flex' | 'standard' {
-  return value === 'flex' || value === 'standard' ? value : fallback;
-}
-
-function ocrBackendFrom(value: unknown, fallback: 'auto' | 'local' | 'gemini'): 'auto' | 'local' | 'gemini' {
-  return value === 'auto' || value === 'local' || value === 'gemini' ? value : fallback;
+function localOcrFromRequest(request: Record<string, unknown>, settings: EffectiveApiSettings) {
+  return {
+    ndlocrCommand: stringFrom(request.ndlocrCommand, settings.ndlocrCommand),
+    ndlocrDevice: ocrDeviceFrom(request.ndlocrDevice, settings.ndlocrDevice),
+    ocrPageDpi: numberFrom(request.ocrPageDpi, settings.ocrPageDpi),
+    ocrKeepIntermediates: booleanFrom(request.ocrKeepIntermediates, settings.ocrKeepIntermediates),
+    ndlocrEnableTcy: booleanFrom(request.ndlocrEnableTcy, settings.ndlocrEnableTcy),
+  };
 }
 
 function ocrDeviceFrom(value: unknown, fallback: 'cpu' | 'cuda'): 'cpu' | 'cuda' {
   return value === 'cpu' || value === 'cuda' ? value : fallback;
-}
-
-function requireGeminiKey(apiKey: string): void {
-  if (!apiKey.trim()) throw new Error('Gemini API key is required before starting OCR. Save it in Gemini Settings or set GEMINI_API_KEY.');
 }

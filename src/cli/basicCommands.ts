@@ -3,11 +3,11 @@ import { authCommand } from '../commands/auth.js';
 import { listCoursesCommand } from '../commands/listCourses.js';
 import { setupWhisperCommand } from '../commands/setupWhisper.js';
 import { transcribeCommand } from '../commands/transcribe.js';
-import { DEFAULT_GEMINI_MODEL } from '../geminiDefaults.js';
-import { ocrMaterialsCommand } from '../services/geminiOcr.js';
+import { ocrMaterialsCommand } from '../services/ocr/index.js';
 import { buildReportPrompt, type BuildReportPromptParams } from '../services/reportPrompt.js';
 import { rebuildChapterOcr } from '../services/chapterOcr.js';
 import { headlessFrom, makeContext } from './context.js';
+import { addLocalOcrOptions, localOcrOptionsFrom } from './ocrOptions.js';
 
 export function registerBasicCommands(program: Command): void {
   program.command('auth').description('Authenticate using a real browser login and save session cookies').action(async () => {
@@ -20,37 +20,16 @@ export function registerBasicCommands(program: Command): void {
     await listCoursesCommand({ sessionPath: ctx.sessionPath, headless: headlessFrom(ctx), format: String(cmd.format ?? 'table') as 'table' | 'json', logger: ctx.logger });
   });
 
-  program.command('ocr-materials')
-    .description('Run PDF OCR for downloaded lesson materials')
+  addLocalOcrOptions(program.command('ocr-materials')
+    .description('Run local PDF OCR for downloaded lesson materials')
     .requiredOption('--input <path>', 'Downloads, course, lesson, or materials directory to scan for PDFs')
-    .option('--ocr-backend <backend>', 'auto|local|gemini')
-    .option('--model <name>', 'Gemini model name', DEFAULT_GEMINI_MODEL)
-    .option('--force', 'Re-run OCR even when markdown output already exists', false)
-    .option('--ocr-mode <mode>', 'auto|batch|flex')
-    .option('--ocr-service-tier <tier>', 'flex|standard')
-    .option('--ndlocr-command <path>', 'NDLOCR-Lite executable')
-    .option('--ndlocr-device <device>', 'cpu|cuda')
-    .option('--ocr-page-dpi <n>', 'PDF rasterization DPI for local OCR', (v) => Number(v))
-    .option('--ocr-keep-intermediates', 'Keep local OCR page images and raw output', false)
-    .option('--ndlocr-enable-tcy', 'Enable NDLOCR-Lite tate-chu-yoko handling')
-    .option('--no-ndlocr-enable-tcy', 'Disable NDLOCR-Lite tate-chu-yoko handling')
+    .option('--force', 'Re-run OCR even when markdown output already exists', false))
     .action(async (cmd) => {
       const ctx = makeContext(program);
       await ocrMaterialsCommand({
         inputDir: String(cmd.input),
-        backend: backendFrom(cmd.ocrBackend, ctx.cfg.ocrBackend),
-        ...(ctx.cfg.geminiApiKey ? { apiKey: ctx.cfg.geminiApiKey } : {}),
-        model: String(cmd.model ?? ctx.cfg.geminiModel),
         force: Boolean(cmd.force),
-        mode: modeFrom(cmd.ocrMode, ctx.cfg.ocrMode),
-        serviceTier: tierFrom(cmd.ocrServiceTier, ctx.cfg.ocrServiceTier),
-        retries: ctx.cfg.ocrRetries,
-        timeoutMs: ctx.cfg.ocrTimeoutMs,
-        ndlocrCommand: stringOption(cmd.ndlocrCommand, ctx.cfg.ndlocrCommand),
-        ndlocrDevice: deviceFrom(cmd.ndlocrDevice, ctx.cfg.ndlocrDevice),
-        ocrPageDpi: numberOption(cmd.ocrPageDpi, ctx.cfg.ocrPageDpi),
-        ocrKeepIntermediates: Boolean(cmd.ocrKeepIntermediates) || ctx.cfg.ocrKeepIntermediates,
-        ndlocrEnableTcy: booleanOption(cmd.ndlocrEnableTcy, ctx.cfg.ndlocrEnableTcy),
+        ...localOcrOptionsFrom(cmd, ctx.cfg),
         logger: ctx.logger,
       });
     });
@@ -109,34 +88,6 @@ export function registerBasicCommands(program: Command): void {
       if (typeof cmd.maxSeconds === 'number' && Number.isFinite(cmd.maxSeconds)) args.maxSeconds = cmd.maxSeconds as number;
       await transcribeCommand(args);
     });
-}
-
-function modeFrom(value: unknown, fallback: 'auto' | 'batch' | 'flex'): 'auto' | 'batch' | 'flex' {
-  return value === 'auto' || value === 'batch' || value === 'flex' ? value : fallback;
-}
-
-function tierFrom(value: unknown, fallback: 'flex' | 'standard'): 'flex' | 'standard' {
-  return value === 'flex' || value === 'standard' ? value : fallback;
-}
-
-function backendFrom(value: unknown, fallback: 'auto' | 'local' | 'gemini'): 'auto' | 'local' | 'gemini' {
-  return value === 'auto' || value === 'local' || value === 'gemini' ? value : fallback;
-}
-
-function deviceFrom(value: unknown, fallback: 'cpu' | 'cuda'): 'cpu' | 'cuda' {
-  return value === 'cpu' || value === 'cuda' ? value : fallback;
-}
-
-function numberOption(value: unknown, fallback: number): number {
-  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
-}
-
-function booleanOption(value: unknown, fallback: boolean): boolean {
-  return typeof value === 'boolean' ? value : fallback;
-}
-
-function stringOption(value: unknown, fallback: string): string {
-  return typeof value === 'string' && value.trim() ? value.trim() : fallback;
 }
 
 function optionalString(value: unknown): string | undefined {

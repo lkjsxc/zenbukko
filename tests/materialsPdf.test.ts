@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { classifyMaterialForPdf, generatedPdfRelativePath } from '../src/services/materials/pdfPlan.js';
 import { discoverPdfFiles, pdfFilesFromMaterialsManifest } from '../src/services/ocr/discovery.js';
-import { normalizeAggregateSection } from '../src/services/geminiOcrAggregate.js';
+import { normalizeAggregateSection } from '../src/services/ocr/aggregate.js';
 import type { MaterialsManifest } from '../src/services/materials/types.js';
 
 test('classifyMaterialForPdf identifies supported normalization inputs', () => {

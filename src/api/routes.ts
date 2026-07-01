@@ -8,6 +8,7 @@ import type { Logger } from '../utils/log.js';
 import { registerCourseRoutes } from './courseRoutes.js';
 import { registerOutputRoutes } from './outputRoutes.js';
 import { normalizeJobRequest } from './requests.js';
+import { preflightLocalOcr } from '../services/ocr/preflight.js';
 import type { ApiJobQueue } from './queue.js';
 import { getEffectiveApiSettings, saveApiSettings } from './settings.js';
 import type { JobKind, JobRecord, PublicJob } from './types.js';
@@ -21,11 +22,22 @@ export function registerApiRoutes(app: express.Express, params: RouteParams): vo
   app.get('/healthz', (_req, res) => res.json({ ok: true }));
   app.get('/api/status', asyncHandler(async (_req, res) => {
     const settings = await getEffectiveApiSettings(params.config, params.stateDir);
+    const localOcr = await preflightLocalOcr({
+      command: settings.ndlocrCommand,
+      device: settings.ndlocrDevice,
+      pageDpi: settings.ocrPageDpi,
+      keepIntermediates: settings.ocrKeepIntermediates,
+      enableTcy: settings.ndlocrEnableTcy,
+    });
     res.json({
       sessionExists: await fileExists(params.config.sessionPath),
       outputDir: params.config.outputDir,
-      geminiConfigured: Boolean(settings.geminiApiKey),
-      model: settings.geminiModel,
+      localOcr: {
+        ok: localOcr.ok,
+        command: settings.ndlocrCommand,
+        device: settings.ndlocrDevice,
+        diagnostics: localOcr.diagnostics,
+      },
       authRequired: false,
     });
   }));

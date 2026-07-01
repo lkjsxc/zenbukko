@@ -22,11 +22,11 @@ test('Core API exposes healthz without web auth', async () => {
 test('Core API reports that web auth is not required', async () => {
   await withApiRoutes(async (baseUrl) => {
     const res = await fetch(`${baseUrl}/api/status`);
-    const body = await res.json() as { authRequired?: boolean; model?: string };
+    const body = await res.json() as { authRequired?: boolean; localOcr?: { command?: string } };
 
     assert.equal(res.status, 200);
     assert.equal(body.authRequired, false);
-    assert.equal(body.model, 'model');
+    assert.equal(body.localOcr?.command, 'ndlocr-lite');
   });
 });
 
@@ -43,10 +43,10 @@ test('JSON requests proxy to Core API unchanged without a token', async () => {
     const res = await fetch(`${baseUrl}/api/settings`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ settings: { geminiModel: 'proxy-model' } }),
+      body: JSON.stringify({ settings: { ndlocrCommand: 'proxy-ocr' } }),
     });
     assert.equal(res.status, 200);
-    assert.deepEqual(await res.json(), { received: { settings: { geminiModel: 'proxy-model' } } });
+    assert.deepEqual(await res.json(), { received: { settings: { ndlocrCommand: 'proxy-ocr' } } });
   });
 });
 
@@ -62,7 +62,7 @@ test('job event stream works without a token query parameter', async () => {
 async function withProxy(run: (baseUrl: string) => Promise<void>): Promise<void> {
   const api = express();
   api.use(express.json());
-  api.get('/api/status', (_req, res) => res.json({ authRequired: false, model: 'model' }));
+  api.get('/api/status', (_req, res) => res.json({ authRequired: false, localOcr: { command: 'ndlocr-lite' } }));
   api.get('/api/settings', (_req, res) => res.json({ settings: { ok: true } }));
   api.post('/api/settings', (req, res) => res.json({ received: req.body }));
   for (const p of ['/api/session', '/api/courses', '/api/courses/1', '/api/jobs', '/api/outputs']) api.get(p, (_req, res) => res.json({ ok: true }));
@@ -103,12 +103,6 @@ function configFor(root: string): AppConfig {
     outputDir: path.join(root, 'downloads'),
     logLevel: 'silent',
     puppeteerHeadless: true,
-    geminiModel: 'model',
-    ocrBackend: 'local',
-    ocrMode: 'auto',
-    ocrServiceTier: 'flex',
-    ocrRetries: 3,
-    ocrTimeoutMs: 900_000,
     ndlocrCommand: 'ndlocr-lite',
     ndlocrDevice: 'cpu',
     ocrPageDpi: 200,

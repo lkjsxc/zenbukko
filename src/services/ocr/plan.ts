@@ -1,8 +1,4 @@
 import fs from 'node:fs/promises';
-import path from 'node:path';
-
-export type OcrMode = 'auto' | 'batch' | 'flex';
-export type OcrServiceTier = 'flex' | 'standard';
 
 export type OcrTask = {
   pdfPath: string;
@@ -10,12 +6,11 @@ export type OcrTask = {
 };
 
 export type OcrPlan = {
-  mode: 'batch' | 'flex';
   tasks: OcrTask[];
   skipped: OcrTask[];
 };
 
-export async function planOcrTasks(params: { pdfs: string[]; force: boolean; mode: OcrMode }): Promise<OcrPlan> {
+export async function planOcrTasks(params: { pdfs: string[]; force: boolean }): Promise<OcrPlan> {
   const tasks: OcrTask[] = [];
   const skipped: OcrTask[] = [];
   for (const pdfPath of params.pdfs) {
@@ -23,15 +18,7 @@ export async function planOcrTasks(params: { pdfs: string[]; force: boolean; mod
     if (!params.force && (await hasFreshMarkdown(task.pdfPath, task.markdownPath))) skipped.push(task);
     else tasks.push(task);
   }
-  return {
-    mode: params.mode === 'batch' || (params.mode === 'auto' && tasks.length > 1) ? 'batch' : 'flex',
-    tasks,
-    skipped,
-  };
-}
-
-export function outputName(pdfPath: string): string {
-  return path.basename(pdfPath, '.pdf');
+  return { tasks, skipped };
 }
 
 async function hasFreshMarkdown(pdfPath: string, markdownPath: string): Promise<boolean> {

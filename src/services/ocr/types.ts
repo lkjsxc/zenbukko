@@ -1,56 +1,65 @@
 import type { Logger } from '../../utils/log.js';
-import type { OcrMode, OcrServiceTier } from './plan.js';
 
-export type OcrBackend = 'auto' | 'local' | 'gemini';
-export type OcrFinalBackend = 'local' | 'gemini';
 export type LocalOcrDevice = 'cpu' | 'cuda';
-export type OcrRunMode = 'batch' | 'flex' | 'local';
-export type OcrAttemptStatus = 'written' | 'failed' | 'skipped';
 
-export type OcrAttempt = {
-  backend: OcrFinalBackend;
-  mode: OcrRunMode;
-  status: OcrAttemptStatus;
-  message?: string;
+export type OcrDiagnosticCode =
+  | 'missing-pdftoppm'
+  | 'missing-ocr-command'
+  | 'pdf-rasterize-failed'
+  | 'ocr-command-failed'
+  | 'ocr-produced-empty-output'
+  | 'pdf-too-large'
+  | 'write-failed'
+  | 'unexpected-local-ocr-error';
+
+export type OcrDiagnostic = {
+  code: OcrDiagnosticCode;
+  message: string;
+};
+
+export type LocalOcrSettings = {
+  command: string;
+  device: LocalOcrDevice;
+  pageDpi: number;
+  keepIntermediates: boolean;
+  enableTcy: boolean;
+};
+
+export type LocalOcrPreflight = {
+  ok: boolean;
+  pdftoppmPath?: string;
+  ocrCommandPath?: string;
+  diagnostics: OcrDiagnostic[];
 };
 
 export type OcrPdfResult = {
   pdfPath: string;
   markdownPath?: string;
   status: 'written' | 'skipped' | 'failed';
-  backend: OcrBackend;
-  finalBackend?: OcrFinalBackend;
   message?: string;
-  mode?: OcrRunMode;
-  batchJobName?: string;
+  runner?: 'local';
+  diagnosticCode?: OcrDiagnosticCode;
   artifactDir?: string;
   pageCount?: number;
   emptyPageCount?: number;
   elapsedMs?: number;
   rawOutputPaths?: string[];
-  attempts?: OcrAttempt[];
 };
 
 export type OcrMaterialsResult = {
   inputDir: string;
-  backend: OcrBackend;
+  runner: 'local';
   pdfs: string[];
   results: OcrPdfResult[];
   aggregatePath?: string;
   manifestPath: string;
+  preflight: LocalOcrPreflight;
 };
 
 export type OcrCommandParams = {
   inputDir: string;
-  backend?: OcrBackend;
   force: boolean;
   logger: Logger;
-  apiKey?: string;
-  model?: string;
-  mode?: OcrMode;
-  serviceTier?: OcrServiceTier;
-  retries?: number;
-  timeoutMs?: number;
   ndlocrCommand?: string;
   ndlocrDevice?: LocalOcrDevice;
   ocrPageDpi?: number;

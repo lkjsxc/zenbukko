@@ -1,6 +1,6 @@
-import fs from 'node:fs/promises';
 import path from 'node:path';
 import { readTextFileIfExists } from '../../utils/fs.js';
+import { writeTextAtomic } from './atomic.js';
 import type { OcrPdfResult } from './types.js';
 
 export async function writeAggregate(inputDir: string, results: OcrPdfResult[], logger: { info: (message: string) => void }): Promise<string | undefined> {
@@ -13,7 +13,7 @@ export async function writeAggregate(inputDir: string, results: OcrPdfResult[], 
   }
   const aggregatePath = path.join(inputDir, 'materials_ocr.md');
   const aggregate = [`# ${aggregateTitle(inputDir)}`, ...sections].join('\n\n');
-  await fs.writeFile(aggregatePath, aggregate + (aggregate.endsWith('\n') ? '' : '\n'), 'utf8');
+  await writeTextAtomic(aggregatePath, aggregate + (aggregate.endsWith('\n') ? '' : '\n'));
   logger.info(`OCR aggregate written: ${path.relative(process.cwd(), aggregatePath)}`);
   return aggregatePath;
 }

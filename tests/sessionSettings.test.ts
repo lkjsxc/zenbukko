@@ -1,13 +1,11 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import {
-  buildSessionPrefill,
-  buildSessionWriteError,
-  parseStoredSession,
-} from '../src/session/sessionStore.js';
-import { mergeApiSettings } from '../src/api/settings.js';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { buildSessionPrefill, buildSessionWriteError, parseStoredSession } from '../src/session/sessionStore.js';
+import { loadApiSettings, mergeApiSettings, saveApiSettings } from '../src/api/settings.js';
 import { normalizeJobRequest } from '../src/api/requests.js';
-import { DEFAULT_GEMINI_MODEL } from '../src/geminiDefaults.js';
 import type { AppConfig } from '../src/config.js';
 
 const cfg: AppConfig = {
@@ -15,13 +13,6 @@ const cfg: AppConfig = {
   outputDir: '/data/downloads',
   logLevel: 'info',
   puppeteerHeadless: true,
-  geminiApiKey: 'env-key',
-  geminiModel: 'env-model',
-  ocrBackend: 'gemini',
-  ocrMode: 'auto',
-  ocrServiceTier: 'flex',
-  ocrRetries: 3,
-  ocrTimeoutMs: 900_000,
   ndlocrCommand: 'ndlocr-cmd',
   ndlocrDevice: 'cuda',
   ocrPageDpi: 250,
@@ -49,84 +40,70 @@ test('buildSessionWriteError explains root-owned data directories', () => {
 
 test('mergeApiSettings gives saved browser values precedence over env defaults', () => {
   const effective = mergeApiSettings(cfg, {
-    geminiApiKey: 'saved-key',
-    geminiModel: 'saved-model',
-    ocrBackend: 'local',
-    ocrMode: 'batch',
-    ocrServiceTier: 'standard',
+    ndlocrCommand: 'saved-ocr',
     ndlocrDevice: 'cpu',
     chapterRange: '1-2',
-    ocrRetries: 5,
-    ocrTimeoutMs: 123,
+    ocrPageDpi: 300,
     ocrKeepIntermediates: false,
     ndlocrEnableTcy: false,
   });
   assert.deepEqual(effective, {
-    geminiApiKey: 'saved-key',
-    geminiModel: 'saved-model',
-    ocrBackend: 'local',
-    ocrMode: 'batch',
-    ocrServiceTier: 'standard',
     chapterRange: '1-2',
-    ocrRetries: 5,
-    ocrTimeoutMs: 123,
-    ndlocrCommand: 'ndlocr-cmd',
+    ndlocrCommand: 'saved-ocr',
     ndlocrDevice: 'cpu',
-    ocrPageDpi: 250,
+    ocrPageDpi: 300,
     ocrKeepIntermediates: false,
     ndlocrEnableTcy: false,
   });
 });
 
-test('mergeApiSettings uses configured OCR command defaults when request settings are not saved', () => {
+test('mergeApiSettings uses configured OCR command defaults when settings are not saved', () => {
   const effective = mergeApiSettings(cfg, { chapterRange: '1-3' });
-  assert.equal(effective.ocrBackend, 'gemini');
   assert.equal(effective.ndlocrCommand, 'ndlocr-cmd');
+  assert.equal(effective.ndlocrDevice, 'cuda');
   assert.equal(effective.ocrPageDpi, 250);
   assert.equal(effective.ocrKeepIntermediates, true);
   assert.equal(effective.ndlocrEnableTcy, true);
 });
 
-test('normalizeJobRequest preserves standalone OCR settings without secrets', () => {
+test('loadApiSettings strips unknown legacy fields', async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'zenbukko-settings-'));
+  await fs.mkdir(dir, { recursive: true });
+  await fs.writeFile(path.join(dir, 'settings.json'), JSON.stringify({ removedProviderKey: 'secret', ndlocrDevice: 'cpu' }), 'utf8');
+  assert.deepEqual(await loadApiSettings(dir), { ndlocrDevice: 'cpu' });
+});
+
+test('saveApiSettings rejects invalid local settings', async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'zenbukko-settings-invalid-'));
+  await assert.rejects(() => saveApiSettings(dir, { ndlocrDevice: 'tpu' }), /Invalid enum value/);
+  await assert.rejects(() => saveApiSettings(dir, { ocrPageDpi: 12 }), /greater than or equal to 72/);
+});
+
+test('normalizeJobRequest preserves standalone local OCR settings', () => {
   const request = normalizeJobRequest('ocr-materials', {
     inputDir: '/data/downloads/materials',
-    geminiApiKey: 'secret',
-    ocrModel: 'model-x',
-    ocrBackend: 'gemini',
-    ocrMode: 'batch',
-    ocrServiceTier: 'standard',
-    ocrRetries: 7,
-    ocrTimeoutMs: 456,
     ndlocrDevice: 'cpu',
     ocrPageDpi: 250,
+    ocrKeepIntermediates: true,
   });
   assert.deepEqual(request, {
     inputDir: '/data/downloads/materials',
-    ocrBackend: 'gemini',
-    ocrModel: 'model-x',
     ocrForce: false,
-    ocrMode: 'batch',
-    ocrServiceTier: 'standard',
-    ocrRetries: 7,
-    ocrTimeoutMs: 456,
     ndlocrCommand: 'ndlocr-lite',
     ndlocrDevice: 'cpu',
     ocrPageDpi: 250,
-    ocrKeepIntermediates: false,
+    ocrKeepIntermediates: true,
     ndlocrEnableTcy: true,
   });
 });
 
-test('normalizeJobRequest uses the default Gemini model when OCR model is omitted', () => {
-  const request = normalizeJobRequest('ocr-materials', {
-    inputDir: '/data/downloads/materials',
-  });
-  assert.equal(request.ocrModel, DEFAULT_GEMINI_MODEL);
+test('normalizeJobRequest rejects unsupported OCR provider fields', () => {
+  const removedField = ['ocr', 'Backend'].join('');
+  assert.throws(() => normalizeJobRequest('ocr-materials', { inputDir: '/tmp', [removedField]: 'remote' }), /Unsupported request field/);
 });
 
-test('normalizeJobRequest defaults OCR backend to auto for omitted values', () => {
+test('normalizeJobRequest defaults local OCR values', () => {
   const request = normalizeJobRequest('ocr-materials', {});
-  assert.equal(request.ocrBackend, 'auto');
   assert.equal(request.ndlocrCommand, 'ndlocr-lite');
   assert.equal(request.ndlocrDevice, 'cpu');
   assert.equal(request.ocrPageDpi, 300);

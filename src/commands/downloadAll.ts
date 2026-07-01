@@ -1,9 +1,10 @@
+import type { LocalOcrDevice } from '../config.js';
 import type { Logger } from '../utils/log.js';
 import { SessionStore } from '../session/sessionStore.js';
 import { scrapeMyCoursesDetailed } from '../services/courseScraper.js';
 import { downloadCommand } from './download.js';
 
-export async function downloadAllCommand(params: {
+export type DownloadAllCommandParams = {
   sessionPath: string;
   outputDir: string;
   headless: boolean;
@@ -18,101 +19,56 @@ export async function downloadAllCommand(params: {
   chapterRange?: string;
   deleteMediaAfterTranscribe: boolean;
   ocrMaterials: boolean;
-  ocrBackend: 'auto' | 'local' | 'gemini';
-  ocrModel: string;
   ocrForce: boolean;
-  ocrMode?: 'auto' | 'batch' | 'flex';
-  ocrServiceTier?: 'flex' | 'standard';
-  ocrRetries?: number;
-  ocrTimeoutMs?: number;
   ndlocrCommand: string;
-  ndlocrDevice: 'cpu' | 'cuda';
+  ndlocrDevice: LocalOcrDevice;
   ocrPageDpi: number;
   ocrKeepIntermediates: boolean;
   ndlocrEnableTcy: boolean;
-  geminiApiKey?: string;
   logger: Logger;
-}): Promise<void> {
+};
+
+export async function downloadAllCommand(params: DownloadAllCommandParams): Promise<void> {
   const session = await new SessionStore(params.sessionPath).load();
-  if (!session) {
-    throw new Error(`No session found at ${params.sessionPath}. Run: zenbukko auth`);
-  }
+  if (!session) throw new Error(`No session found at ${params.sessionPath}. Run: zenbukko auth`);
 
   const courses = await scrapeMyCoursesDetailed({ session, headless: params.headless });
   const onDemand = courses.filter((c) => c.isOnDemand);
-
-  if (courses.length === 0) {
-    throw new Error('No courses found for this account.');
-  }
-
-  if (onDemand.length === 0) {
-    const hint = courses
-      .slice(0, 10)
-      .map((c) => `${c.courseId}:${c.title}${c.sourceTabId ? ` (tab=${c.sourceTabId})` : ''}`)
-      .join(', ');
-    throw new Error(
-      `Could not identify any on-demand courses from the course list UI. Sample: ${hint}\nTry: zenbukko list-courses --format json and share the output so we can adjust detection heuristics.`,
-    );
-  }
+  if (courses.length === 0) throw new Error('No courses found for this account.');
+  if (onDemand.length === 0) throw new Error(onDemandError(courses));
 
   params.logger.info(`Found ${courses.length} course(s); identified ${onDemand.length} on-demand course(s).`);
-
   const failures: Array<{ courseId: number; title: string; error: string }> = [];
 
   for (const course of onDemand) {
-    params.logger.info(
-      `\n=== Course ${course.courseId}: ${course.title} ===${course.sourceTabId ? ` (tab=${course.sourceTabId})` : ''}`,
-    );
-
+    params.logger.info(`\n=== Course ${course.courseId}: ${course.title} ===${course.sourceTabId ? ` (tab=${course.sourceTabId})` : ''}`);
     try {
-      await downloadCommand({
-        sessionPath: params.sessionPath,
-        outputDir: params.outputDir,
-        courseId: course.courseId,
-        maxConcurrency: params.maxConcurrency,
-        ...(params.chapterRange ? { chapterRange: params.chapterRange } : {}),
-        firstLectureOnly: false,
-        transcribe: params.transcribe,
-        transcribeModel: params.transcribeModel,
-        transcribeFormat: params.transcribeFormat,
-        ...(typeof params.transcribeLanguage === 'string' && params.transcribeLanguage.trim()
-          ? { transcribeLanguage: params.transcribeLanguage }
-          : {}),
-        ...(typeof params.noSpeechThreshold === 'number' && Number.isFinite(params.noSpeechThreshold)
-          ? { noSpeechThreshold: params.noSpeechThreshold }
-          : {}),
-        ...(typeof params.maxSeconds === 'number' && Number.isFinite(params.maxSeconds) ? { maxSeconds: params.maxSeconds } : {}),
-        materials: params.materials,
-        deleteMediaAfterTranscribe: params.deleteMediaAfterTranscribe,
-        ocrMaterials: params.ocrMaterials,
-        ocrBackend: params.ocrBackend,
-        ocrModel: params.ocrModel,
-        ocrForce: params.ocrForce,
-        ...(params.ocrMode ? { ocrMode: params.ocrMode } : {}),
-        ...(params.ocrServiceTier ? { ocrServiceTier: params.ocrServiceTier } : {}),
-        ...(typeof params.ocrRetries === 'number' ? { ocrRetries: params.ocrRetries } : {}),
-        ...(typeof params.ocrTimeoutMs === 'number' ? { ocrTimeoutMs: params.ocrTimeoutMs } : {}),
-        ndlocrCommand: params.ndlocrCommand,
-        ndlocrDevice: params.ndlocrDevice,
-        ocrPageDpi: params.ocrPageDpi,
-        ocrKeepIntermediates: params.ocrKeepIntermediates,
-        ndlocrEnableTcy: params.ndlocrEnableTcy,
-        ...(params.geminiApiKey ? { geminiApiKey: params.geminiApiKey } : {}),
-        logger: params.logger,
-      });
+      await downloadCommand(downloadParamsForCourse(params, course.courseId));
       params.logger.info(`Finished course ${course.courseId}: ${course.title}`);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       failures.push({ courseId: course.courseId, title: course.title, error: msg });
       params.logger.error(`Failed course ${course.courseId}: ${course.title} (${msg})`);
-      // Continue to next course so "download all" is best-effort.
     }
   }
 
-  if (failures.length > 0) {
-    const summary = failures.map((f) => `- ${f.courseId} ${f.title}: ${f.error}`).join('\n');
-    throw new Error(`Some courses failed:\n${summary}`);
-  }
-
+  if (failures.length > 0) throw new Error(`Some courses failed:\n${failures.map((f) => `- ${f.courseId} ${f.title}: ${f.error}`).join('\n')}`);
   params.logger.info('All on-demand courses finished.');
+}
+
+function downloadParamsForCourse(params: DownloadAllCommandParams, courseId: number) {
+  return {
+    ...params,
+    courseId,
+    firstLectureOnly: false,
+    ...(params.chapterRange ? { chapterRange: params.chapterRange } : {}),
+  };
+}
+
+function onDemandError(courses: Array<{ courseId: number; title: string; sourceTabId?: string }>): string {
+  const hint = courses
+    .slice(0, 10)
+    .map((c) => `${c.courseId}:${c.title}${c.sourceTabId ? ` (tab=${c.sourceTabId})` : ''}`)
+    .join(', ');
+  return `Could not identify any on-demand courses from the course list UI. Sample: ${hint}\nTry: zenbukko list-courses --format json and share the output so we can adjust detection heuristics.`;
 }

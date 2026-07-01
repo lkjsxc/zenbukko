@@ -1,26 +1,30 @@
-import fs from 'node:fs/promises';
 import path from 'node:path';
-import type { LocalOcrDevice, OcrBackend, OcrPdfResult } from './types.js';
+import { writeJsonAtomic } from './atomic.js';
+import type { LocalOcrPreflight, LocalOcrSettings, OcrPdfResult } from './types.js';
 
 export async function writeOcrManifest(
   inputDir: string,
   manifest: {
-    ocrBackend: OcrBackend;
-    backend: OcrBackend;
-    model?: string;
-    requestedMode?: string;
-    plannedMode?: string;
-    serviceTier?: string;
-    localCommand?: string;
-    localDevice?: LocalOcrDevice;
-    pageDpi?: number;
-    ndlocrEnableTcy?: boolean;
+    settings: LocalOcrSettings;
+    preflight: LocalOcrPreflight;
     pdfs: string[];
     results: OcrPdfResult[];
     aggregatePath?: string;
   },
 ): Promise<string> {
   const manifestPath = path.join(inputDir, 'materials_ocr_manifest.json');
-  await fs.writeFile(manifestPath, JSON.stringify({ generatedAt: new Date().toISOString(), ...manifest }, null, 2), 'utf8');
+  await writeJsonAtomic(manifestPath, {
+    generatedAt: new Date().toISOString(),
+    runner: 'local',
+    command: manifest.settings.command,
+    device: manifest.settings.device,
+    pageDpi: manifest.settings.pageDpi,
+    keepIntermediates: manifest.settings.keepIntermediates,
+    enableTcy: manifest.settings.enableTcy,
+    preflight: manifest.preflight,
+    pdfs: manifest.pdfs,
+    results: manifest.results,
+    ...(manifest.aggregatePath ? { aggregatePath: manifest.aggregatePath } : {}),
+  });
   return manifestPath;
 }

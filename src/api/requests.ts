@@ -1,26 +1,34 @@
 import type { JobKind } from './types.js';
-import { DEFAULT_GEMINI_MODEL } from '../geminiDefaults.js';
 import { booleanFrom, csvNumbers, numberFrom, stringFrom } from './requestUtils.js';
+
+const LOCAL_OCR_FIELDS = new Set(['ndlocrCommand', 'ndlocrDevice', 'ocrPageDpi', 'ocrKeepIntermediates', 'ndlocrEnableTcy']);
+const OCR_JOB_FIELDS = new Set(['kind', 'inputDir', 'ocrForce', ...LOCAL_OCR_FIELDS]);
+const DOWNLOAD_FIELDS = new Set([
+  'kind',
+  'learningUrl',
+  'chapters',
+  'chapterRange',
+  'lessonIds',
+  'firstLectureOnly',
+  'maxConcurrency',
+  'transcribe',
+  'transcribeModel',
+  'transcribeFormat',
+  'transcribeLanguage',
+  'materials',
+  'deleteMediaAfterTranscribe',
+  'ocrMaterials',
+  'ocrForce',
+  ...LOCAL_OCR_FIELDS,
+]);
 
 export function normalizeJobRequest(kind: JobKind, body: Record<string, unknown>): Record<string, unknown> {
   if (kind === 'ocr-materials') {
-    return {
-      inputDir: stringFrom(body.inputDir, ''),
-      ocrBackend: stringFrom(body.ocrBackend, 'auto'),
-      ocrModel: stringFrom(body.ocrModel, DEFAULT_GEMINI_MODEL),
-      ocrForce: booleanFrom(body.ocrForce, false),
-      ocrMode: stringFrom(body.ocrMode, 'auto'),
-      ocrServiceTier: stringFrom(body.ocrServiceTier, 'flex'),
-      ocrRetries: numberFrom(body.ocrRetries, 3),
-      ocrTimeoutMs: numberFrom(body.ocrTimeoutMs, 900_000),
-      ndlocrCommand: stringFrom(body.ndlocrCommand, 'ndlocr-lite'),
-      ndlocrDevice: stringFrom(body.ndlocrDevice, 'cpu'),
-      ocrPageDpi: numberFrom(body.ocrPageDpi, 300),
-      ocrKeepIntermediates: booleanFrom(body.ocrKeepIntermediates, false),
-      ndlocrEnableTcy: booleanFrom(body.ndlocrEnableTcy, true),
-    };
+    rejectUnknownFields(body, OCR_JOB_FIELDS);
+    return { inputDir: stringFrom(body.inputDir, ''), ocrForce: booleanFrom(body.ocrForce, false), ...localOcrFields(body) };
   }
 
+  rejectUnknownFields(body, DOWNLOAD_FIELDS);
   const common = {
     chapters: csvNumbers(body.chapters),
     chapterRange: stringFrom(body.chapterRange, ''),
@@ -34,23 +42,28 @@ export function normalizeJobRequest(kind: JobKind, body: Record<string, unknown>
     materials: booleanFrom(body.materials, false),
     deleteMediaAfterTranscribe: booleanFrom(body.deleteMediaAfterTranscribe, true),
     ocrMaterials: booleanFrom(body.ocrMaterials, false),
-    ocrBackend: stringFrom(body.ocrBackend, 'auto'),
-    ocrModel: stringFrom(body.ocrModel, DEFAULT_GEMINI_MODEL),
     ocrForce: booleanFrom(body.ocrForce, false),
-    ocrMode: stringFrom(body.ocrMode, 'auto'),
-    ocrServiceTier: stringFrom(body.ocrServiceTier, 'flex'),
-    ocrRetries: numberFrom(body.ocrRetries, 3),
-    ocrTimeoutMs: numberFrom(body.ocrTimeoutMs, 900_000),
+    ...localOcrFields(body),
+  };
+
+  if (kind === 'download-all') return common;
+  const learningUrl = requiredLearningUrl(body.learningUrl);
+  return { ...common, learningUrl, courseId: extractCourseIdFromLearningUrl(learningUrl) };
+}
+
+function localOcrFields(body: Record<string, unknown>): Record<string, unknown> {
+  return {
     ndlocrCommand: stringFrom(body.ndlocrCommand, 'ndlocr-lite'),
     ndlocrDevice: stringFrom(body.ndlocrDevice, 'cpu'),
     ocrPageDpi: numberFrom(body.ocrPageDpi, 300),
     ocrKeepIntermediates: booleanFrom(body.ocrKeepIntermediates, false),
     ndlocrEnableTcy: booleanFrom(body.ndlocrEnableTcy, true),
   };
+}
 
-  if (kind === 'download-all') return common;
-  const learningUrl = requiredLearningUrl(body.learningUrl);
-  return { ...common, learningUrl, courseId: extractCourseIdFromLearningUrl(learningUrl) };
+function rejectUnknownFields(body: Record<string, unknown>, allowed: Set<string>): void {
+  const unknown = Object.keys(body).filter((key) => !allowed.has(key));
+  if (unknown.length > 0) throw new Error(`Unsupported request field: ${unknown[0]}`);
 }
 
 function requiredLearningUrl(value: unknown): string {

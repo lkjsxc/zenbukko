@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { ocrMaterialsCommand } from '../src/services/geminiOcr.js';
+import { ocrMaterialsCommand } from '../src/services/ocr/index.js';
 import { Logger } from '../src/utils/log.js';
 
 const root = await fs.mkdtemp(path.join(os.tmpdir(), 'zenbukko-local-ocr-smoke-'));
@@ -23,7 +23,6 @@ await fs.writeFile(path.join(materialsDir, 'materials_manifest.json'), JSON.stri
 const logger = new Logger((process.env.LOG_LEVEL as 'silent' | 'error' | 'warn' | 'info' | 'debug' | undefined) ?? 'info');
 const result = await ocrMaterialsCommand({
   inputDir: materialsDir,
-  backend: 'local',
   force: true,
   ndlocrCommand: process.env.ZENBUKKO_NDLOCR_CMD?.trim() || 'ndlocr-lite',
   ndlocrDevice: process.env.ZENBUKKO_NDLOCR_DEVICE === 'cuda' ? 'cuda' : 'cpu',

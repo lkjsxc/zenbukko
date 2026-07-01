@@ -1,3 +1,4 @@
+import type { LocalOcrDevice } from '../../config.js';
 import type { Logger } from '../../utils/log.js';
 
 export type DownloadCommandParams = {
@@ -18,18 +19,11 @@ export type DownloadCommandParams = {
   materials: boolean;
   deleteMediaAfterTranscribe: boolean;
   ocrMaterials: boolean;
-  ocrBackend: 'auto' | 'local' | 'gemini';
-  ocrModel: string;
   ocrForce: boolean;
-  ocrMode?: 'auto' | 'batch' | 'flex';
-  ocrServiceTier?: 'flex' | 'standard';
-  ocrRetries?: number;
-  ocrTimeoutMs?: number;
   ndlocrCommand: string;
-  ndlocrDevice: 'cpu' | 'cuda';
+  ndlocrDevice: LocalOcrDevice;
   ocrPageDpi: number;
   ocrKeepIntermediates: boolean;
   ndlocrEnableTcy: boolean;
-  geminiApiKey?: string;
   logger: Logger;
 };
