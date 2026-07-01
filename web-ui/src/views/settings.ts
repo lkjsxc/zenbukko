@@ -7,79 +7,61 @@ import { el } from '../utils/html.js';
 export const renderSettings = (state: AppState, dispatch: Dispatch): HTMLElement => {
   const s = state.settings ?? {};
   const body = el('div', { className: 'stack' });
-
-  const backend = el('select', { className: 'input' }) as HTMLSelectElement;
-  for (const v of ['auto', 'local', 'gemini']) {
-    const opt = el('option', { value: v, text: v }) as HTMLOptionElement;
-    if (v === (s.ocrBackend ?? 'auto')) opt.selected = true;
-    backend.append(opt);
-  }
-
-  const apiKey = el('input', { className: 'input', type: 'password', autocomplete: 'off', value: s.geminiApiKey ?? '' }) as HTMLInputElement;
-  const model = el('input', { className: 'input', value: s.geminiModel ?? 'gemini-3.1-flash-lite' }) as HTMLInputElement;
-  const ocrMode = el('select', { className: 'input' }) as HTMLSelectElement;
-  for (const v of ['auto', 'batch', 'flex']) {
-    const opt = el('option', { value: v, text: v }) as HTMLOptionElement;
-    if (v === (s.ocrMode ?? 'auto')) opt.selected = true;
-    ocrMode.append(opt);
-  }
-
+  const command = el('input', { className: 'input', value: s.ndlocrCommand ?? 'ndlocr-lite' }) as HTMLInputElement;
+  const device = deviceSelect(s.ndlocrDevice ?? 'cpu');
+  const dpi = el('input', { className: 'input', type: 'number', min: '72', max: '600', value: String(s.ocrPageDpi ?? 300) }) as HTMLInputElement;
+  const keep = checkbox(Boolean(s.ocrKeepIntermediates));
+  const tcy = checkbox(s.ndlocrEnableTcy !== false);
   const advanced = el('details', { className: 'advanced' });
-  const ndlocrCmd = el('input', { className: 'input', value: s.ndlocrCommand ?? 'ndlocr-lite' }) as HTMLInputElement;
-  const device = el('select', { className: 'input' }) as HTMLSelectElement;
-  for (const v of ['cpu', 'cuda']) {
-    const opt = el('option', { value: v, text: v }) as HTMLOptionElement;
-    if (v === (s.ndlocrDevice ?? 'cpu')) opt.selected = true;
-    device.append(opt);
-  }
-  const dpi = el('input', { className: 'input', type: 'number', value: String(s.ocrPageDpi ?? 300) }) as HTMLInputElement;
-  const keep = el('input', { type: 'checkbox' }) as HTMLInputElement;
-  keep.checked = Boolean(s.ocrKeepIntermediates);
-  const tcy = el('input', { type: 'checkbox' }) as HTMLInputElement;
-  tcy.checked = s.ndlocrEnableTcy !== false;
-
-  const advBody = el('div', { className: 'stack' });
-  advBody.append(field('NDLOCR command', ndlocrCmd), field('NDLOCR device', device), field('Page DPI', dpi));
-  advanced.append(el('summary', { text: 'Advanced' }), advBody);
+  advanced.append(
+    el('summary', { text: 'Advanced local OCR' }),
+    el('div', { className: 'stack' }, field('Keep intermediate files', keep), field('Enable tate-chu-yoko handling', tcy)),
+  );
 
   const saveBtn = button('Save settings', { variant: 'primary' });
-  saveBtn.addEventListener('click', async () => {
-    saveBtn.disabled = true;
-    try {
-      const data = await apiFetch<{ settings: AppState['settings'] }>(state.token, '/api/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          settings: {
-            ocrBackend: backend.value,
-            geminiApiKey: apiKey.value,
-            geminiModel: model.value,
-            ocrMode: ocrMode.value,
-            ocrServiceTier: s.ocrServiceTier ?? 'flex',
-            ndlocrCommand: ndlocrCmd.value,
-            ndlocrDevice: device.value,
-            ocrPageDpi: Number(dpi.value || 300),
-            ocrKeepIntermediates: keep.checked,
-            ndlocrEnableTcy: tcy.checked,
-          },
-        }),
-      });
-      dispatch({ type: 'SET_SETTINGS', settings: data.settings });
-      dispatch({ type: 'SHOW_TOAST', message: 'Settings saved.', kind: 'success' });
-    } catch (e) {
-      dispatch({ type: 'SHOW_TOAST', message: e instanceof Error ? e.message : String(e), kind: 'error' });
-    } finally {
-      saveBtn.disabled = false;
-    }
+  saveBtn.addEventListener('click', () => {
+    void saveSettings(state, dispatch, saveBtn, {
+      ndlocrCommand: command.value,
+      ndlocrDevice: device.value as 'cpu' | 'cuda',
+      ocrPageDpi: Number(dpi.value || 300),
+      ocrKeepIntermediates: keep.checked,
+      ndlocrEnableTcy: tcy.checked,
+    });
   });
 
-  body.append(
-    field('OCR backend', backend),
-    field('Gemini API key', apiKey),
-    field('Gemini model', model),
-    field('OCR mode', ocrMode),
-    advanced,
-    saveBtn,
-  );
+  body.append(field('OCR command', command), field('OCR device', device), field('Page DPI', dpi), advanced, saveBtn);
   return card('Settings', body);
 };
+
+function deviceSelect(value: 'cpu' | 'cuda'): HTMLSelectElement {
+  const select = el('select', { className: 'input' }) as HTMLSelectElement;
+  for (const v of ['cpu', 'cuda'] as const) {
+    const opt = el('option', { value: v, text: v }) as HTMLOptionElement;
+    if (v === value) opt.selected = true;
+    select.append(opt);
+  }
+  return select;
+}
+
+function checkbox(checked: boolean): HTMLInputElement {
+  const input = el('input', { type: 'checkbox' }) as HTMLInputElement;
+  input.checked = checked;
+  return input;
+}
+
+async function saveSettings(state: AppState, dispatch: Dispatch, saveBtn: HTMLButtonElement, settings: AppState['settings']): Promise<void> {
+  saveBtn.disabled = true;
+  try {
+    const data = await apiFetch<{ settings: AppState['settings'] }>(state.token, '/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ settings }),
+    });
+    dispatch({ type: 'SET_SETTINGS', settings: data.settings });
+    dispatch({ type: 'SHOW_TOAST', message: 'Settings saved.', kind: 'success' });
+  } catch (e) {
+    dispatch({ type: 'SHOW_TOAST', message: e instanceof Error ? e.message : String(e), kind: 'error' });
+  } finally {
+    saveBtn.disabled = false;
+  }
+}

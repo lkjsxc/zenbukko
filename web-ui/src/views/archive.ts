@@ -45,10 +45,6 @@ export const renderArchive = (state: AppState, dispatch: Dispatch): HTMLElement 
   urlInput.addEventListener('change', () => { void loadChapters(); });
 
   const collectSettings = () => ({
-    ocrBackend: state.settings?.ocrBackend ?? 'auto',
-    geminiModel: state.settings?.geminiModel ?? 'gemini-3.1-flash-lite',
-    ocrMode: state.settings?.ocrMode ?? 'auto',
-    ocrServiceTier: state.settings?.ocrServiceTier ?? 'flex',
     ndlocrCommand: state.settings?.ndlocrCommand ?? 'ndlocr-lite',
     ndlocrDevice: state.settings?.ndlocrDevice ?? 'cpu',
     ocrPageDpi: state.settings?.ocrPageDpi ?? 300,

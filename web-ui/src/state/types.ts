@@ -32,18 +32,17 @@ export type OutputItem = {
 export type ApiStatus = {
   sessionExists: boolean;
   outputDir: string;
-  geminiConfigured: boolean;
-  model: string;
+  localOcr: {
+    ok: boolean;
+    command: string;
+    device: 'cpu' | 'cuda';
+    diagnostics: Array<{ code: string; message: string }>;
+  };
 };
 
 export type ApiSettings = {
-  geminiApiKey?: string;
-  geminiModel?: string;
-  ocrBackend?: string;
-  ocrMode?: string;
-  ocrServiceTier?: string;
   ndlocrCommand?: string;
-  ndlocrDevice?: string;
+  ndlocrDevice?: 'cpu' | 'cuda';
   ocrPageDpi?: number;
   ocrKeepIntermediates?: boolean;
   ndlocrEnableTcy?: boolean;
