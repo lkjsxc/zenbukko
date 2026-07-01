@@ -9,7 +9,7 @@ Run Zenbukko with repeatable local volumes and optional GPU image support.
 - `zenbukko-api`: CPU Core API and CLI-capable service under the `cpu` profile.
 - `zenbukko-web`: CPU lightweight Web UI and `/api/*` proxy under the `cpu` profile.
 - `zenbukko-api-gpu`: GPU Core API service behind the `gpu` profile.
-- `zenbukko-web-gpu`: GPU Web proxy on `127.0.0.1:8787` behind the `gpu` profile.
+- `zenbukko-web-gpu`: GPU Web proxy on `0.0.0.0:8787` behind the `gpu` profile.
 - GPU API services are the NDLOCR CUDA path when the NVIDIA runtime is available.
 
 Use exactly one runtime profile for `up`:
@@ -18,6 +18,9 @@ Use exactly one runtime profile for `up`:
 docker compose --profile cpu up --build
 docker compose --profile gpu up --build
 ```
+
+Both Web services publish the UI on host `0.0.0.0:8787` so another machine on
+the reachable network can open `http://<host-ip>:8787/`.
 
 ## Commands
 

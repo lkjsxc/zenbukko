@@ -37,7 +37,7 @@ services:
     depends_on:
       - zenbukko-api
     ports:
-      - "127.0.0.1:8787:8787"
+      - "0.0.0.0:8787:8787"
     volumes:
       - ./data/web-ui:/web-data
     environment:
@@ -99,7 +99,7 @@ services:
     depends_on:
       - zenbukko-api-gpu
     ports:
-      - "127.0.0.1:8787:8787"
+      - "0.0.0.0:8787:8787"
     volumes:
       - ./data/web-ui:/web-data
     environment:
