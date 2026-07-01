@@ -3,7 +3,7 @@ import { checkLineLimits } from '../src/development/lineLimits.js';
 
 const violations = await checkLineLimits({
   root: process.cwd(),
-  docsLimit: 300,
+  docsLimit: 200,
   sourceLimit: 200,
 });
 

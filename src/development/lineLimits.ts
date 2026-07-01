@@ -41,6 +41,7 @@ function classify(relPath: string): 'docs' | 'source' | undefined {
   if (relPath.startsWith(`docs${path.sep}`) && ext === '.md') return 'docs';
   if (relPath === 'README.md') return 'docs';
   if (relPath.startsWith(`src${path.sep}`) && SOURCE_EXTS.has(ext)) return 'source';
+  if (relPath.startsWith(`web-ui${path.sep}`) && SOURCE_EXTS.has(ext)) return 'source';
   if (relPath.startsWith(`scripts${path.sep}`) && SOURCE_EXTS.has(ext)) return 'source';
   return undefined;
 }

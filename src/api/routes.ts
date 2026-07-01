@@ -5,7 +5,8 @@ import { scrapeMyCoursesDetailed } from '../services/courseScraper.js';
 import { buildSessionPrefill, parseStoredSession, SessionStore } from '../session/sessionStore.js';
 import { fileExists, readTextFileIfExists } from '../utils/fs.js';
 import type { Logger } from '../utils/log.js';
-import { listOutputs } from './outputs.js';
+import { registerCourseRoutes } from './courseRoutes.js';
+import { registerOutputRoutes } from './outputRoutes.js';
 import { normalizeJobRequest } from './requests.js';
 import type { ApiJobQueue } from './queue.js';
 import { getEffectiveApiSettings, saveApiSettings } from './settings.js';
@@ -14,6 +15,9 @@ import type { JobKind, JobRecord, PublicJob } from './types.js';
 type RouteParams = { config: AppConfig; logger: Logger; queue: ApiJobQueue; stateDir: string };
 
 export function registerApiRoutes(app: express.Express, params: RouteParams): void {
+  registerCourseRoutes(app, { config: params.config });
+  registerOutputRoutes(app, { config: params.config });
+
   app.get('/healthz', (_req, res) => res.json({ ok: true }));
   app.get('/api/status', asyncHandler(async (_req, res) => {
     const settings = await getEffectiveApiSettings(params.config, params.stateDir);
@@ -58,9 +62,6 @@ export function registerApiRoutes(app: express.Express, params: RouteParams): vo
   app.get('/api/jobs/:id', asyncHandler(async (req, res) => sendJob(params.queue, req, res)));
   app.get('/api/jobs/:id/events', asyncHandler(async (req, res) => streamJob(params.queue, req, res)));
   app.post('/api/jobs', asyncHandler(async (req, res) => enqueueJob(params.queue, req, res)));
-  app.get('/api/outputs', asyncHandler(async (_req, res) => {
-    res.json({ outputs: await listOutputs(params.config.outputDir) });
-  }));
 }
 
 function publicJob(job: JobRecord): PublicJob {

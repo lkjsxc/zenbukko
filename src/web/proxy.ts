@@ -11,6 +11,7 @@ export function registerApiProxy(app: express.Express, params: { apiUrl: string;
 
   app.get('/api/status', (req, res) => void proxy(req, res, params.apiUrl));
   app.get('/api/jobs/:id/events', requireEventToken, (req, res) => void proxy(req, res, params.apiUrl));
+  app.get('/api/outputs/download', requireEventToken, (req, res) => void proxy(req, res, params.apiUrl));
   app.use('/api', requireToken, (req, res) => void proxy(req, res, params.apiUrl));
 }
 

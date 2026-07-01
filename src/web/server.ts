@@ -1,4 +1,5 @@
 import express from 'express';
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Server } from 'node:http';
@@ -43,6 +44,8 @@ function hostForUrl(host: string): string {
 
 function staticDir(): string {
   const here = path.dirname(fileURLToPath(import.meta.url));
-  const fromSource = path.resolve(here, '..', '..', 'src', 'web', 'static');
-  return fromSource;
+  const built = path.resolve(here, '..', '..', 'dist', 'web', 'static');
+  const legacy = path.resolve(here, '..', '..', 'src', 'web', 'static');
+  if (fs.existsSync(path.join(built, 'index.html'))) return built;
+  return legacy;
 }

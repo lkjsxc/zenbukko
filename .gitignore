@@ -1,5 +1,6 @@
 dist/
 node_modules/
+web-ui/node_modules/
 
 # Output/artifacts
 data/

@@ -46,7 +46,7 @@ test('web proxy leaves status public and preserves browser API shape', async () 
 
 test('sensitive web APIs require X-Zenbukko-Token before proxying', async () => {
   await withProxy(async (baseUrl) => {
-    for (const endpoint of ['/api/session', '/api/settings', '/api/courses', '/api/jobs', '/api/outputs']) {
+    for (const endpoint of ['/api/session', '/api/settings', '/api/courses', '/api/courses/1', '/api/jobs', '/api/outputs']) {
       assert.equal((await fetch(`${baseUrl}${endpoint}`)).status, 401);
     }
 
