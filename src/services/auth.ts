@@ -1,5 +1,11 @@
-import puppeteer from 'puppeteer';
+import puppeteer, { type Page } from 'puppeteer';
 import type { StoredSession } from '../session/sessionStore.js';
+
+export const AUTH_LOGIN_PAGE_SCALE = 0.25;
+
+export function authBrowserLaunchArgs(): string[] {
+  return ['--no-sandbox', '--disable-setuid-sandbox', `--force-device-scale-factor=${AUTH_LOGIN_PAGE_SCALE}`];
+}
 
 export async function interactiveLogin(params: {
   headless: boolean;
@@ -8,13 +14,15 @@ export async function interactiveLogin(params: {
   const browser = await puppeteer.launch({
     headless: params.headless,
     ...(process.env.PUPPETEER_EXECUTABLE_PATH ? { executablePath: process.env.PUPPETEER_EXECUTABLE_PATH } : {}),
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    args: authBrowserLaunchArgs(),
   });
   try {
     const page = await browser.newPage();
+    await applyAuthLoginPageScale(page);
 
-    params.onStatus('Opening login page…');
+    params.onStatus('Opening login page at 25% scale…');
     await page.goto('https://www.nnn.ed.nico/', { waitUntil: 'networkidle2' });
+    await applyAuthLoginPageScale(page);
 
     params.onStatus('Please log in in the opened browser window.');
     params.onStatus('After login, return here and press ENTER.');
@@ -41,6 +49,11 @@ export async function interactiveLogin(params: {
   } finally {
     await browser.close();
   }
+}
+
+async function applyAuthLoginPageScale(page: Page): Promise<void> {
+  const client = await page.createCDPSession();
+  await client.send('Emulation.setPageScaleFactor', { pageScaleFactor: AUTH_LOGIN_PAGE_SCALE });
 }
 
 async function waitForEnter(): Promise<void> {
