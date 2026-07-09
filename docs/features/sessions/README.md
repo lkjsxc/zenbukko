@@ -13,6 +13,6 @@ Authenticate NNN requests using browser-exported cookies. A saved session is nor
 
 - Cookie-header session imports remain supported.
 - Interactive CLI auth is the normal first step before course-aware workflows.
-- Interactive auth sets the login page to 80% page scale without changing Chromium device-scale launch flags.
+- Interactive auth opens a larger `1280x900` browser window with Puppeteer's fixed default viewport disabled.
 - Structured cookie matching respects domain, path, and expiration when those fields are available.
 - Invalid input does not overwrite the previous saved session.

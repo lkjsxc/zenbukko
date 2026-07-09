@@ -20,7 +20,7 @@ zenbukko setup-whisper --backend auto --model large-v3-turbo
 zenbukko transcribe --input lesson.ts --format txt
 ```
 
-`auth` opens the interactive NNN login page at 80% page scale so the login button is visible on smaller remote displays. It does not use Chromium device-scale launch flags. Run it before course listing or download commands unless `ZENBUKKO_SESSION_PATH` already points to a valid saved session.
+`auth` opens the interactive NNN login page in a larger `1280x900` browser window so the login button is visible without manual zooming. It disables Puppeteer's fixed default viewport and does not use Chromium device-scale launch flags. Run it before course listing or download commands unless `ZENBUKKO_SESSION_PATH` already points to a valid saved session.
 
 Typical first-run flow:
 

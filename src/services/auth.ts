@@ -1,14 +1,14 @@
-import puppeteer, { type Page } from 'puppeteer';
+import puppeteer from 'puppeteer';
 import type { StoredSession } from '../session/sessionStore.js';
 
-export const AUTH_LOGIN_PAGE_SCALE_FACTOR = 0.8;
+export const AUTH_BROWSER_WINDOW = { width: 1280, height: 900 };
 
-export function authLoginPageScaleFactor(): number {
-  return AUTH_LOGIN_PAGE_SCALE_FACTOR;
+export function authBrowserWindowSizeArg(): string {
+  return `--window-size=${AUTH_BROWSER_WINDOW.width},${AUTH_BROWSER_WINDOW.height}`;
 }
 
 export function authBrowserLaunchArgs(): string[] {
-  return ['--no-sandbox', '--disable-setuid-sandbox'];
+  return ['--no-sandbox', '--disable-setuid-sandbox', authBrowserWindowSizeArg()];
 }
 
 export async function interactiveLogin(params: {
@@ -18,15 +18,14 @@ export async function interactiveLogin(params: {
   const browser = await puppeteer.launch({
     headless: params.headless,
     ...(process.env.PUPPETEER_EXECUTABLE_PATH ? { executablePath: process.env.PUPPETEER_EXECUTABLE_PATH } : {}),
+    defaultViewport: null,
     args: authBrowserLaunchArgs(),
   });
   try {
     const page = await browser.newPage();
 
-    params.onStatus('Opening login page…');
+    params.onStatus('Opening login page in a larger browser window…');
     await page.goto('https://www.nnn.ed.nico/', { waitUntil: 'networkidle2' });
-    params.onStatus('Setting login page zoom to 80% so the login button is visible…');
-    await setAuthLoginPageScale(page);
 
     params.onStatus('Please log in in the opened browser window.');
     params.onStatus('After login, return here and press ENTER.');
@@ -53,11 +52,6 @@ export async function interactiveLogin(params: {
   } finally {
     await browser.close();
   }
-}
-
-async function setAuthLoginPageScale(page: Page): Promise<void> {
-  const client = await page.createCDPSession();
-  await client.send('Emulation.setPageScaleFactor', { pageScaleFactor: AUTH_LOGIN_PAGE_SCALE_FACTOR });
 }
 
 async function waitForEnter(): Promise<void> {
