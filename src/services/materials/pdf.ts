@@ -1,6 +1,7 @@
 import path from 'node:path';
 import type { Browser } from 'puppeteer';
 import { ensureDir, fileExists } from '../../utils/fs.js';
+import { resolvePortablePath } from '../../utils/portablePath.js';
 import { classifyMaterialForPdf, generatedPdfRelativePath, supportedPdfKind } from './pdfPlan.js';
 import { launchPdfBrowser, renderSourceToPdf } from './pdfRender.js';
 import type { MaterialAsset, MaterialPdfEntry, MaterialReferencePage, MaterialsManifest } from './types.js';
@@ -41,7 +42,14 @@ async function normalizeOne(params: {
     return { browser: params.browser };
   }
 
-  const sourcePath = path.resolve(params.outDir, params.item.file);
+  let sourcePath: string;
+  try {
+    sourcePath = resolvePortablePath(params.outDir, params.item.file);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    markFailed(params.item, message);
+    return { browser: params.browser, entry: failedEntry(params.item.file, params.item.file, kind, message) };
+  }
   if (!(await fileExists(sourcePath))) {
     markFailed(params.item, 'source file is missing');
     return { browser: params.browser, entry: failedEntry(params.item.file, params.item.file, kind, 'source file is missing') };
@@ -53,7 +61,7 @@ async function normalizeOne(params: {
   }
 
   const pdfFile = generatedPdfRelativePath(params.item.file);
-  const pdfPath = path.resolve(params.outDir, pdfFile);
+  const pdfPath = resolvePortablePath(params.outDir, pdfFile);
   let activeBrowser = params.browser;
   try {
     await ensureDir(path.dirname(pdfPath));

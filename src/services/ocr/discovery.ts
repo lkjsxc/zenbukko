@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileExists, readTextFileIfExists } from '../../utils/fs.js';
+import { resolvePortablePath } from '../../utils/portablePath.js';
 import type { MaterialsManifest } from '../materials/types.js';
 
 type WarnLogger = { warn: (message: string) => void };
@@ -21,8 +22,12 @@ async function discoverFromMaterialsManifests(inputDir: string, logger?: WarnLog
     if (!parsed) continue;
     const baseDir = path.dirname(manifestPath);
     for (const pdfFile of pdfFilesFromMaterialsManifest(parsed)) {
-      const pdfPath = path.resolve(baseDir, pdfFile);
-      if (await fileExists(pdfPath)) pdfs.add(pdfPath);
+      try {
+        const pdfPath = resolvePortablePath(baseDir, pdfFile);
+        if (await fileExists(pdfPath)) pdfs.add(pdfPath);
+      } catch (error) {
+        logger?.warn(`Skipping unsafe manifest PDF path: ${pdfFile} (${error instanceof Error ? error.message : String(error)})`);
+      }
     }
   }
   return [...pdfs].sort((a, b) => a.localeCompare(b));

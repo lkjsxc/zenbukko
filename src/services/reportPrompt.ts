@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { ensureDir, readTextFileIfExists } from '../utils/fs.js';
+import { toPortableRelativePath } from '../utils/portablePath.js';
 
 export type ReportPromptSource = {
   path: string;
@@ -115,7 +116,7 @@ function preferChapterFiles(files: string[], chapterPattern: RegExp, fallbackSuf
 async function readSource(root: string, file: string, kind: ReportPromptSource['kind']): Promise<ReportPromptSource | undefined> {
   const text = ((await readTextFileIfExists(file)) ?? '').trim();
   if (!text) return undefined;
-  return { path: path.relative(root, file) || path.basename(file), kind, text };
+  return { path: toPortableRelativePath(root, file), kind, text };
 }
 
 function sourceBlock(sources: ReportPromptSource[]): string {

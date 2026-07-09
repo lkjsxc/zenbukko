@@ -1,6 +1,7 @@
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import { ensureDir, safeBasename } from '../utils/fs.js';
+import { toPortableRelativePath } from '../utils/portablePath.js';
 import { downloadUrlToFile } from '../downloader/httpFile.js';
 import { candidateMaterialUrls, stableAssetFilename } from './materials/assets.js';
 import { renderMaterialsIndexHtml } from './materials/indexHtml.js';
@@ -28,7 +29,7 @@ export async function downloadLessonMaterials(params: {
     const refOutPath = path.join(params.outDir, `reference_${safeBasename(path.basename(new URL(pageUrl).pathname || 'page'))}.html`);
     await fs.writeFile(refOutPath, html, 'utf8');
     savedPages.push(refOutPath);
-    manifest.referencePages.push({ url: pageUrl, file: path.relative(params.outDir, refOutPath) });
+    manifest.referencePages.push({ url: pageUrl, file: toPortableRelativePath(params.outDir, refOutPath) });
 
     const candidates = candidateMaterialUrls(html, pageUrl);
     if (candidates.length === 0) {
@@ -93,6 +94,6 @@ function addAsset(manifest: MaterialsManifest, pageUrl: string, fileUrl: URL, ou
   manifest.assets.push({
     sourcePageUrl: pageUrl,
     url: fileUrl.toString(),
-    file: path.relative(outDir, filePath),
+    file: toPortableRelativePath(outDir, filePath),
   });
 }

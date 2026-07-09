@@ -4,7 +4,7 @@ import type express from 'express';
 import type { Request, Response } from 'express';
 import type { AppConfig } from '../config.js';
 import { listOutputs } from './outputs.js';
-import { relativeOutputPath, resolveOutputFile } from './outputPath.js';
+import { relativeOutputPath, resolveExistingOutputFile } from './outputPath.js';
 
 const TEXT_EXT = new Set(['.md', '.txt', '.srt', '.vtt', '.json', '.html']);
 
@@ -23,7 +23,7 @@ export function registerOutputRoutes(app: express.Express, params: OutputRoutePa
 
   app.get('/api/outputs/content', asyncHandler(async (req, res) => {
     const rel = String(req.query.path ?? '');
-    const abs = resolveOutputFile(params.config.outputDir, rel);
+    const abs = await resolveExistingOutputFile(params.config.outputDir, rel);
     if (!TEXT_EXT.has(path.extname(abs).toLowerCase())) {
       res.status(415).json({ error: 'Binary file; use download endpoint.' });
       return;
@@ -34,15 +34,20 @@ export function registerOutputRoutes(app: express.Express, params: OutputRoutePa
 
   app.get('/api/outputs/download', asyncHandler(async (req, res) => {
     const rel = String(req.query.path ?? '');
-    const abs = resolveOutputFile(params.config.outputDir, rel);
+    const abs = await resolveExistingOutputFile(params.config.outputDir, rel);
     const data = await fs.readFile(abs);
-    res.setHeader('Content-Disposition', `attachment; filename="${path.basename(abs)}"`);
+    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(path.basename(abs))}`);
     res.send(data);
   }));
 }
 
 function asyncHandler(fn: (req: Request, res: Response) => Promise<void>): (req: Request, res: Response) => void {
-  return (req, res) => void fn(req, res).catch((e) => {
-    res.status(400).json({ error: e instanceof Error ? e.message : String(e) });
+  return (req, res) => void fn(req, res).catch((error) => {
+    const status = isMissingFileError(error) ? 404 : 400;
+    res.status(status).json({ error: error instanceof Error ? error.message : String(error) });
   });
+}
+
+function isMissingFileError(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT';
 }

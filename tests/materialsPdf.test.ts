@@ -58,6 +58,28 @@ test('discoverPdfFiles falls back to recursive PDF discovery when manifest is ma
   assert.match(warnings[0], /Skipping malformed materials manifest: .*materials_manifest\.json/);
 });
 
+test('discoverPdfFiles rejects manifest paths outside the material directory', async () => {
+  const temp = await fs.mkdtemp(path.join(os.tmpdir(), 'zenbukko-unsafe-manifest-'));
+  const root = path.join(temp, 'materials');
+  const outside = path.join(temp, 'private.pdf');
+  await fs.mkdir(root);
+  await fs.writeFile(outside, 'private');
+  const manifest: MaterialsManifest = {
+    generatedAt: '2026-05-02T00:00:00.000Z',
+    referencePages: [],
+    assets: [],
+    pdfs: [{ sourceFile: '../private.pdf', pdfFile: '../private.pdf', kind: 'source-pdf', status: 'ready' }],
+  };
+  await fs.writeFile(path.join(root, 'materials_manifest.json'), JSON.stringify(manifest), 'utf8');
+  const warnings: string[] = [];
+
+  const files = await discoverPdfFiles(root, { warn: (message) => warnings.push(message) });
+
+  assert.deepEqual(files, []);
+  assert.equal(warnings.length, 1);
+  assert.match(warnings[0], /Skipping unsafe manifest PDF path/);
+});
+
 test('normalizeAggregateSection keeps slide titles at H2 and sections below them', () => {
   const markdown = ['### Slide Title', '', '#### Section', '', 'text', '', '# Another Slide'].join('\n');
   assert.equal(normalizeAggregateSection(markdown), ['## Slide Title', '', '### Section', '', 'text', '', '## Another Slide'].join('\n'));
