@@ -60,10 +60,10 @@ const affectsRoute = (event: AppEvent, route: Route): boolean => {
   if (route.name === 'dashboard') return ['SET_LOADING', 'SET_CORE_ERROR', 'SET_STATUS', 'SET_JOBS', 'SET_OUTPUTS'].includes(type);
   if (route.name === 'session') return ['SET_SESSION', 'SET_LOADING'].includes(type);
   if (route.name === 'courses') return ['SET_LOADING', 'SET_STATUS', 'SET_SESSION', 'SET_COURSES', 'SET_COURSES_STATUS', 'SET_COURSE_DETAIL'].includes(type);
-  if (route.name === 'archive') return ['SET_LOADING', 'SET_SETTINGS'].includes(type);
+  if (route.name === 'archive') return type === 'SET_SETTINGS' || (type === 'SET_LOADING' && !state.settings);
   if (route.name === 'jobs') return ['SET_LOADING', 'SET_JOBS', 'SELECT_JOB', 'CLEAR_LOG', 'SET_LOG_PAUSED', 'SET_STREAM_STATUS'].includes(type);
   if (route.name === 'outputs') return ['SET_LOADING', 'SET_OUTPUTS', 'SET_OUTPUT_FILTER', 'SELECT_OUTPUT', 'SET_OUTPUT_PREVIEW', 'SET_OUTPUT_PREVIEW_STATUS'].includes(type);
-  return ['SET_LOADING', 'SET_SETTINGS'].includes(type);
+  return type === 'SET_SETTINGS' || (type === 'SET_LOADING' && !state.settings);
 };
 
 const renderView = (): HTMLElement => {

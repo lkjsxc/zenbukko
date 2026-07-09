@@ -75,6 +75,7 @@ export type AppState = {
   settings: ApiSettings | null;
   sessionText: string;
   sessionExists: boolean;
+  sessionLoaded: boolean;
   selectedJobId: string | null;
   logText: string;
   logPaused: boolean;

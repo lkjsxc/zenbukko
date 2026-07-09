@@ -14,6 +14,7 @@ export const initialState = (): AppState => ({
   settings: null,
   sessionText: '',
   sessionExists: false,
+  sessionLoaded: false,
   selectedJobId: null,
   logText: '',
   logPaused: false,
@@ -42,7 +43,7 @@ export const reduce = (state: AppState, event: AppEvent): AppState => {
     case 'SET_COURSE_QUERY': return { ...state, courseQuery: event.query };
     case 'SET_OUTPUTS': return { ...state, outputs: event.outputs };
     case 'SET_SETTINGS': return { ...state, settings: event.settings };
-    case 'SET_SESSION': return { ...state, sessionText: event.text, sessionExists: event.exists };
+    case 'SET_SESSION': return { ...state, sessionText: event.text, sessionExists: event.exists, sessionLoaded: true };
     case 'SELECT_JOB':
       return event.jobId === state.selectedJobId
         ? state

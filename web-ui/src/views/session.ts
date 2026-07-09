@@ -1,11 +1,15 @@
 import type { AppState } from '../state/types.js';
 import type { Dispatch } from '../app.js';
 import { apiFetch } from '../api/client.js';
-import { card, button, field } from '../components/primitives.js';
+import { card, button, field, loadingState } from '../components/primitives.js';
 import { el } from '../utils/html.js';
 
 export const renderSession = (state: AppState, dispatch: Dispatch): HTMLElement => {
   const body = el('div', { className: 'stack' });
+  if (state.loading && !state.sessionLoaded) {
+    body.append(loadingState('Loading saved session…'));
+    return card('Session', body);
+  }
   body.append(el('div', {
     className: `notice ${state.sessionExists ? 'notice-ready' : 'notice-missing'}`,
     text: state.sessionExists
