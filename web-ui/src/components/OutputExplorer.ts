@@ -1,47 +1,48 @@
-import type { OutputItem } from '../state/types.js';
+import type { LoadStatus, OutputFilter, OutputItem } from '../state/types.js';
 import { el, escapeHtml, formatBytes, formatTime } from '../utils/html.js';
+import { matchesOutputFilter } from '../utils/outputs.js';
+import { emptyState, inlineError, loadingState } from './primitives.js';
 
-export type OutputFilter = 'all' | 'md' | 'transcript' | 'pdf' | 'json' | 'html';
-
-const matchesFilter = (path: string, filter: OutputFilter): boolean => {
-  const ext = path.split('.').pop()?.toLowerCase() ?? '';
-  if (filter === 'all') return true;
-  if (filter === 'md') return ext === 'md';
-  if (filter === 'transcript') return ext === 'txt' || ext === 'srt' || ext === 'vtt';
-  if (filter === 'pdf') return ext === 'pdf';
-  if (filter === 'json') return ext === 'json';
-  if (filter === 'html') return ext === 'html';
-  return true;
-};
+const FILTERS: Array<{ value: OutputFilter; label: string }> = [
+  { value: 'all', label: 'All' },
+  { value: 'md', label: 'Markdown' },
+  { value: 'transcript', label: 'Transcripts' },
+  { value: 'pdf', label: 'PDF' },
+  { value: 'json', label: 'JSON' },
+  { value: 'html', label: 'HTML' },
+];
 
 export const renderOutputExplorer = (
   outputs: OutputItem[],
   filter: OutputFilter,
   selectedPath: string | null,
-  onFilter: (f: OutputFilter) => void,
+  onFilter: (filter: OutputFilter) => void,
   onSelect: (path: string) => void,
 ): HTMLElement => {
   const root = el('div', { className: 'output-explorer' });
-  const chips = el('div', { className: 'filter-chips' });
-  const filters: OutputFilter[] = ['all', 'md', 'transcript', 'pdf', 'json', 'html'];
-  for (const f of filters) {
+  const chips = el('div', { className: 'filter-chips', 'aria-label': 'Filter outputs' });
+  for (const item of FILTERS) {
+    const active = filter === item.value;
     const chip = el('button', {
-      className: `chip${filter === f ? ' active' : ''}`,
+      className: `chip${active ? ' active' : ''}`,
       type: 'button',
-      text: f,
+      text: item.label,
+      'aria-pressed': String(active),
     });
-    chip.addEventListener('click', () => onFilter(f));
+    chip.addEventListener('click', () => onFilter(item.value));
     chips.append(chip);
   }
 
-  const list = el('div', { className: 'output-list' });
-  const filtered = outputs.filter((o) => matchesFilter(o.path, filter));
+  const list = el('div', { className: 'output-list', 'aria-label': 'Output files' });
+  const filtered = outputs.filter((output) => matchesOutputFilter(output.path, filter));
+  if (outputs.length === 0) list.append(emptyState('No outputs yet. Completed jobs will appear here.'));
+  else if (filtered.length === 0) list.append(emptyState('No files match this filter.'));
   for (const item of filtered) {
+    const selected = item.path === selectedPath;
     const row = el('button', {
-      className: `output-row${item.path === selectedPath ? ' active' : ''}`,
+      className: `output-row${selected ? ' active' : ''}`,
       type: 'button',
-      'data-action': 'select-output',
-      'data-path': item.path,
+      'aria-pressed': String(selected),
     });
     row.innerHTML = `<span class="output-path">${escapeHtml(item.path)}</span><span class="muted">${formatBytes(item.size)} · ${formatTime(item.updatedAt)}</span>`;
     row.addEventListener('click', () => onSelect(item.path));
@@ -52,25 +53,39 @@ export const renderOutputExplorer = (
   return root;
 };
 
-export const renderOutputPreview = (
-  path: string | null,
-  content: string | null,
-  downloadHref: string | null,
-): HTMLElement => {
-  const pane = el('div', { className: 'output-preview' });
-  if (!path) {
-    pane.append(el('p', { className: 'muted', text: 'Select a file to preview.' }));
+type PreviewOptions = {
+  path: string | null;
+  content: string | null;
+  status: LoadStatus;
+  error: string | null;
+  downloadHref: string | null;
+  previewable: boolean;
+  onRetry: () => void;
+};
+
+export const renderOutputPreview = (options: PreviewOptions): HTMLElement => {
+  const pane = el('div', { className: 'output-preview', 'aria-busy': String(options.status === 'loading') });
+  if (!options.path) {
+    pane.append(emptyState('Select a file to preview or download.'));
     return pane;
   }
-  pane.append(el('h3', { className: 'preview-title', text: path }));
-  if (content !== null) {
-    const pre = el('pre', { className: 'preview-content' });
-    pre.textContent = content;
-    pane.append(pre);
-  } else if (downloadHref) {
-    const link = el('a', { className: 'btn btn-primary', href: downloadHref, text: 'Download file' });
+
+  pane.append(el('h2', { className: 'preview-title', text: options.path }));
+  if (options.downloadHref) {
+    const link = el('a', { className: 'btn btn-secondary', href: options.downloadHref, text: 'Download file' });
     link.setAttribute('download', '');
-    pane.append(el('p', { className: 'muted', text: 'Binary file — download to view.' }), link);
+    pane.append(link);
+  }
+  if (!options.previewable) {
+    pane.append(el('p', { className: 'muted', text: 'Preview is unavailable for this file type.' }));
+  } else if (options.status === 'loading') {
+    pane.append(loadingState('Loading preview…'));
+  } else if (options.status === 'error') {
+    pane.append(inlineError(options.error ?? 'Preview could not be loaded.', options.onRetry));
+  } else if (options.content !== null) {
+    const pre = el('pre', { className: 'preview-content', tabindex: '0' });
+    pre.textContent = options.content;
+    pane.append(pre);
   }
   return pane;
 };

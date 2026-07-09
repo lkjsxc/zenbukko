@@ -9,7 +9,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json && npm run build:ui",
     "build:ui": "npm --prefix web-ui install && npm --prefix web-ui run build",
-    "type-check": "tsc -p tsconfig.json --noEmit",
+    "type-check": "tsc -p tsconfig.json --noEmit && npm --prefix web-ui run type-check",
     "dev": "tsx src/index.ts",
     "cli": "node dist/index.js",
     "api": "node dist/index.js api",

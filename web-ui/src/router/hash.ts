@@ -1,5 +1,9 @@
 import type { Route } from '../state/types.js';
 
+const decodeSegment = (value: string): string => {
+  try { return decodeURIComponent(value); } catch { return value; }
+};
+
 export const parseHash = (hash: string): Route => {
   const raw = hash.replace(/^#/, '') || '/';
   const [pathPart, queryPart] = raw.split('?');
@@ -13,7 +17,7 @@ export const parseHash = (hash: string): Route => {
   if (segments[0] === 'outputs') return { name: 'outputs' };
   if (segments[0] === 'settings') return { name: 'settings' };
   if (segments[0] === 'jobs') {
-    return segments[1] ? { name: 'jobs', jobId: segments[1] } : { name: 'jobs' };
+    return segments[1] ? { name: 'jobs', jobId: decodeSegment(segments[1]) } : { name: 'jobs' };
   }
   return { name: 'dashboard' };
 };

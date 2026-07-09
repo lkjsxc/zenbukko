@@ -10,7 +10,12 @@ const badgeClass = (status: string): string => {
 
 export const renderJobTable = (jobs: PublicJob[], selectedId: string | null): HTMLElement => {
   const table = el('table', { className: 'data-table job-table' });
-  table.innerHTML = '<thead><tr><th>ID</th><th>Job</th><th>Status</th><th>Updated</th><th>Error</th></tr></thead>';
+  table.innerHTML = `
+    <caption class="sr-only">Background jobs</caption>
+    <thead><tr>
+      <th scope="col">ID</th><th scope="col">Job</th><th scope="col">Status</th>
+      <th scope="col">Updated</th><th scope="col">Error</th>
+    </tr></thead>`;
   const body = el('tbody', { 'data-table': 'jobs' });
   for (const job of jobs) {
     const row = el('tr', {
@@ -31,8 +36,8 @@ export const renderJobTable = (jobs: PublicJob[], selectedId: string | null): HT
 };
 
 export const bindJobTable = (table: HTMLElement, onSelect: (id: string) => void): void => {
-  table.querySelector('tbody')?.addEventListener('click', (e) => {
-    const target = (e.target as HTMLElement).closest('[data-action="select-job"]') as HTMLElement | null;
+  table.querySelector('tbody')?.addEventListener('click', (event) => {
+    const target = (event.target as HTMLElement).closest('[data-action="select-job"]') as HTMLElement | null;
     const id = target?.dataset.id;
     if (id) onSelect(id);
   });

@@ -1,5 +1,5 @@
 import { el } from '../utils/html.js';
-import type { Route } from '../state/types.js';
+import type { ApiStatus, Route, ToastKind } from '../state/types.js';
 import { routeToHash } from '../router/hash.js';
 
 const NAV: Array<{ route: Route; label: string }> = [
@@ -13,7 +13,7 @@ const NAV: Array<{ route: Route; label: string }> = [
 ];
 
 export const renderNav = (active: Route, onNavigate: (route: Route) => void): HTMLElement => {
-  const nav = el('nav', { className: 'sidebar', 'aria-label': 'Main' });
+  const nav = el('nav', { className: 'sidebar', 'aria-label': 'Main navigation' });
   for (const item of NAV) {
     const isActive = item.route.name === active.name;
     const link = el('a', {
@@ -21,8 +21,9 @@ export const renderNav = (active: Route, onNavigate: (route: Route) => void): HT
       href: routeToHash(item.route),
       text: item.label,
     });
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
+    if (isActive) link.setAttribute('aria-current', 'page');
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
       onNavigate(item.route);
     });
     nav.append(link);
@@ -30,14 +31,38 @@ export const renderNav = (active: Route, onNavigate: (route: Route) => void): HT
   return nav;
 };
 
+export const renderStatusSummary = (status: ApiStatus | null, loading: boolean): HTMLElement => {
+  const root = el('div', { className: 'topbar-status', 'aria-live': 'polite' });
+  if (!status) {
+    root.append(el('span', { className: 'muted', text: loading ? 'Checking readiness…' : 'Readiness unavailable' }));
+    return root;
+  }
+  root.append(
+    el('span', {
+      className: `pill ${status.sessionExists ? 'pill-success' : 'pill-warning'}`,
+      text: status.sessionExists ? 'Session ready' : 'Session missing',
+    }),
+    el('span', {
+      className: `pill ${status.localOcr.ok ? 'pill-success' : 'pill-warning'}`,
+      text: status.localOcr.ok ? 'OCR ready' : 'OCR needs setup',
+    }),
+  );
+  return root;
+};
+
 export const renderToast = (
   message: string,
-  kind: string,
+  kind: ToastKind,
   onDismiss: () => void,
 ): HTMLElement => {
   const toast = el('div', { className: `toast toast-${kind}`, role: kind === 'error' ? 'alert' : 'status' });
-  toast.append(el('span', { text: message }), el('button', { className: 'toast-close', text: '×' }));
-  toast.querySelector('.toast-close')?.addEventListener('click', onDismiss);
-  if (kind !== 'error') window.setTimeout(onDismiss, 5000);
+  const close = el('button', {
+    className: 'toast-close',
+    type: 'button',
+    text: '×',
+    'aria-label': 'Dismiss notification',
+  });
+  close.addEventListener('click', onDismiss);
+  toast.append(el('span', { text: message }), close);
   return toast;
 };

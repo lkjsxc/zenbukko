@@ -1,14 +1,29 @@
-export const loadWebToken = (): string => '';
+export class ApiError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
 
-export const apiFetch = async <T>(_token: string, path: string, init?: RequestInit): Promise<T> => {
-  const headers = new Headers(init?.headers ?? {});
-  const res = await fetch(path, { ...init, headers });
-  const data = await res.json().catch(() => ({})) as { error?: string };
-  if (!res.ok) throw new Error(data.error || res.statusText);
+export const apiFetch = async <T>(path: string, init?: RequestInit): Promise<T> => {
+  const res = await fetch(path, init);
+  const raw = await res.text();
+  let data: unknown = {};
+  try {
+    data = raw ? JSON.parse(raw) : {};
+  } catch {
+    data = {};
+  }
+  if (!res.ok) {
+    const message = typeof data === 'object' && data && 'error' in data
+      ? String((data as { error: unknown }).error)
+      : raw || res.statusText || `Request failed (${res.status})`;
+    throw new ApiError(message, res.status);
+  }
   return data as T;
 };
 
-export const downloadUrl = (_token: string, path: string): string => {
+export const downloadUrl = (path: string): string => {
   const url = new URL('/api/outputs/download', window.location.origin);
   url.searchParams.set('path', path);
   return url.toString();

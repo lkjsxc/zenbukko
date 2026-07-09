@@ -34,6 +34,8 @@ export const rangeToOrdinals = (input: string): number[] => {
     if (!match) throw new Error(`Invalid range segment: ${part}`);
     const start = Number(match[1]);
     const end = Number(match[2] ?? match[1]);
+    if (start < 1 || end < 1) throw new Error(`Chapter ordinals must be positive: ${part}`);
+    if (end < start) throw new Error(`Chapter range cannot be reversed: ${part}`);
     for (let n = start; n <= end; n += 1) {
       if (!seen.has(n)) {
         seen.add(n);
