@@ -5,7 +5,7 @@ import path from 'node:path';
 import { test } from 'node:test';
 import express from 'express';
 import type { AppConfig } from '../src/config.js';
-import { registerApiRoutes } from '../src/api/routes.js';
+import { API_COURSE_LIST_HEADLESS, registerApiRoutes } from '../src/api/routes.js';
 import type { ApiJobQueue } from '../src/api/queue.js';
 import type { JobRecord } from '../src/api/types.js';
 import { registerApiProxy } from '../src/web/proxy.js';
@@ -28,6 +28,10 @@ test('Core API reports that web auth is not required', async () => {
     assert.equal(body.authRequired, false);
     assert.equal(body.localOcr?.command, 'ndlocr-lite');
   });
+});
+
+test('Web-triggered course list scraping stays headless in the Core API', () => {
+  assert.equal(API_COURSE_LIST_HEADLESS, true);
 });
 
 test('web proxy forwards API requests without a token', async () => {

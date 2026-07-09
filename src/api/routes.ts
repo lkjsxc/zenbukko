@@ -15,6 +15,8 @@ import type { JobKind, JobRecord, PublicJob } from './types.js';
 
 type RouteParams = { config: AppConfig; logger: Logger; queue: ApiJobQueue; stateDir: string };
 
+export const API_COURSE_LIST_HEADLESS = true;
+
 export function registerApiRoutes(app: express.Express, params: RouteParams): void {
   registerCourseRoutes(app, { config: params.config });
   registerOutputRoutes(app, { config: params.config });
@@ -67,7 +69,7 @@ export function registerApiRoutes(app: express.Express, params: RouteParams): vo
       res.status(404).json({ error: 'No session imported yet.' });
       return;
     }
-    res.json({ courses: await scrapeMyCoursesDetailed({ session, headless: params.config.puppeteerHeadless }) });
+    res.json({ courses: await scrapeMyCoursesDetailed({ session, headless: API_COURSE_LIST_HEADLESS }) });
   }));
 
   app.get('/api/jobs', (_req, res) => res.json({ jobs: params.queue.list().map(publicJob) }));

@@ -41,6 +41,7 @@ Navigate via hash routes: Dashboard, Session, Courses, Archive, Jobs, Outputs, S
 - OCR settings are stored by Core API under API-owned state.
 - Archive jobs accept learning URL, visual chapter selection, materials, transcription, and OCR options.
 - Course detail API powers the visual chapter picker.
+- Course list loading is performed by Core API in headless mode; the Web UI should not open or control the NNN browser window directly.
 
 ## Outputs
 

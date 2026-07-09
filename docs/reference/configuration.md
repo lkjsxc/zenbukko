@@ -9,7 +9,7 @@ Document environment variables and browser settings precedence.
 - `ZENBUKKO_SESSION_PATH`: session JSON path.
 - `OUTPUT_DIR`: downloads directory.
 - `LOG_LEVEL`: `silent|error|warn|info|debug`.
-- `PUPPETEER_HEADLESS`: `true|false`.
+- `PUPPETEER_HEADLESS`: `true|false` for CLI browser workflows. Web-triggered course list loading is forced headless inside Core API so it does not open a visible browser window.
 - `WEB_PORT`: default web port.
 - `ZENBUKKO_API_PORT`: default Core API port, `8788`.
 - `ZENBUKKO_API_URL`: Web proxy target, default `http://127.0.0.1:8788`.
