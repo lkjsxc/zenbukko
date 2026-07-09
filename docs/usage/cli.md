@@ -20,7 +20,7 @@ zenbukko setup-whisper --backend auto --model large-v3-turbo
 zenbukko transcribe --input lesson.ts --format txt
 ```
 
-`auth` opens the interactive NNN login browser at about 25% page scale so the login page fits smaller remote or container displays.
+`auth` opens the interactive NNN login page at about 25% CSS zoom so the page fits smaller remote or container displays without changing Chromium device scale.
 
 `api` starts the Core API that owns `/api/*`, `/healthz`, jobs, settings, outputs, OCR, transcription, and downloads. `web` starts the static UI and same-origin proxy.
 

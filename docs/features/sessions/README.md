@@ -12,6 +12,6 @@ Authenticate NNN requests using browser-exported cookies.
 ## Invariants
 
 - Cookie-header session imports remain supported.
-- Interactive auth opens the login browser at about 25% page scale.
+- Interactive auth applies about 25% CSS zoom to the login page without changing Chromium device scale.
 - Structured cookie matching respects domain, path, and expiration when those fields are available.
 - Invalid input does not overwrite the previous saved session.
