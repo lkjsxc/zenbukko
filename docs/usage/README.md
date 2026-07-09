@@ -4,6 +4,10 @@
 
 Operator workflows for the CLI, web UI, Docker Compose, native setup, and generated outputs.
 
+## Authentication First
+
+Most course-aware workflows require a saved NNN session. Run `zenbukko auth` before `list-courses`, `download`, `download-all`, or browser-created archive jobs, unless a valid session JSON has already been imported through the Web UI.
+
 ## Files
 
 - [`cli.md`](cli.md): command-line workflows.

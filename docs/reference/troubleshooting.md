@@ -2,11 +2,11 @@
 
 ## Session Missing
 
-Run `zenbukko auth` or paste a valid session JSON into the web UI. Verify `ZENBUKKO_SESSION_PATH` points at the expected file.
+Run `zenbukko auth` first to log in and save the local session, or paste a valid session JSON into the Web UI Session screen. Verify `ZENBUKKO_SESSION_PATH` points at the expected file.
 
 ## No Courses Found
 
-Run `zenbukko list-courses --format json` and inspect whether the account has visible courses and on-demand labels.
+Confirm authentication first: run `zenbukko auth`, then `zenbukko list-courses --format json`. If the command succeeds but returns no usable courses, inspect whether the account has visible courses and on-demand labels.
 
 ## Local OCR Fails
 

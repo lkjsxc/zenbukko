@@ -15,6 +15,10 @@ docker compose config
 docker compose build zenbukko-api zenbukko-web
 ```
 
+## Normal Use
+
+Run `zenbukko auth` first to log in to NNN and save a local session. Course listing, downloads, and browser-created archive jobs expect that saved session unless you import a valid session JSON through the Web UI.
+
 ## Main Entrypoints
 
 - CLI: `zenbukko auth`, `zenbukko list-courses`, `zenbukko download`, `zenbukko download-all`, `zenbukko ocr-materials`, `zenbukko build-report-prompt`, `zenbukko setup-whisper`, `zenbukko transcribe`.

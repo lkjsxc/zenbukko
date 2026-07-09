@@ -1,10 +1,10 @@
 import puppeteer, { type Page } from 'puppeteer';
 import type { StoredSession } from '../session/sessionStore.js';
 
-export const AUTH_LOGIN_PAGE_ZOOM_PERCENT = 25;
+export const AUTH_LOGIN_ZOOM_OUT_STEPS = 2;
 
-export function authLoginPageZoom(): string {
-  return `${AUTH_LOGIN_PAGE_ZOOM_PERCENT}%`;
+export function authLoginZoomShortcutCount(): number {
+  return AUTH_LOGIN_ZOOM_OUT_STEPS;
 }
 
 export function authBrowserLaunchArgs(): string[] {
@@ -22,11 +22,11 @@ export async function interactiveLogin(params: {
   });
   try {
     const page = await browser.newPage();
-    await installAuthLoginPageZoom(page);
 
-    params.onStatus('Opening login page at 25% page zoom…');
+    params.onStatus('Opening login page…');
     await page.goto('https://www.nnn.ed.nico/', { waitUntil: 'networkidle2' });
-    await applyAuthLoginPageZoom(page);
+    params.onStatus('Zooming out the login page so the login button is visible…');
+    await zoomOutAuthLoginPage(page);
 
     params.onStatus('Please log in in the opened browser window.');
     params.onStatus('After login, return here and press ENTER.');
@@ -55,32 +55,15 @@ export async function interactiveLogin(params: {
   }
 }
 
-async function installAuthLoginPageZoom(page: Page): Promise<void> {
-  const zoom = authLoginPageZoom();
-  await page.evaluateOnNewDocument((zoomValue: string) => {
-    const doc = (globalThis as unknown as BrowserDocument).document;
-    const apply = () => doc.documentElement.style.setProperty('zoom', zoomValue, 'important');
-    if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', apply, { once: true });
-    else apply();
-  }, zoom);
-  await applyAuthLoginPageZoom(page);
+async function zoomOutAuthLoginPage(page: Page): Promise<void> {
+  await page.bringToFront();
+  await page.keyboard.down('Control');
+  try {
+    for (let i = 0; i < AUTH_LOGIN_ZOOM_OUT_STEPS; i += 1) await page.keyboard.press('Minus');
+  } finally {
+    await page.keyboard.up('Control');
+  }
 }
-
-async function applyAuthLoginPageZoom(page: Page): Promise<void> {
-  const zoom = authLoginPageZoom();
-  await page.evaluate((zoomValue: string) => {
-    const doc = (globalThis as unknown as BrowserDocument).document;
-    doc.documentElement.style.setProperty('zoom', zoomValue, 'important');
-  }, zoom);
-}
-
-type BrowserDocument = {
-  document: {
-    readyState: string;
-    documentElement: { style: { setProperty: (name: string, value: string, priority?: string) => void } };
-    addEventListener: (type: string, listener: () => void, options?: { once: boolean }) => void;
-  };
-};
 
 async function waitForEnter(): Promise<void> {
   const stdin = process.stdin;

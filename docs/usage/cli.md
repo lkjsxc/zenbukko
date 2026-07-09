@@ -20,7 +20,15 @@ zenbukko setup-whisper --backend auto --model large-v3-turbo
 zenbukko transcribe --input lesson.ts --format txt
 ```
 
-`auth` opens the interactive NNN login page at about 25% CSS zoom so the page fits smaller remote or container displays without changing Chromium device scale.
+`auth` opens the interactive NNN login page, then applies two normal Chromium zoom-out shortcuts, like pressing `Ctrl` + `-` twice. This keeps the login button visible on smaller remote displays without changing Chromium device scale. Run it before course listing or download commands unless `ZENBUKKO_SESSION_PATH` already points to a valid saved session.
+
+Typical first-run flow:
+
+```sh
+zenbukko auth
+zenbukko list-courses --format table
+zenbukko download --course-id 12345 --chapter-range 1-3 --materials
+```
 
 `api` starts the Core API that owns `/api/*`, `/healthz`, jobs, settings, outputs, OCR, transcription, and downloads. `web` starts the static UI and same-origin proxy.
 
@@ -54,4 +62,4 @@ Local OCR flags are available on `download`, `download-all`, and `ocr-materials`
 
 ## Failure Behavior
 
-Commands exit non-zero when required session data, course data, local binaries, or output writes fail.
+Commands exit non-zero when required session data, course data, local binaries, or output writes fail. If a course-aware command fails because no session exists, run `zenbukko auth` and retry.

@@ -17,6 +17,10 @@ The browser talks only to Web; Web proxies `/api/*` to Core API.
 
 Docker Compose publishes Web on `0.0.0.0:8787` for trusted-network access. Zenbukko does not require a generated browser token.
 
+## Authentication
+
+Course browsing and archive jobs require a saved NNN session. Use `zenbukko auth` before opening the Web UI, or paste a valid session JSON on the Session screen when no saved session exists.
+
 ## Build
 
 ```sh
@@ -33,6 +37,7 @@ Navigate via hash routes: Dashboard, Session, Courses, Archive, Jobs, Outputs, S
 
 - Existing `session.json` is read automatically when the page opens.
 - Session JSON only needs to be pasted when no saved session exists or the operator wants to replace it.
+- Courses and archive jobs should be treated as unavailable until a valid session is saved.
 - OCR settings are stored by Core API under API-owned state.
 - Archive jobs accept learning URL, visual chapter selection, materials, transcription, and OCR options.
 - Course detail API powers the visual chapter picker.

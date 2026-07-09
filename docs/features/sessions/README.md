@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Authenticate NNN requests using browser-exported cookies.
+Authenticate NNN requests using browser-exported cookies. A saved session is normally the first requirement for course listing, downloads, and browser-created archive jobs.
 
 ## Files
 
@@ -12,6 +12,7 @@ Authenticate NNN requests using browser-exported cookies.
 ## Invariants
 
 - Cookie-header session imports remain supported.
-- Interactive auth applies about 25% CSS zoom to the login page without changing Chromium device scale.
+- Interactive CLI auth is the normal first step before course-aware workflows.
+- Interactive auth applies two normal Chromium zoom-out shortcuts to the login page without changing Chromium device scale.
 - Structured cookie matching respects domain, path, and expiration when those fields are available.
 - Invalid input does not overwrite the previous saved session.
