@@ -36,5 +36,9 @@ export function registerServerCommands(program: Command): void {
 }
 
 function numberOption(value: unknown, fallback: number): number {
-  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+  const port = typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    throw new Error(`Port must be a whole number from 1 to 65535: ${port}`);
+  }
+  return port;
 }

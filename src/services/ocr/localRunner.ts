@@ -26,13 +26,22 @@ export async function runLocalTasks(params: {
     for (const task of params.tasks) pushPreflightFailure(task, preflight, params.results);
     return preflight;
   }
-  for (const task of params.tasks) await runOne(task, params.settings, params.commandParams, params.results);
+  const settings = { ...params.settings, command: preflight.ocrCommandPath! };
+  for (const task of params.tasks) {
+    await runOne(task, settings, preflight.pdftoppmPath!, params.commandParams, params.results);
+  }
   return preflight;
 }
 
-async function runOne(task: OcrTask, settings: LocalOcrSettings, params: OcrCommandParams, results: OcrPdfResult[]): Promise<void> {
+async function runOne(
+  task: OcrTask,
+  settings: LocalOcrSettings,
+  pdftoppmCommand: string,
+  params: OcrCommandParams,
+  results: OcrPdfResult[],
+): Promise<void> {
   try {
-    const output = await runOneLocalTask(task, settings, params);
+    const output = await runOneLocalTask(task, settings, pdftoppmCommand, params);
     await writeLocalSuccess(task, output, results);
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
@@ -42,9 +51,14 @@ async function runOne(task: OcrTask, settings: LocalOcrSettings, params: OcrComm
   }
 }
 
-export async function runOneLocalTask(task: OcrTask, settings: LocalOcrSettings, params: OcrCommandParams): Promise<LocalOcrOutput> {
+export async function runOneLocalTask(
+  task: OcrTask,
+  settings: LocalOcrSettings,
+  pdftoppmCommand: string,
+  params: OcrCommandParams,
+): Promise<LocalOcrOutput> {
   params.logger.info(`Running local OCR: ${path.relative(process.cwd(), task.pdfPath)}`);
-  return runLocalOcrTask({ task, ...settings });
+  return runLocalOcrTask({ task, pdftoppmCommand, ...settings });
 }
 
 export async function writeLocalSuccess(task: OcrTask, output: LocalOcrOutput, results: OcrPdfResult[]): Promise<void> {

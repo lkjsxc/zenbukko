@@ -12,6 +12,7 @@ Convert captured materials into a single OCR input format before local OCR runs.
 - PNG and JPEG images are embedded into PDFs as data URIs.
 - Image PDFs use the source image aspect ratio as the PDF page size so slide screenshots are not scaled into blank or low-detail pages.
 - Plain text and Markdown files are wrapped in simple readable HTML and emitted as PDFs.
+- Chromium conversion disables JavaScript and blocks HTTP(S) requests; only local `file:`, inline `data:`, and `about:` resources are allowed.
 
 ## Unsupported Inputs
 

@@ -23,7 +23,6 @@ Use this path when npm is unavailable. Build scripts themselves are package-mana
 
 ```sh
 pnpm install --no-lockfile
-pnpm --dir web-ui install --no-lockfile
 pnpm run type-check
 pnpm run lint
 pnpm test

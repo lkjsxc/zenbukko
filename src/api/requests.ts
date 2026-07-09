@@ -1,5 +1,5 @@
 import type { JobKind } from './types.js';
-import { booleanFrom, csvNumbers, numberFrom, stringFrom } from './requestUtils.js';
+import { booleanFrom, csvNumbers, stringFrom } from './requestUtils.js';
 
 const LOCAL_OCR_FIELDS = new Set(['ndlocrCommand', 'ndlocrDevice', 'ocrPageDpi', 'ocrKeepIntermediates', 'ndlocrEnableTcy']);
 const OCR_JOB_FIELDS = new Set(['kind', 'inputDir', 'ocrForce', ...LOCAL_OCR_FIELDS]);
@@ -34,10 +34,10 @@ export function normalizeJobRequest(kind: JobKind, body: Record<string, unknown>
     chapterRange: stringFrom(body.chapterRange, ''),
     lessonIds: csvNumbers(body.lessonIds),
     firstLectureOnly: booleanFrom(body.firstLectureOnly, false),
-    maxConcurrency: numberFrom(body.maxConcurrency, 6),
+    maxConcurrency: integerInRange(body.maxConcurrency, 6, 1, 32, 'maxConcurrency'),
     transcribe: booleanFrom(body.transcribe, false),
     transcribeModel: stringFrom(body.transcribeModel, 'large-v3-turbo'),
-    transcribeFormat: stringFrom(body.transcribeFormat, 'txt'),
+    transcribeFormat: transcriptFormat(body.transcribeFormat),
     transcribeLanguage: stringFrom(body.transcribeLanguage, 'ja'),
     materials: booleanFrom(body.materials, false),
     deleteMediaAfterTranscribe: booleanFrom(body.deleteMediaAfterTranscribe, true),
@@ -54,8 +54,8 @@ export function normalizeJobRequest(kind: JobKind, body: Record<string, unknown>
 function localOcrFields(body: Record<string, unknown>): Record<string, unknown> {
   return {
     ndlocrCommand: stringFrom(body.ndlocrCommand, 'ndlocr-lite'),
-    ndlocrDevice: stringFrom(body.ndlocrDevice, 'cpu'),
-    ocrPageDpi: numberFrom(body.ocrPageDpi, 300),
+    ndlocrDevice: ocrDevice(body.ndlocrDevice),
+    ocrPageDpi: integerInRange(body.ocrPageDpi, 300, 72, 600, 'ocrPageDpi'),
     ocrKeepIntermediates: booleanFrom(body.ocrKeepIntermediates, false),
     ndlocrEnableTcy: booleanFrom(body.ndlocrEnableTcy, true),
   };
@@ -68,11 +68,37 @@ function rejectUnknownFields(body: Record<string, unknown>, allowed: Set<string>
 
 function requiredLearningUrl(value: unknown): string {
   if (typeof value !== 'string' || !value.trim()) throw new Error('Learning page URL is required.');
+  let url: URL;
   try {
-    return new URL(value.trim()).toString();
+    url = new URL(value.trim());
   } catch {
     throw new Error('Learning page URL must be a valid URL.');
   }
+  const nnnHost = url.hostname === 'nnn.ed.nico' || url.hostname.endsWith('.nnn.ed.nico');
+  if (url.protocol !== 'https:' || !nnnHost || url.username || url.password) {
+    throw new Error('Learning page URL must be an HTTPS URL on nnn.ed.nico.');
+  }
+  return url.toString();
+}
+
+function integerInRange(value: unknown, fallback: number, min: number, max: number, label: string): number {
+  const number = value === undefined || value === '' ? fallback : Number(value);
+  if (!Number.isInteger(number) || number < min || number > max) {
+    throw new Error(`${label} must be a whole number from ${min} to ${max}.`);
+  }
+  return number;
+}
+
+function ocrDevice(value: unknown): 'cpu' | 'cuda' {
+  const device = stringFrom(value, 'cpu');
+  if (device !== 'cpu' && device !== 'cuda') throw new Error('ndlocrDevice must be cpu or cuda.');
+  return device;
+}
+
+function transcriptFormat(value: unknown): 'txt' | 'srt' | 'vtt' {
+  const format = stringFrom(value, 'txt');
+  if (format !== 'txt' && format !== 'srt' && format !== 'vtt') throw new Error('transcribeFormat must be txt, srt, or vtt.');
+  return format;
 }
 
 function extractCourseIdFromLearningUrl(value: string): number {

@@ -1,6 +1,6 @@
 import * as cheerio from 'cheerio';
-import puppeteer from 'puppeteer';
 import type { StoredSession } from '../session/sessionStore.js';
+import { launchBrowser } from './browser.js';
 
 export type CourseListItem = {
   courseId: number;
@@ -34,11 +34,7 @@ export async function scrapeMyCoursesDetailed(params: {
   session: StoredSession;
   headless: boolean;
 }): Promise<CourseListItemDetailed[]> {
-  const browser = await puppeteer.launch({
-    headless: params.headless,
-    ...(process.env.PUPPETEER_EXECUTABLE_PATH ? { executablePath: process.env.PUPPETEER_EXECUTABLE_PATH } : {}),
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  });
+  const browser = await launchBrowser({ headless: params.headless });
 
   try {
     const page = await browser.newPage();

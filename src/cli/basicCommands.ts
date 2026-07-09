@@ -1,5 +1,6 @@
 import type { Command } from 'commander';
 import { authCommand } from '../commands/auth.js';
+import { doctorCommand } from '../commands/doctor.js';
 import { listCoursesCommand } from '../commands/listCourses.js';
 import { setupWhisperCommand } from '../commands/setupWhisper.js';
 import { transcribeCommand } from '../commands/transcribe.js';
@@ -10,6 +11,20 @@ import { headlessFrom, makeContext } from './context.js';
 import { addLocalOcrOptions, localOcrOptionsFrom } from './ocrOptions.js';
 
 export function registerBasicCommands(program: Command): void {
+  program.command('doctor')
+    .description('Check native dependencies and local paths without starting work')
+    .option('--model <name>', 'Whisper model name to check', 'large-v3-turbo')
+    .option('--json', 'Print machine-readable JSON', false)
+    .action(async (cmd) => {
+      const ctx = makeContext(program);
+      const report = await doctorCommand({
+        config: ctx.cfg,
+        model: String(cmd.model ?? 'large-v3-turbo'),
+        json: Boolean(cmd.json),
+      });
+      if (!report.ok) process.exitCode = 1;
+    });
+
   program.command('auth').description('Authenticate using a real browser login and save session cookies').action(async () => {
     const ctx = makeContext(program);
     await authCommand({ sessionPath: ctx.sessionPath, headless: headlessFrom(ctx), logger: ctx.logger });

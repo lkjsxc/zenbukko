@@ -2,6 +2,7 @@ import path from 'node:path';
 import fs from 'node:fs/promises';
 import { ensureDir, safeBasename } from '../utils/fs.js';
 import { toPortableRelativePath } from '../utils/portablePath.js';
+import { fetchWithSafeRedirects } from '../utils/http.js';
 import { downloadUrlToFile } from '../downloader/httpFile.js';
 import { candidateMaterialUrls, stableAssetFilename } from './materials/assets.js';
 import { renderMaterialsIndexHtml } from './materials/indexHtml.js';
@@ -47,7 +48,10 @@ export async function downloadLessonMaterials(params: {
       }
 
       params.logger.info(`Downloading material: ${fileUrl.toString()} -> ${stablePath}`);
-      const dlOpts: { outFilePath: string; headers?: Record<string, string> } = { outFilePath: stablePath };
+      const dlOpts: { outFilePath: string; headers?: Record<string, string>; authenticatedOrigin: URL } = {
+        outFilePath: stablePath,
+        authenticatedOrigin: new URL(pageUrl),
+      };
       if (params.headers) dlOpts.headers = params.headers;
       await downloadUrlToFile(fileUrl, dlOpts);
       downloaded.push(stablePath);
@@ -69,9 +73,11 @@ async function fetchReferencePage(
   params: { headers?: Record<string, string>; logger: { warn: (s: string) => void } },
 ): Promise<string | undefined> {
   try {
-    const init: RequestInit = { redirect: 'follow' };
-    if (params.headers) init.headers = params.headers;
-    const res = await fetch(pageUrl, init);
+    const url = new URL(pageUrl);
+    const res = await fetchWithSafeRedirects(url, {
+      ...(params.headers ? { headers: params.headers } : {}),
+      authenticatedOrigin: url,
+    });
     if (!res.ok) {
       params.logger.warn(`Materials page fetch failed (HTTP ${res.status}): ${pageUrl}`);
       return undefined;

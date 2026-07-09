@@ -10,4 +10,6 @@
 
 ## Operator Responsibility
 
-Expose the Web service only on trusted networks or behind a separate access-control layer. Session data, settings, jobs, and generated outputs are local private data.
+Expose the Web service only on trusted networks or behind a separate access-control layer. Native API and Web defaults remain on loopback and print a warning when explicitly bound elsewhere. Session data, settings, jobs, and generated outputs are local private data.
+
+The Web proxy accepts only HTTP(S) upstream URLs without embedded credentials, preserves the configured upstream origin, and rejects request bodies larger than 4 MB.

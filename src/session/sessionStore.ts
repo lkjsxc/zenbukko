@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
 import { ensureDir, fileExists } from '../utils/fs.js';
+import { writeJsonAtomic } from '../utils/atomic.js';
 
 const CookieSchema = z.object({
   name: z.string(),
@@ -62,7 +63,7 @@ export class SessionStore {
   async save(session: StoredSession): Promise<void> {
     try {
       await ensureDir(path.dirname(this.sessionPath));
-      await fs.writeFile(this.sessionPath, JSON.stringify(session, null, 2), 'utf8');
+      await writeJsonAtomic(this.sessionPath, session, { mode: 0o600 });
     } catch (error) {
       throw buildSessionWriteError(this.sessionPath, error);
     }

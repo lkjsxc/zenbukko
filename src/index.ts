@@ -18,4 +18,14 @@ registerBasicCommands(program);
 registerDownloadCommands(program);
 registerServerCommands(program);
 
-await program.parseAsync(process.argv);
+try {
+  await program.parseAsync(process.argv);
+} catch (error) {
+  process.stderr.write(`${formatCliError(error)}\n`);
+  process.exitCode = 1;
+}
+
+export function formatCliError(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error);
+  return `Zenbukko: ${message}`;
+}

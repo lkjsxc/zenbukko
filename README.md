@@ -16,8 +16,7 @@ npm run build
 node dist/index.js doctor
 
 # or pnpm when npm is unavailable
-pnpm install --no-lockfile
-pnpm --dir web-ui install --no-lockfile
+pnpm install --no-lockfile  # installs the web-ui workspace too
 pnpm run build
 node dist/index.js doctor
 ```

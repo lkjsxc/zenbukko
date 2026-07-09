@@ -24,6 +24,7 @@ export type LocalOcrOutput = {
 export async function runLocalOcrTask(params: {
   task: OcrTask;
   command: string;
+  pdftoppmCommand: string;
   device: LocalOcrDevice;
   pageDpi: number;
   keepIntermediates: boolean;
@@ -36,7 +37,7 @@ export async function runLocalOcrTask(params: {
   await fs.mkdir(imageDir, { recursive: true });
   await fs.mkdir(outDir, { recursive: true });
   try {
-    await rasterizePdf(params.task.pdfPath, imageDir, params.pageDpi);
+    await rasterizePdf(params.pdftoppmCommand, params.task.pdfPath, imageDir, params.pageDpi);
     await runNdlocr(params.command, imageDir, outDir, params.device, params.enableTcy);
     const pages = await collectPageText(outDir);
     const markdown = normalizeMarkdown(toMarkdown(path.basename(params.task.pdfPath), pages.nonEmpty));
@@ -46,9 +47,9 @@ export async function runLocalOcrTask(params: {
   }
 }
 
-async function rasterizePdf(pdfPath: string, imageDir: string, pageDpi: number): Promise<void> {
+async function rasterizePdf(command: string, pdfPath: string, imageDir: string, pageDpi: number): Promise<void> {
   const prefix = path.join(imageDir, 'page');
-  await runCommand('pdftoppm', ['-r', String(pageDpi), '-png', pdfPath, prefix], 'pdf-rasterize-failed');
+  await runCommand(command, ['-r', String(pageDpi), '-png', pdfPath, prefix], 'pdf-rasterize-failed');
 }
 
 async function runNdlocr(command: string, imageDir: string, outDir: string, device: LocalOcrDevice, enableTcy: boolean): Promise<void> {

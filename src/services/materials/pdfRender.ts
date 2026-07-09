@@ -1,16 +1,12 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import puppeteer, { type Browser } from 'puppeteer';
+import type { Browser } from 'puppeteer';
+import { launchBrowser } from '../browser.js';
 import type { MaterialPdfKind } from './types.js';
 
 export async function launchPdfBrowser(): Promise<Browser> {
-  const opts: Parameters<typeof puppeteer.launch>[0] = {
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-  };
-  if (process.env.PUPPETEER_EXECUTABLE_PATH) opts.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
-  return puppeteer.launch(opts);
+  return launchBrowser({ headless: true, args: ['--disable-dev-shm-usage'] });
 }
 
 export async function renderSourceToPdf(params: {
@@ -21,6 +17,12 @@ export async function renderSourceToPdf(params: {
 }): Promise<void> {
   const page = await params.browser.newPage();
   try {
+    await page.setJavaScriptEnabled(false);
+    await page.setRequestInterception(true);
+    page.on('request', (request) => {
+      const action = isAllowedPdfResourceUrl(request.url()) ? request.continue() : request.abort('blockedbyclient');
+      void action.catch(() => undefined);
+    });
     if (params.kind === 'image') {
       await renderImagePdf(page, params.sourcePath, params.pdfPath);
       return;
@@ -28,6 +30,14 @@ export async function renderSourceToPdf(params: {
     await renderDocumentPdf({ page, sourcePath: params.sourcePath, pdfPath: params.pdfPath, kind: params.kind });
   } finally {
     await page.close().catch(() => undefined);
+  }
+}
+
+export function isAllowedPdfResourceUrl(value: string): boolean {
+  try {
+    return ['file:', 'data:', 'about:'].includes(new URL(value).protocol);
+  } catch {
+    return false;
   }
 }
 

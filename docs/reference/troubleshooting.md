@@ -40,7 +40,7 @@ npm --prefix web-ui ci
 npm run build
 ```
 
-With pnpm, use `pnpm --dir web-ui install --no-lockfile` and `pnpm run build`.
+With pnpm, `pnpm install --no-lockfile` installs both workspaces; then run `pnpm run build`.
 
 ## Local OCR Fails
 

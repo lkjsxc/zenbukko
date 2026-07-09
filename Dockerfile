@@ -76,10 +76,13 @@ ENV ZENBUKKO_NDLOCR_CMD=ndlocr-lite
 COPY package.json package-lock.json* ./
 RUN npm ci
 
-COPY tsconfig.json ./
 COPY web-ui/package.json web-ui/package-lock.json* ./web-ui/
+RUN npm --prefix web-ui ci
+
+COPY tsconfig.json ./
 COPY src ./src
 COPY web-ui ./web-ui
+COPY scripts/run-web-ui.mjs ./scripts/run-web-ui.mjs
 
 RUN npm run build
 

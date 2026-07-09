@@ -33,7 +33,13 @@ export function toPortableRelativePath(root: string, file: string, pathApi: Path
 
 export function assertPathInside(root: string, file: string, pathApi: PathApi = path): void {
   const relative = pathApi.relative(pathApi.resolve(root), pathApi.resolve(file));
-  if (!relative || relative === '..' || relative.startsWith(`..${pathApi.sep}`) || pathApi.isAbsolute(relative)) {
+  if (!relative) throw new Error('Path must identify a child of its configured root.');
+  assertPathInsideOrEqual(root, file, pathApi);
+}
+
+export function assertPathInsideOrEqual(root: string, file: string, pathApi: PathApi = path): void {
+  const relative = pathApi.relative(pathApi.resolve(root), pathApi.resolve(file));
+  if (relative === '..' || relative.startsWith(`..${pathApi.sep}`) || pathApi.isAbsolute(relative)) {
     throw new Error('Path escapes its configured root.');
   }
 }

@@ -2,6 +2,8 @@ import path from 'node:path';
 import fs from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
+export type WhisperBackend = 'auto' | 'cpu' | 'cuda';
+
 export function getProjectRoot(): string {
   const here = path.dirname(fileURLToPath(import.meta.url));
   return path.resolve(here, '..', '..');
@@ -11,31 +13,33 @@ export function getWhisperDir(): string {
   return path.join(getProjectRoot(), 'whisper.cpp');
 }
 
-export type WhisperBackend = 'auto' | 'cpu' | 'cuda';
-
 export async function resolveWhisperBinary(): Promise<string> {
-  const dir = getWhisperDir();
-  const backend = requestedBackend();
-  const candidates = backend === 'cuda'
-    ? cudaCandidates(dir)
-    : backend === 'cpu'
-      ? cpuCandidates(dir)
-      : [...cudaCandidates(dir), ...cpuCandidates(dir)];
-
-  for (const c of candidates) {
-    try {
-      await fs.access(c);
-      return c;
-    } catch {
-      // continue
-    }
-  }
-
+  const candidates = whisperBinaryCandidates(getWhisperDir(), requestedBackend());
+  const found = await findExistingFile(candidates);
+  if (found) return found;
   throw new Error(`Could not find whisper.cpp executable. Looked for: ${candidates.join(', ')}`);
 }
 
+export async function findWhisperBinary(): Promise<string | null> {
+  return findExistingFile(whisperBinaryCandidates(getWhisperDir(), requestedBackend()));
+}
+
+export function whisperBinaryCandidates(
+  directory: string,
+  backend: WhisperBackend,
+  platform: NodeJS.Platform = process.platform,
+): string[] {
+  const names = platform === 'win32' ? ['whisper-cli.exe', 'main.exe'] : ['whisper-cli', 'main'];
+  const cpuRoots = ['build-cpu/bin', 'build/bin', '.'];
+  const cudaRoots = ['build-cuda/bin'];
+  const roots = backend === 'cuda' ? cudaRoots : backend === 'cpu' ? cpuRoots : [...cudaRoots, ...cpuRoots];
+  return roots.flatMap((root) => names.map((name) => path.join(directory, root, name)));
+}
+
 export function resolveModelPath(model: string): string {
-  // Whisper.cpp uses files like models/ggml-base.bin
+  if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(model)) {
+    throw new Error('Whisper model name may contain only letters, numbers, dot, underscore, and hyphen.');
+  }
   return path.join(getWhisperDir(), 'models', `ggml-${model}.bin`);
 }
 
@@ -46,20 +50,10 @@ function requestedBackend(): WhisperBackend {
   return 'auto';
 }
 
-function cpuCandidates(dir: string): string[] {
-  return [
-    path.join(dir, 'build-cpu', 'bin', 'whisper-cli'),
-    path.join(dir, 'build-cpu', 'bin', 'main'),
-    path.join(dir, 'build', 'bin', 'whisper-cli'),
-    path.join(dir, 'build', 'bin', 'main'),
-    path.join(dir, 'whisper-cli'),
-    path.join(dir, 'main'),
-  ];
-}
-
-function cudaCandidates(dir: string): string[] {
-  return [
-    path.join(dir, 'build-cuda', 'bin', 'whisper-cli'),
-    path.join(dir, 'build-cuda', 'bin', 'main'),
-  ];
+async function findExistingFile(candidates: string[]): Promise<string | null> {
+  for (const candidate of candidates) {
+    const found = await fs.stat(candidate).then((value) => value.isFile()).catch(() => false);
+    if (found) return candidate;
+  }
+  return null;
 }

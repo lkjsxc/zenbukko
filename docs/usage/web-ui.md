@@ -28,10 +28,10 @@ Install the UI workspace once, then build with either package manager:
 ```sh
 npm --prefix web-ui ci && npm run build
 # or
-pnpm --dir web-ui install --no-lockfile && pnpm run build
+pnpm install --no-lockfile && pnpm run build
 ```
 
-UI source lives in `web-ui/`. Vite outputs to `dist/web/static/`. Build scripts do not install dependencies or invoke another package manager.
+UI source lives in the pnpm workspace `web-ui/`. Vite outputs to `dist/web/static/`. Build scripts do not install dependencies or invoke another package manager.
 
 ## Screens
 

@@ -36,12 +36,16 @@ export async function preflightLocalOcr(settings: LocalOcrSettings): Promise<Loc
   };
 }
 
-async function resolveCommand(command: string): Promise<string | undefined> {
-  if (!command.trim()) return undefined;
-  if (command.includes(path.sep)) return (await canExecute(command)) ? path.resolve(command) : undefined;
-  return (await which(command)) ?? undefined;
+export async function resolveCommand(command: string): Promise<string | undefined> {
+  const trimmed = command.trim();
+  if (!trimmed) return undefined;
+  if (path.isAbsolute(trimmed) || trimmed.includes('/') || trimmed.includes('\\')) {
+    return (await canExecute(trimmed)) ? path.resolve(trimmed) : undefined;
+  }
+  return (await which(trimmed)) ?? undefined;
 }
 
 async function canExecute(filePath: string): Promise<boolean> {
-  return access(filePath, constants.X_OK).then(() => true).catch(() => false);
+  const mode = process.platform === 'win32' ? constants.F_OK : constants.X_OK;
+  return access(filePath, mode).then(() => true).catch(() => false);
 }

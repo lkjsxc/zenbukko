@@ -38,6 +38,10 @@ The query is a canonical portable relative identifier using `/`. Reject empty in
 
 The content response returns the canonical path identifier.
 
+## Job Request Boundaries
+
+Download learning URLs must use HTTPS on `nnn.ed.nico`. Concurrency is 1–32 and OCR DPI is 72–600. API-created OCR input paths must resolve under the configured output root.
+
 ## Failure Behavior
 
 Validation failures return HTTP 400. Missing files return HTTP 404.

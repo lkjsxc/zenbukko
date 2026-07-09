@@ -1,8 +1,11 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import type { AppConfig } from '../config.js';
 import { downloadCommand } from '../commands/download.js';
 import { downloadAllCommand } from '../commands/downloadAll.js';
 import { ocrMaterialsCommand } from '../services/ocr/index.js';
 import type { Logger } from '../utils/log.js';
+import { assertPathInsideOrEqual } from '../utils/portablePath.js';
 import type { JobRecord } from './types.js';
 import { booleanFrom, numberFrom, optionalNumberArray, stringFrom } from './requestUtils.js';
 import { getEffectiveApiSettings, type EffectiveApiSettings } from './settings.js';
@@ -11,7 +14,7 @@ export async function runJob(job: JobRecord, cfg: AppConfig, stateDir: string, l
   const settings = await getEffectiveApiSettings(cfg, stateDir);
   if (job.kind === 'ocr-materials') {
     await ocrMaterialsCommand({
-      inputDir: stringFrom(job.request.inputDir, cfg.outputDir),
+      inputDir: await resolveOcrInputDir(cfg.outputDir, stringFrom(job.request.inputDir, cfg.outputDir)),
       force: booleanFrom(job.request.ocrForce, false),
       ...localOcrFromRequest(job.request, settings),
       logger,
@@ -53,6 +56,16 @@ export async function runJob(job: JobRecord, cfg: AppConfig, stateDir: string, l
     ...(lessonIds ? { lessonIds } : {}),
     firstLectureOnly: booleanFrom(job.request.firstLectureOnly, false),
   });
+}
+
+export async function resolveOcrInputDir(outputDir: string, requested: string): Promise<string> {
+  const rootPath = path.resolve(outputDir);
+  const requestedPath = path.isAbsolute(requested) ? requested : path.resolve(rootPath, requested);
+  const root = await fs.realpath(rootPath);
+  const input = await fs.realpath(requestedPath);
+  assertPathInsideOrEqual(root, input);
+  if (!(await fs.stat(input)).isDirectory()) throw new Error('OCR input must be a directory under the configured output directory.');
+  return input;
 }
 
 function localOcrFromRequest(request: Record<string, unknown>, settings: EffectiveApiSettings) {

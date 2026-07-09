@@ -3,18 +3,19 @@ import type express from 'express';
 import type { Request, Response } from 'express';
 
 const HOP_BY_HOP = new Set(['connection', 'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailer', 'transfer-encoding', 'upgrade']);
+const MAX_BODY_BYTES = 4 * 1024 * 1024;
+
+class ProxyBodyTooLargeError extends Error {}
 
 export function registerApiProxy(app: express.Express, params: { apiUrl: string }): void {
-  app.use('/api', (req, res) => void proxy(req, res, params.apiUrl));
+  const apiUrl = normalizeApiUrl(params.apiUrl);
+  app.use('/api', (req, res) => void proxy(req, res, apiUrl));
 }
 
 async function proxy(req: Request, res: Response, apiUrl: string): Promise<void> {
   try {
     const body = hasBody(req) ? await readBody(req) : undefined;
-    const init: RequestInit = {
-      method: req.method,
-      headers: upstreamHeaders(req),
-    };
+    const init: RequestInit = { method: req.method, headers: upstreamHeaders(req) };
     if (body) {
       init.body = body;
       init.duplex = 'half';
@@ -27,18 +28,27 @@ async function proxy(req: Request, res: Response, apiUrl: string): Promise<void>
       return;
     }
     Readable.fromWeb(upstream.body).pipe(res);
-  } catch (e) {
-    res.status(502).json({ error: e instanceof Error ? e.message : String(e) });
+  } catch (error) {
+    const status = error instanceof ProxyBodyTooLargeError ? 413 : 502;
+    res.status(status).json({ error: error instanceof Error ? error.message : String(error) });
   }
 }
 
-function upstreamUrl(apiUrl: string, req: Request): string {
+export function normalizeApiUrl(value: string): string {
+  const url = new URL(value);
+  if (!['http:', 'https:'].includes(url.protocol)) throw new Error('API URL must use http or https.');
+  if (url.username || url.password) throw new Error('API URL must not contain credentials.');
+  url.pathname = url.pathname.replace(/\/$/, '');
+  return url.toString();
+}
+
+export function upstreamUrl(apiUrl: string, req: Pick<Request, 'originalUrl'>): string {
   const base = new URL(apiUrl);
   const target = new URL(req.originalUrl, base);
   target.protocol = base.protocol;
   target.host = base.host;
-  target.username = base.username;
-  target.password = base.password;
+  target.username = '';
+  target.password = '';
   return target.toString();
 }
 
@@ -64,6 +74,12 @@ function hasBody(req: Request): boolean {
 
 async function readBody(req: Request): Promise<Buffer> {
   const chunks: Buffer[] = [];
-  for await (const chunk of req) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  let total = 0;
+  for await (const chunk of req) {
+    const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+    total += buffer.length;
+    if (total > MAX_BODY_BYTES) throw new ProxyBodyTooLargeError('Proxy request body exceeds 4 MB.');
+    chunks.push(buffer);
+  }
   return Buffer.concat(chunks);
 }

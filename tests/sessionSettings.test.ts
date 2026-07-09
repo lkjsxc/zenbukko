@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { buildSessionPrefill, buildSessionWriteError, parseStoredSession } from '../src/session/sessionStore.js';
+import { buildSessionPrefill, buildSessionWriteError, parseStoredSession, SessionStore } from '../src/session/sessionStore.js';
 import { loadApiSettings, mergeApiSettings, saveApiSettings } from '../src/api/settings.js';
 import { normalizeJobRequest } from '../src/api/requests.js';
 import type { AppConfig } from '../src/config.js';
@@ -36,6 +36,20 @@ test('buildSessionWriteError explains root-owned data directories', () => {
   const error = buildSessionWriteError('/work/zenbukko/data/session.json', cause);
   assert.match(error.message, /Cannot write session file/);
   assert.match(error.message, /sudo chown -R/);
+});
+
+test('SessionStore atomically replaces private session data', async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'zenbukko-session-'));
+  const sessionPath = path.join(dir, 'session.json');
+  const store = new SessionStore(sessionPath);
+  await store.save({ savedAt: '2026-01-01T00:00:00.000Z', cookies: [] });
+  await store.save({ savedAt: '2026-02-01T00:00:00.000Z', cookies: [] });
+
+  assert.equal((await store.load())?.savedAt, '2026-02-01T00:00:00.000Z');
+  assert.deepEqual((await fs.readdir(dir)).sort(), ['session.json']);
+  if (process.platform !== 'win32') {
+    assert.equal((await fs.stat(sessionPath)).mode & 0o777, 0o600);
+  }
 });
 
 test('mergeApiSettings gives saved browser values precedence over env defaults', () => {

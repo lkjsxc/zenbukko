@@ -3,20 +3,20 @@ import { createWriteStream } from 'node:fs';
 import path from 'node:path';
 import { once } from 'node:events';
 import { ensureDir } from '../utils/fs.js';
+import { fetchWithSafeRedirects } from '../utils/http.js';
 
 export async function downloadUrlToFile(
   url: URL,
   opts: {
     outFilePath: string;
     headers?: Record<string, string>;
+    authenticatedOrigin?: URL;
   },
 ): Promise<void> {
-  const init: RequestInit = {
-    method: 'GET',
-    redirect: 'follow',
-  };
-  if (opts.headers) init.headers = opts.headers;
-  const res = await fetch(url, init);
+  const res = await fetchWithSafeRedirects(url, {
+    ...(opts.headers ? { headers: opts.headers } : {}),
+    ...(opts.authenticatedOrigin ? { authenticatedOrigin: opts.authenticatedOrigin } : {}),
+  });
 
   if (!res.ok) {
     throw new Error(`Failed to download ${url.toString()} (HTTP ${res.status})`);
