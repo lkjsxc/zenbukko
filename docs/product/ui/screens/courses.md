@@ -2,23 +2,23 @@
 
 ## Purpose
 
-Browse a CLI-imported course list and inspect chapters.
+Browse authenticated course list and inspect chapters.
 
 ## Inputs
 
-- JSON pasted from `zenbukko list-courses --format json`.
-- `GET /api/courses/:courseId` for detail panel.
+- `GET /api/courses`
+- `GET /api/courses/:courseId` for detail panel
 
 ## Outputs
 
 - Searchable table: ID, title, source tab.
-- Chapter table in the detail panel.
+- Chapter checkbox grid in detail drawer.
 - "Archive course" navigates to `#/archive?courseId=N`.
 
 ## Invariants
 
-Web UI does not scrape the NNN course list. Course-list discovery belongs to the CLI so browser automation stays in `zenbukko list-courses`.
+Requires session. 404 shows empty state with link to Session screen.
 
 ## Failure Behavior
 
-Invalid pasted JSON shows a toast. Course detail API failures show toast with error message.
+Scrape failures show toast with error message.

@@ -30,16 +30,6 @@ test('Core API reports that web auth is not required', async () => {
   });
 });
 
-test('Core API keeps browser course-list scraping out of Web requests', async () => {
-  await withApiRoutes(async (baseUrl) => {
-    const res = await fetch(`${baseUrl}/api/courses`);
-    const body = await res.json() as { error?: string };
-
-    assert.equal(res.status, 410);
-    assert.match(body.error ?? '', /list-courses --format json/);
-  });
-});
-
 test('web proxy forwards API requests without a token', async () => {
   await withProxy(async (baseUrl) => {
     for (const endpoint of ['/api/session', '/api/settings', '/api/courses', '/api/courses/1', '/api/jobs', '/api/outputs']) {

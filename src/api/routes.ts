@@ -1,6 +1,7 @@
 import type express from 'express';
 import type { Request, Response } from 'express';
 import type { AppConfig } from '../config.js';
+import { scrapeMyCoursesDetailed } from '../services/courseScraper.js';
 import { buildSessionPrefill, parseStoredSession, SessionStore } from '../session/sessionStore.js';
 import { fileExists, readTextFileIfExists } from '../utils/fs.js';
 import type { Logger } from '../utils/log.js';
@@ -60,9 +61,14 @@ export function registerApiRoutes(app: express.Express, params: RouteParams): vo
     res.json({ settings: await getEffectiveApiSettings(params.config, params.stateDir) });
   }));
 
-  app.get('/api/courses', (_req, res) => {
-    res.status(410).json({ error: 'Course list scraping is CLI-only. Run `zenbukko list-courses --format json` and import the JSON in the Web UI.' });
-  });
+  app.get('/api/courses', asyncHandler(async (_req, res) => {
+    const session = await new SessionStore(params.config.sessionPath).load();
+    if (!session) {
+      res.status(404).json({ error: 'No session imported yet.' });
+      return;
+    }
+    res.json({ courses: await scrapeMyCoursesDetailed({ session, headless: params.config.puppeteerHeadless }) });
+  }));
 
   app.get('/api/jobs', (_req, res) => res.json({ jobs: params.queue.list().map(publicJob) }));
   app.get('/api/jobs/:id', asyncHandler(async (req, res) => sendJob(params.queue, req, res)));

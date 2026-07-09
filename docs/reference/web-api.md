@@ -13,7 +13,7 @@ Web exposes these endpoints at same origin and proxies them to Core API. Default
 - `POST /api/session`: save normalized session JSON.
 - `GET /api/settings`: effective local settings and defaults.
 - `POST /api/settings`: persist local OCR settings.
-- `GET /api/courses`: retired endpoint that returns HTTP 410; course-list scraping is CLI-only via `zenbukko list-courses --format json`.
+- `GET /api/courses`: scrape authenticated course list.
 - `GET /api/courses/:courseId`: course title and chapters for chapter picker.
 - `GET /api/courses/:courseId/chapters/:chapterId`: chapter sections for advanced filtering.
 - `GET /api/jobs`: list persisted jobs.
