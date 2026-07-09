@@ -7,7 +7,7 @@ Configure and start download or download-all jobs.
 ## Inputs
 
 - Learning URL (prefilled from `?courseId=`).
-- Visual chapter picker or advanced explicit IDs.
+- Visual chapter picker with a select-all action, or advanced explicit IDs.
 - Toggles: transcribe, materials, PDF OCR, delete media after transcript.
 - Concurrency number input.
 - Local OCR settings inherited from Settings and overridable by job payload when exposed.
