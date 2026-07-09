@@ -22,4 +22,4 @@ Persist local OCR configuration.
 
 ## Failure Behavior
 
-Save errors appear via toast. Status pills update after successful save.
+Command and DPI validation appears inline. Save errors appear via toast without discarding edits. The action shows an in-flight state, and status pills update after successful save.

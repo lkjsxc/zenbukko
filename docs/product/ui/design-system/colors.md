@@ -12,6 +12,7 @@
 | `--text-muted` | `#8b9cb3` |
 | `--accent` | `#3db8c9` |
 | `--accent-hover` | `#2fa0b0` |
+| `--text-on-accent` | `#071316` |
 | `--success` | `#4ade80` |
 | `--warning` | `#fbbf24` |
 | `--danger` | `#f87171` |
@@ -20,4 +21,4 @@
 
 ## Usage
 
-Status pills and badges map job/session states to semantic colors.
+Status pills and badges map job/session states to semantic colors. Accent-filled controls use `--text-on-accent` for readable contrast.

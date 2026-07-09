@@ -6,15 +6,16 @@ Stream job log lines via SSE.
 
 ## Behavior
 
-- Append lines to `<pre>` with monospace styling.
+- Append lines incrementally to `<pre>` with monospace styling.
 - Auto-scroll unless paused.
-- `aria-live="polite"`.
+- Use `role="log"`, `aria-live="polite"`, and `aria-relevant="additions"`.
+- Show connecting or reconnecting state persistently.
 - Reconnect on error with exponential backoff.
 
 ## Inputs
 
-- `GET /api/jobs/:id/events?token=`
+- `GET /api/jobs/:id/events`
 
 ## Invariants
 
-Close EventSource when deselecting job or leaving Jobs screen.
+Close EventSource and cancel pending reconnect timers when deselecting a job or leaving Jobs.

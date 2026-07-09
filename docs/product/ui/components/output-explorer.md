@@ -11,8 +11,8 @@ Right: preview pane or download prompt for binary.
 
 ## Filters
 
-Extension groups: md, txt/srt/vtt, pdf, json, html.
+Visible labels are All, Markdown, Transcripts, PDF, JSON, and HTML. Selected filters expose `aria-pressed`.
 
 ## Invariants
 
-Preview only for text types. Download uses token header or query.
+Preview only known text extensions and decide before requesting content. Every selected file has a same-origin download action; no browser token is required. No-output and no-filter-match states are distinct.

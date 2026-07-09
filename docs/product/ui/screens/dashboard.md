@@ -20,8 +20,10 @@ Operator landing page showing system readiness and recent activity.
 
 ## Invariants
 
-Loads on `#/`. Shows loading skeleton until status returns.
+Loads on `#/`. The shell renders immediately and shows a loading state until status returns. Jobs, outputs, session, and settings load independently.
+
+When session is missing, the primary action guides the operator to Session before course or archive actions.
 
 ## Failure Behavior
 
-Status failure shows toast and retry button.
+Status failure shows a persistent inline message, toast, and retry button without hiding other loaded data.

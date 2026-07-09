@@ -21,4 +21,4 @@ Existing session pre-fills textarea. Save normalizes via Core API.
 
 ## Failure Behavior
 
-Invalid JSON blocked before POST. API errors shown via toast.
+Invalid JSON is blocked before POST and shown inline. Validation, formatting, and API errors never discard the current textarea value. The save action exposes its in-flight state; API errors also show a toast.

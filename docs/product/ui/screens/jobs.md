@@ -17,8 +17,8 @@ List jobs and stream live logs.
 
 ## Invariants
 
-One SSE connection per selected job. Event delegation on table body.
+One SSE connection per selected job. Pending reconnects are cancelled when changing jobs or leaving Jobs. Log lines append without rerendering the screen. Event delegation is used on the table body.
 
 ## Failure Behavior
 
-SSE disconnect shows reconnect banner. Job list refresh does not stack listeners.
+Empty job lists and missing selections have explicit states. SSE disconnect shows a persistent connection banner with exponential backoff. Job list refresh is throttled and does not stack listeners.

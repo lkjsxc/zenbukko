@@ -10,15 +10,17 @@ Zenbukko does not add a browser-token gate. Network or upstream access failures 
 
 ## API Errors
 
-Non-2xx responses: toast with `error` message from JSON body. Buttons re-enable after failure.
+Non-2xx responses: toast with `error` message from JSON body. Recoverable screen-level failures also provide inline retry. Buttons re-enable after failure, and unsaved form input is retained.
+
+Initial resources load independently so one failed endpoint does not hide successful data.
 
 ## Validation Errors
 
-Client-side validation before POST: inline field messages and toast summary.
+Client-side validation before POST: inline field messages and toast summary. Invalid values remain available for correction.
 
 ## SSE Errors
 
-LogViewer shows reconnect banner on `EventSource` error. Exponential backoff up to 30s.
+LogViewer shows a persistent reconnect banner on `EventSource` error. Exponential backoff runs up to 30s and is cancelled when the operator leaves the job.
 
 ## Job Failures
 

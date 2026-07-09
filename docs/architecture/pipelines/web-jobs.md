@@ -6,8 +6,8 @@ Describe how browser requests become durable background work.
 
 ## Stages
 
-1. Static UI loads session and settings through the Web proxy.
-2. Browser access is checked with the generated Web token before sensitive `/api/*` proxying.
+1. Static UI loads session and settings through the same-origin Web proxy.
+2. Trusted-network browser requests reach Core through `/api/*` proxying without a generated token.
 3. Core API request parsing normalizes job payload fields.
 4. The API job queue persists accepted work.
 5. Worker execution calls shared CLI workflow functions.

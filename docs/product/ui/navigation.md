@@ -17,11 +17,12 @@ Hash-based client routing without server changes.
 
 ## Layout
 
-- Top bar: product name + status pills.
-- Left sidebar on desktop; bottom tab bar ≤768px.
-- Main content area with cards and split panes.
-- Toast stack bottom-right.
+- Top bar: product name + session and local OCR status pills.
+- Navigation is outside the semantic main content.
+- Left sidebar on desktop; fixed bottom tab bar ≤768px with safe-area spacing.
+- Main content area with cards and responsive split panes.
+- Toast stack bottom-right and within the viewport on narrow screens.
 
 ## Invariants
 
-`hashchange` triggers view render. Active nav item reflects current route.
+`hashchange` renders only the destination view. Active nav uses `aria-current="page"`, and the main content receives focus after route changes.
