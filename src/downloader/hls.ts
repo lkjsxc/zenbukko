@@ -3,6 +3,7 @@ import { createWriteStream } from 'node:fs';
 import path from 'node:path';
 import { once } from 'node:events';
 import { ensureDir } from '../utils/fs.js';
+import { fetchWithSafeRedirects } from '../utils/http.js';
 
 export type HlsDownloadOptions = {
   headers?: Record<string, string>;
@@ -17,7 +18,7 @@ type ParsedPlaylist = {
 };
 
 export async function downloadHlsToFile(m3u8Url: URL, opts: HlsDownloadOptions): Promise<void> {
-  const playlist = await fetchText(m3u8Url, opts.headers);
+  const playlist = await fetchText(m3u8Url, opts.headers, m3u8Url);
   const parsed = parseM3u8(playlist, m3u8Url);
 
   if (parsed.isEncrypted) {
@@ -28,7 +29,7 @@ export async function downloadHlsToFile(m3u8Url: URL, opts: HlsDownloadOptions):
   const mediaPlaylistUrl = parsed.variantUrls.length ? parsed.variantUrls.at(-1)! : m3u8Url;
 
   const mediaPlaylistText =
-    parsed.variantUrls.length ? await fetchText(mediaPlaylistUrl, opts.headers) : playlist;
+    parsed.variantUrls.length ? await fetchText(mediaPlaylistUrl, opts.headers, m3u8Url) : playlist;
   const media = parseM3u8(mediaPlaylistText, mediaPlaylistUrl);
 
   if (media.segmentUrls.length === 0) {
@@ -43,7 +44,10 @@ export async function downloadHlsToFile(m3u8Url: URL, opts: HlsDownloadOptions):
     for (let i = 0; i < media.segmentUrls.length; i++) {
       opts.onProgress?.({ segmentIndex: i + 1, segmentCount: media.segmentUrls.length });
       const segmentUrl = media.segmentUrls[i]!;
-      const resp = await fetch(segmentUrl, opts.headers ? { headers: opts.headers } : undefined);
+      const resp = await fetchWithSafeRedirects(segmentUrl, {
+        ...(opts.headers ? { headers: opts.headers } : {}),
+        authenticatedOrigin: m3u8Url,
+      });
       if (!resp.ok || !resp.body) {
         throw new Error(`Failed to fetch segment ${i + 1}/${media.segmentUrls.length}: ${resp.status}`);
       }
@@ -77,8 +81,11 @@ export async function downloadHlsToFile(m3u8Url: URL, opts: HlsDownloadOptions):
   }
 }
 
-async function fetchText(url: URL, headers?: Record<string, string>): Promise<string> {
-  const resp = await fetch(url, headers ? { headers } : undefined);
+async function fetchText(url: URL, headers: Record<string, string> | undefined, authenticatedOrigin: URL): Promise<string> {
+  const resp = await fetchWithSafeRedirects(url, {
+    ...(headers ? { headers } : {}),
+    authenticatedOrigin,
+  });
   if (!resp.ok) throw new Error(`Failed to fetch ${url.toString()} (${resp.status})`);
   return await resp.text();
 }

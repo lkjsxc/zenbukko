@@ -58,6 +58,20 @@ test('authenticated headers are removed before cross-origin material fetches', a
     new URL('https://cdn.example.test/material.pdf'),
   );
   assert.deepEqual(headers, { Accept: 'application/pdf' });
+
+  const cookies: Array<string | null> = [];
+  const fakeFetch = (async (input: URL | RequestInfo, init?: RequestInit) => {
+    cookies.push(new Headers(init?.headers).get('cookie'));
+    const url = String(input);
+    return url.includes('www.nnn.ed.nico')
+      ? new Response(null, { status: 302, headers: { location: 'https://cdn.example.test/file.pdf' } })
+      : new Response('pdf');
+  }) as typeof fetch;
+  await fetchWithSafeRedirects(new URL('https://www.nnn.ed.nico/file'), {
+    headers: { Cookie: 'private' },
+    fetchImpl: fakeFetch,
+  });
+  assert.deepEqual(cookies, ['private', null]);
   await assert.rejects(fetchWithSafeRedirects(new URL('file:///private/session.json')), /Unsupported download URL/);
 });
 

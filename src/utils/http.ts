@@ -23,6 +23,7 @@ export async function fetchWithSafeRedirects(
     });
     if (!REDIRECT_STATUSES.has(response.status)) return response;
     const location = response.headers.get('location');
+    await response.body?.cancel().catch(() => undefined);
     if (!location) throw new Error(`Redirect response is missing Location: ${current}`);
     if (redirects === maxRedirects) throw new Error(`Too many redirects while fetching ${url}`);
     const next = safeHttpUrl(new URL(location, current));
