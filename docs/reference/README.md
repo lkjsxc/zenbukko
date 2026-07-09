@@ -9,6 +9,7 @@ Stable contracts for configuration, HTTP APIs, file layout, and troubleshooting.
 - [`configuration.md`](configuration.md): environment and settings.
 - [`web-api.md`](web-api.md): local HTTP API.
 - [`file-layout.md`](file-layout.md): persistent data paths.
+- [`path-contracts.md`](path-contracts.md): native filesystem paths and portable serialized identifiers.
 - [`outputs/`](outputs/README.md): generated file contract by workflow.
 - [`security/`](security/README.md): local access and private data boundaries.
 - [`troubleshooting.md`](troubleshooting.md): common failures.

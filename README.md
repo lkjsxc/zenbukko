@@ -4,20 +4,29 @@ Zenbukko is a local course archive and study-material processing toolkit. It dow
 
 Documentation lives in [`docs/`](docs/README.md). Start there for architecture, usage, feature behavior, API contracts, and development rules.
 
-## Quick Commands
+## Native Quick Start
+
+Install both workspaces with either package manager. Build scripts do not invoke npm or pnpm internally.
 
 ```sh
-npm install
-npm run type-check
-npm run lint
-npm test
-docker compose config
-docker compose build zenbukko-api zenbukko-web
+# npm (lockfile-backed)
+npm ci
+npm --prefix web-ui ci
+npm run build
+node dist/index.js doctor
+
+# or pnpm when npm is unavailable
+pnpm install --no-lockfile
+pnpm --dir web-ui install --no-lockfile
+pnpm run build
+node dist/index.js doctor
 ```
+
+Node.js 22 or newer is required. See [`docs/usage/native-setup.md`](docs/usage/native-setup.md) for Windows, browser, OCR, transcription, and server setup.
 
 ## Normal Use
 
-Run `zenbukko auth` first to log in to NNN and save a local session. Course listing, downloads, and browser-created archive jobs expect that saved session unless you import a valid session JSON through the Web UI.
+Run `node dist/index.js doctor` to inspect native dependencies, then `node dist/index.js auth` to log in to NNN and save a local session. Course listing, downloads, and browser-created archive jobs expect that saved session unless you import a valid session JSON through the Web UI. Session JSON contains private cookies and must not be shared or committed.
 
 ## Main Entrypoints
 

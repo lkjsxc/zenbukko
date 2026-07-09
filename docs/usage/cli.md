@@ -7,6 +7,7 @@ Run Zenbukko directly with Node or through the packaged `zenbukko` binary.
 ## Commands
 
 ```sh
+zenbukko doctor
 zenbukko auth
 zenbukko list-courses --format table
 zenbukko download --course-id 12345 --chapter-range 1-3 --materials
@@ -20,7 +21,9 @@ zenbukko setup-whisper --backend auto --model large-v3-turbo
 zenbukko transcribe --input lesson.ts --format txt
 ```
 
-`auth` opens the interactive NNN login page in a larger `1280x900` browser window so the login button is visible without manual zooming. It disables Puppeteer's fixed default viewport and does not use Chromium device-scale launch flags. Run it before course listing or download commands unless `ZENBUKKO_SESSION_PATH` already points to a valid saved session.
+`doctor` checks native dependencies and paths without reading session contents or starting jobs. Use `doctor --json` for structured output.
+
+`auth` opens the interactive NNN login page in a larger `1280x900` browser window so the login button is visible without manual zooming. It disables Puppeteer's fixed default viewport and does not use Chromium device-scale launch flags. After confirmation it closes the browser, releases terminal input, saves the session atomically, and exits. Run it before course listing or download commands unless `ZENBUKKO_SESSION_PATH` already points to a valid saved session.
 
 Typical first-run flow:
 
@@ -62,4 +65,4 @@ Local OCR flags are available on `download`, `download-all`, and `ocr-materials`
 
 ## Failure Behavior
 
-Commands exit non-zero when required session data, course data, local binaries, or output writes fail. If a course-aware command fails because no session exists, run `zenbukko auth` and retry.
+Commands exit non-zero when required session data, course data, local binaries, or output writes fail. Run `zenbukko doctor` for actionable native dependency diagnostics. If a course-aware command reports a missing or expired session, run `zenbukko auth` and retry.

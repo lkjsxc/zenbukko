@@ -15,6 +15,8 @@
 - `--output` may write to another path.
 - The output prompt includes source paths, OCR material text, transcript text,
   and report-writing rules.
+- Source paths are portable relative identifiers using `/`, even when generated on Windows.
+- The returned output file path is an OS-native absolute filesystem path.
 
 ## Failure Behavior
 

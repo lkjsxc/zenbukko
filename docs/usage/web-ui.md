@@ -23,11 +23,15 @@ Course browsing and archive jobs require a saved NNN session. Use `zenbukko auth
 
 ## Build
 
+Install the UI workspace once, then build with either package manager:
+
 ```sh
-npm run build
+npm --prefix web-ui ci && npm run build
+# or
+pnpm --dir web-ui install --no-lockfile && pnpm run build
 ```
 
-UI source lives in `web-ui/`. Vite outputs to `dist/web/static/`.
+UI source lives in `web-ui/`. Vite outputs to `dist/web/static/`. Build scripts do not install dependencies or invoke another package manager.
 
 ## Screens
 

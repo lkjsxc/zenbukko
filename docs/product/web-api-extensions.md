@@ -34,7 +34,9 @@ Streams file with `Content-Disposition: attachment`.
 
 ## Path Validation
 
-Resolved path must remain under `outputDir`. Reject `..`, absolute paths, and empty path.
+The query is a canonical portable relative identifier using `/`. Reject empty input, absolute or drive/UNC paths, backslashes, NUL, duplicate separators, `.` and `..` segments. Both lexical and existing-file real paths must remain under `outputDir`; symlinks cannot escape it.
+
+The content response returns the canonical path identifier.
 
 ## Failure Behavior
 

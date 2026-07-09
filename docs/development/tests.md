@@ -17,6 +17,10 @@ Cover shared parsing and planning behavior without requiring external services.
 - Line-limit enforcement.
 - Web UI reducer, output filtering, router, and range edge behavior.
 - Root type checking includes the nested `web-ui/` TypeScript project.
+- Windows-native paths remain OS-native while serialized relative paths use `/`.
+- Browser resolution covers explicit paths and common Windows Edge/Chrome installations.
+- Auth terminal confirmation removes listeners and restores paused stdin.
+- Native diagnostics use synthetic probes and never require private session contents.
 
 ## Commands
 

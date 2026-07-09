@@ -2,68 +2,99 @@
 
 ## Purpose
 
-Run Zenbukko without Docker while keeping OCR and transcription on the local machine.
+Run Zenbukko without Docker. Windows, macOS, and Linux use the same built JavaScript entrypoint; OCR and transcription stay on the local machine.
+
+## Install JavaScript Dependencies
+
+Node.js 22 or newer is required. Install both workspaces with one package manager:
+
+```sh
+# npm, using committed lockfiles
+npm ci
+npm --prefix web-ui ci
+npm run build
+
+# pnpm, when npm is unavailable
+pnpm install --no-lockfile
+pnpm --dir web-ui install --no-lockfile
+pnpm run build
+```
+
+Build and type-check scripts are package-manager neutral after dependencies are installed. Run commands without a global link as `node dist/index.js <command>`.
+
+## Native Diagnostic
+
+```sh
+node dist/index.js doctor
+node dist/index.js doctor --json
+```
+
+The diagnostic reports Node, package managers, browser, ffmpeg, Poppler, NDLOCR-Lite, whisper.cpp/model, session, writable paths, and built Web assets. It never reads or prints session cookie contents.
 
 ## Shared Requirements
 
-- Node.js 22 or newer.
-- ffmpeg for media handling.
-- Poppler tools, especially `pdftoppm`.
-- Chromium dependencies for authentication and HTML-to-PDF conversion.
-- NDLOCR-Lite executable available on `PATH` or configured with `ZENBUKKO_NDLOCR_CMD`.
-- whisper.cpp installed through `zenbukko setup-whisper` or available under the expected local path.
+- A detected Edge, Chrome, or Chromium executable for auth, course discovery, and HTML-to-PDF conversion.
+- ffmpeg for media handling; the bundled `ffmpeg-static` binary is accepted when present.
+- Poppler `pdftoppm` for OCR.
+- NDLOCR-Lite on `PATH` or configured with `ZENBUKKO_NDLOCR_CMD`.
+- A whisper.cpp binary and model for transcription.
+
+Browser precedence is explicit `PUPPETEER_EXECUTABLE_PATH`, Puppeteer's downloaded browser, then common system Edge/Chrome/Chromium locations and `PATH`.
+
+## Windows PowerShell
+
+Native Windows is supported for auth, course listing, API/Web, downloads, material PDF rendering, and OCR when required executables are installed. Example with an explicit bundled Node:
+
+```powershell
+$node = "C:\path\to\node.exe"
+$env:PUPPETEER_EXECUTABLE_PATH = "C:\Program Files (x86)\Microsoft\Edge Beta\Application\msedge.exe" # optional when auto-detected
+& $node dist/index.js doctor
+& $node dist/index.js auth
+& $node dist/index.js list-courses --format table --headless
+& $node dist/index.js api --host 127.0.0.1 --port 8788
+# In another terminal:
+& $node dist/index.js web --host 127.0.0.1 --port 8787 --api-url http://127.0.0.1:8788
+```
+
+Install ffmpeg and Poppler with a trusted Windows package source and ensure `ffmpeg.exe` and `pdftoppm.exe` are on `PATH`. Set an absolute NDLOCR path when needed:
+
+```powershell
+$env:ZENBUKKO_NDLOCR_CMD = "C:\path\to\ndlocr-lite.exe"
+```
+
+`setup-whisper` currently requires Git, CMake, and Unix-compatible build/download tooling. On native Windows, install whisper.cpp manually under `whisper.cpp`, including `whisper-cli.exe` and `models\ggml-<model>.bin`, or use WSL2 for that setup step. The runtime recognizes Windows `.exe` binaries.
 
 ## macOS
 
-Install system tools with Homebrew where possible:
-
 ```sh
 brew install node ffmpeg poppler
-npm install
+npm ci && npm --prefix web-ui ci
 npm run build
-zenbukko setup-whisper --backend cpu --model large-v3-turbo
+node dist/index.js setup-whisper --backend cpu --model large-v3-turbo
 ```
 
-Install NDLOCR-Lite by its project instructions, then set:
-
-```sh
-export ZENBUKKO_NDLOCR_CMD=/path/to/ndlocr-lite
-export ZENBUKKO_NDLOCR_DEVICE=cpu
-```
-
-Use CPU local OCR on macOS unless the installed local runner explicitly supports another device.
+Install NDLOCR-Lite by its project instructions and set `ZENBUKKO_NDLOCR_CMD` when it is not on `PATH`.
 
 ## Linux
-
-Install packages from the distribution and project sources:
 
 ```sh
 sudo apt-get update
 sudo apt-get install -y ffmpeg poppler-utils chromium
-npm install
+npm ci && npm --prefix web-ui ci
 npm run build
-zenbukko setup-whisper --backend cpu --model large-v3-turbo
+node dist/index.js setup-whisper --backend cpu --model large-v3-turbo
 ```
 
-Install NDLOCR-Lite and verify:
+Linux NVIDIA hosts may select CUDA only when their local OCR and whisper.cpp builds support it.
+
+## Native Verification
 
 ```sh
-command -v ndlocr-lite
-command -v pdftoppm
+node dist/index.js doctor
+npm run type-check   # or: pnpm run type-check
+npm run lint         # or: pnpm run lint
+npm test             # or: pnpm test
+npm run build        # or: pnpm run build
 ```
 
-Linux NVIDIA hosts may use `ZENBUKKO_NDLOCR_DEVICE=cuda` only when the local OCR executable supports CUDA.
-
-## Windows
-
-Use WSL2 Linux setup or CPU Docker containers for the verified path. Host-native Windows may work if Node 22, ffmpeg, Poppler, Chromium, NDLOCR-Lite, and whisper.cpp are installed and on `PATH`, but it is not the primary verified path.
-
-## Smoke Checks
-
-```sh
-npm run type-check
-npm test
-zenbukko ocr-materials --input data/downloads --force
-```
-
-The OCR command requires existing normalized PDFs under the input path.
+Do not run downloads, OCR, or transcription as a smoke check unless the intended input and workload have been explicitly selected.

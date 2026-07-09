@@ -9,4 +9,6 @@
 
 ## Handling
 
-Keep these paths out of source control and avoid sharing them in support requests.
+Keep these paths out of source control and avoid sharing them in support requests. Diagnostics may report whether a session file exists but must never read or print cookie values. Errors and Web responses must not include request cookies, authorization headers, or session JSON.
+
+Output preview and download requests are restricted to canonical relative identifiers whose lexical and real paths remain under the configured output root.

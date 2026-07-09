@@ -2,17 +2,41 @@
 
 ## Purpose
 
-Commands used before declaring the upgrade complete.
+Commands used before declaring an upgrade complete.
 
-## Local
+## Local npm
 
 ```sh
+npm ci
+npm --prefix web-ui ci
 npm run type-check
 npm run lint
 npm test
 npm run check:lines
 npm run build
+node dist/index.js doctor
 ```
+
+## Local pnpm
+
+Use this path when npm is unavailable. Build scripts themselves are package-manager neutral.
+
+```sh
+pnpm install --no-lockfile
+pnpm --dir web-ui install --no-lockfile
+pnpm run type-check
+pnpm run lint
+pnpm test
+pnpm run check:lines
+pnpm run build
+node dist/index.js doctor
+```
+
+`doctor` may exit non-zero when optional local OCR or transcription dependencies are not installed. Record each failed check rather than claiming that feature is ready.
+
+## Windows Native
+
+Run the local commands in PowerShell using Node.js 22 or newer. Verify the path contract tests, browser resolution tests, auth input cleanup tests, production build, `/healthz`, Web `/`, and course listing when a private session is already present. Never copy session data into test output.
 
 ## Docker CPU
 
@@ -40,10 +64,12 @@ Record GPU results separately from CPU results. Missing NVIDIA hardware is host-
 
 ```sh
 npm run build
-zenbukko api --port 8788 &
-zenbukko web --port 8787 &
-# Open http://127.0.0.1:8787/ and verify all nav routes render.
+node dist/index.js api --port 8788
+# In another terminal:
+node dist/index.js web --port 8787
 ```
+
+Open `http://127.0.0.1:8787/`, verify `/healthz`, and verify all navigation routes. Do not start archive, OCR, transcription, or bulk-download jobs without explicit operator approval.
 
 ## Data Backfill
 
@@ -51,6 +77,4 @@ zenbukko web --port 8787 &
 docker compose run --rm zenbukko-api rebuild-chapter-ocr --input /data/downloads
 ```
 
-## Notes
-
-If CUDA runtime is unavailable, record that CPU and image configuration were verified and local CUDA execution was not run.
+Run backfills only against an explicitly selected data directory.

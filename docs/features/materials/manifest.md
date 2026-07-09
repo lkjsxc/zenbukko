@@ -15,12 +15,12 @@ Describe saved material sources, PDF conversion outcomes, and OCR eligibility.
 
 ## PDF Entry Fields
 
-- `sourceFile`: source file relative to the material directory.
-- `pdfFile`: PDF file relative to the material directory.
+- `sourceFile`: portable `/`-separated source path relative to the material directory.
+- `pdfFile`: portable `/`-separated PDF path relative to the material directory.
 - `kind`: `source-pdf`, `html`, `image`, or `text`.
 - `status`: `ready`, `skipped`, or `failed`.
 - `message`: optional human-readable reason.
 
 ## Invariants
 
-`pdfs` is the authoritative OCR source list when present. Duplicate `pdfFile` entries are ignored by OCR discovery.
+`pdfs` is the authoritative OCR source list when present. Duplicate `pdfFile` entries are ignored by OCR discovery. Relative manifest paths must remain inside the material directory when resolved.

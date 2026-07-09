@@ -32,3 +32,7 @@ Track all generated artifacts with stable names and layout expectations.
 - Artifact names are stable across runs.
 - Aggregates are append-safe.
 - Rebuild commands are idempotent for existing local data.
+- Filesystem paths returned to local code are OS-native.
+- Relative paths serialized in APIs, manifests, HTML, Markdown, and prompts use `/` and never escape their declared root.
+
+See [`../path-contracts.md`](../path-contracts.md) for cross-platform path rules.

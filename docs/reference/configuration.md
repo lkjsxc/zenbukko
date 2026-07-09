@@ -10,6 +10,7 @@ Document environment variables and browser settings precedence.
 - `OUTPUT_DIR`: downloads directory.
 - `LOG_LEVEL`: `silent|error|warn|info|debug`.
 - `PUPPETEER_HEADLESS`: `true|false` for CLI browser workflows. Web-triggered course list loading is forced headless inside Core API so it does not open a visible browser window.
+- `PUPPETEER_EXECUTABLE_PATH`: explicit Edge, Chrome, or Chromium executable. The path must exist. Without it, Zenbukko checks Puppeteer's browser, common system locations, then `PATH`.
 - `WEB_PORT`: default web port.
 - `ZENBUKKO_API_PORT`: default Core API port, `8788`.
 - `ZENBUKKO_API_URL`: Web proxy target, default `http://127.0.0.1:8788`.
@@ -39,3 +40,5 @@ API settings override environment values for browser-created jobs. Environment v
 ## Validation
 
 Only documented local settings are persisted or returned. Unsupported OCR provider fields are rejected by job requests and ignored when old settings files are read.
+
+`doctor` reports resolved executable paths without executing them. It reports missing browser, OCR, Poppler, ffmpeg, whisper, model, or built Web assets with the setting or install step needed next.
