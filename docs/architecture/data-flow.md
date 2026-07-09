@@ -21,10 +21,11 @@ Show how requests move through Zenbukko and where persistent artifacts are writt
 2. Browser reads and writes same-origin `/api/*` through the Web proxy.
 3. The Web proxy forwards API requests without a Zenbukko browser-token gate.
 4. `zenbukko api` receives proxied requests on port `8788`.
-5. Job forms submit normalized JSON to Core API `/api/jobs`.
-6. `ApiJobQueue` persists job records and logs under API-owned state.
-7. Jobs call the same workflow functions as the CLI.
-8. Logs stream through Server-Sent Events via the Web proxy.
+5. Course-list scraping stays CLI-owned: run `zenbukko list-courses --format json` and import the JSON into the Web UI.
+6. Job forms submit normalized JSON to Core API `/api/jobs`.
+7. `ApiJobQueue` persists job records and logs under API-owned state.
+8. Jobs call the same workflow functions as the CLI.
+9. Logs stream through Server-Sent Events via the Web proxy.
 
 ## Materials And OCR Flow
 

@@ -39,8 +39,9 @@ Navigate via hash routes: Dashboard, Session, Courses, Archive, Jobs, Outputs, S
 - Session JSON only needs to be pasted when no saved session exists or the operator wants to replace it.
 - Courses and archive jobs should be treated as unavailable until a valid session is saved.
 - OCR settings are stored by Core API under API-owned state.
+- Course list browsing imports JSON produced by `zenbukko list-courses --format json`; Web UI does not scrape the NNN course list.
 - Archive jobs accept learning URL, visual chapter selection, materials, transcription, and OCR options.
-- Course detail API powers the visual chapter picker.
+- Course detail API powers the visual chapter picker after a course ID is known.
 
 ## Outputs
 

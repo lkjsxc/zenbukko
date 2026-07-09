@@ -30,6 +30,8 @@ zenbukko list-courses --format table
 zenbukko download --course-id 12345 --chapter-range 1-3 --materials
 ```
 
+Use `zenbukko list-courses --format json` when you want to import the course list into the Web UI. The Web UI does not run the browser-based course-list scrape itself.
+
 `api` starts the Core API that owns `/api/*`, `/healthz`, jobs, settings, outputs, OCR, transcription, and downloads. `web` starts the static UI and same-origin proxy.
 
 ## Chapter Selection

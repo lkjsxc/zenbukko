@@ -1,4 +1,4 @@
-import type { AppState } from '../state/types.js';
+import type { AppState, CourseItem } from '../state/types.js';
 import type { Dispatch } from '../app.js';
 import { apiFetch } from '../api/client.js';
 import { card, button, emptyState } from '../components/primitives.js';
@@ -11,22 +11,29 @@ type CourseDetail = { courseId: number; title?: string; chapters: ChapterItem[] 
 
 export const renderCourses = (state: AppState, dispatch: Dispatch): HTMLElement => {
   const body = el('div', { className: 'stack' });
-  const search = el('input', { type: 'search', placeholder: 'Search courses...', className: 'input' }) as HTMLInputElement;
-  const loadBtn = button('Load courses', { variant: 'primary' });
+  const search = el('input', { type: 'search', placeholder: 'Search imported courses...', className: 'input' }) as HTMLInputElement;
+  const importText = el('textarea', {
+    className: 'code-input',
+    placeholder: 'Paste JSON from: zenbukko list-courses --format json',
+  }) as HTMLTextAreaElement;
+  const importBtn = button('Import CLI course JSON', { variant: 'primary' });
 
-  loadBtn.addEventListener('click', async () => {
-    loadBtn.disabled = true;
+  importBtn.addEventListener('click', () => {
     try {
-      const data = await apiFetch<{ courses: AppState['courses'] }>(state.token, '/api/courses');
-      dispatch({ type: 'SET_COURSES', courses: data.courses });
+      const courses = parseCourseListJson(importText.value);
+      dispatch({ type: 'SET_COURSES', courses });
+      dispatch({ type: 'SHOW_TOAST', message: `Imported ${courses.length} course(s).`, kind: 'success' });
     } catch (e) {
       dispatch({ type: 'SHOW_TOAST', message: e instanceof Error ? e.message : String(e), kind: 'error' });
-    } finally {
-      loadBtn.disabled = false;
     }
   });
 
-  body.append(el('div', { className: 'row' }, search, loadBtn));
+  body.append(
+    el('p', { className: 'muted', text: 'Run `zenbukko list-courses --format json` in the CLI, then paste the JSON here. The Web UI does not scrape the course list.' }),
+    importText,
+    el('div', { className: 'row' }, importBtn),
+    el('div', { className: 'row' }, search),
+  );
 
   const table = el('table', { className: 'data-table' });
   table.innerHTML = '<thead><tr><th>ID</th><th>Title</th><th>Source</th><th></th></tr></thead>';
@@ -69,8 +76,33 @@ export const renderCourses = (state: AppState, dispatch: Dispatch): HTMLElement 
     body.append(renderChapterTable(state.courseDetail.chapters));
   }
 
-  if (state.courses.length === 0) body.append(emptyState('Load courses after saving a session.'));
+  if (state.courses.length === 0) body.append(emptyState('Import course JSON from the CLI to populate this table.'));
   else renderRows();
 
   return card('Courses', body);
 };
+
+function parseCourseListJson(raw: string): CourseItem[] {
+  const parsed = JSON.parse(raw) as unknown;
+  const list = Array.isArray(parsed) ? parsed : courseArrayFromObject(parsed);
+  if (!Array.isArray(list)) throw new Error('Expected the JSON array from `zenbukko list-courses --format json`.');
+  return list.map(parseCourseItem);
+}
+
+function courseArrayFromObject(value: unknown): unknown {
+  return value && typeof value === 'object' && Array.isArray((value as { courses?: unknown }).courses)
+    ? (value as { courses: unknown[] }).courses
+    : undefined;
+}
+
+function parseCourseItem(value: unknown): CourseItem {
+  if (!value || typeof value !== 'object') throw new Error('Course JSON entries must be objects.');
+  const item = value as Record<string, unknown>;
+  const courseId = Number(item.courseId ?? item.id);
+  if (!Number.isFinite(courseId)) throw new Error('Course JSON entries must include numeric courseId.');
+  const title = typeof item.title === 'string' && item.title.trim() ? item.title : `course-${courseId}`;
+  const course: CourseItem = { courseId, title };
+  if (typeof item.sourceTabId === 'string') course.sourceTabId = item.sourceTabId;
+  if (typeof item.sourceTabLabel === 'string') course.sourceTabLabel = item.sourceTabLabel;
+  return course;
+}
