@@ -1,10 +1,10 @@
 import puppeteer, { type Page } from 'puppeteer';
 import type { StoredSession } from '../session/sessionStore.js';
 
-export const AUTH_LOGIN_ZOOM_OUT_STEPS = 2;
+export const AUTH_LOGIN_PAGE_SCALE_FACTOR = 0.8;
 
-export function authLoginZoomShortcutCount(): number {
-  return AUTH_LOGIN_ZOOM_OUT_STEPS;
+export function authLoginPageScaleFactor(): number {
+  return AUTH_LOGIN_PAGE_SCALE_FACTOR;
 }
 
 export function authBrowserLaunchArgs(): string[] {
@@ -25,8 +25,8 @@ export async function interactiveLogin(params: {
 
     params.onStatus('Opening login page…');
     await page.goto('https://www.nnn.ed.nico/', { waitUntil: 'networkidle2' });
-    params.onStatus('Zooming out the login page so the login button is visible…');
-    await zoomOutAuthLoginPage(page);
+    params.onStatus('Setting login page zoom to 80% so the login button is visible…');
+    await setAuthLoginPageScale(page);
 
     params.onStatus('Please log in in the opened browser window.');
     params.onStatus('After login, return here and press ENTER.');
@@ -55,14 +55,9 @@ export async function interactiveLogin(params: {
   }
 }
 
-async function zoomOutAuthLoginPage(page: Page): Promise<void> {
-  await page.bringToFront();
-  await page.keyboard.down('Control');
-  try {
-    for (let i = 0; i < AUTH_LOGIN_ZOOM_OUT_STEPS; i += 1) await page.keyboard.press('Minus');
-  } finally {
-    await page.keyboard.up('Control');
-  }
+async function setAuthLoginPageScale(page: Page): Promise<void> {
+  const client = await page.createCDPSession();
+  await client.send('Emulation.setPageScaleFactor', { pageScaleFactor: AUTH_LOGIN_PAGE_SCALE_FACTOR });
 }
 
 async function waitForEnter(): Promise<void> {

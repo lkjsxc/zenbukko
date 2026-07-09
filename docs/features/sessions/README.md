@@ -13,6 +13,6 @@ Authenticate NNN requests using browser-exported cookies. A saved session is nor
 
 - Cookie-header session imports remain supported.
 - Interactive CLI auth is the normal first step before course-aware workflows.
-- Interactive auth applies two normal Chromium zoom-out shortcuts to the login page without changing Chromium device scale.
+- Interactive auth sets the login page to 80% page scale without changing Chromium device-scale launch flags.
 - Structured cookie matching respects domain, path, and expiration when those fields are available.
 - Invalid input does not overwrite the previous saved session.
