@@ -42,11 +42,11 @@ const primaryActions = (state: AppState): HTMLElement => {
   if (!sessionReady) {
     root.append(el('div', {
       className: 'notice notice-missing',
-      text: 'Import a session first. Courses and archive jobs require an authenticated session.',
+      text: 'Sign in with zenbukko auth on a native or WSL2 host, or import private session JSON for Docker. Courses and archive jobs stay unavailable until it is saved.',
     }));
   }
   const actions = el('div', { className: 'row' });
-  const session = button(sessionReady ? 'Replace session' : 'Import session', { variant: sessionReady ? 'secondary' : 'primary' });
+  const session = button(sessionReady ? 'Replace session' : 'Set up NNN session', { variant: sessionReady ? 'secondary' : 'primary' });
   const courses = button('Browse courses', { variant: 'primary', disabled: !sessionReady });
   const archive = button('Start archive', { variant: 'primary', disabled: !sessionReady });
   session.addEventListener('click', () => navigate({ name: 'session' }));

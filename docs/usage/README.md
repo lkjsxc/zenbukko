@@ -13,5 +13,6 @@ Most course-aware workflows require a saved NNN session. Run `zenbukko auth` bef
 - [`cli.md`](cli.md): command-line workflows.
 - [`web-ui.md`](web-ui.md): browser workflow.
 - [`docker-compose.md`](docker-compose.md): container workflow.
+- [`ai-assisted-setup.md`](ai-assisted-setup.md): recommended Docker, WSL2, and safe AI-assisted setup.
 - [`native-setup.md`](native-setup.md): macOS, Linux, and Windows local setup guidance.
 - [`outputs.md`](outputs.md): generated files.

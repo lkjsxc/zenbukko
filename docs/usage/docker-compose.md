@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Run Zenbukko with repeatable local volumes and optional Linux NVIDIA CUDA image support.
+Run Zenbukko with repeatable local volumes, automatic local OCR installation, AMD64 compatibility for non-x86 Docker Desktop hosts, and optional Linux NVIDIA CUDA support.
 
 ## Services
 
@@ -14,9 +14,12 @@ Run Zenbukko with repeatable local volumes and optional Linux NVIDIA CUDA image 
 Use exactly one runtime profile for `up`:
 
 ```sh
+mkdir -p data data/web-ui
 docker compose --profile cpu up --build
 docker compose --profile gpu up --build
 ```
+
+The CPU profile defaults to `linux/amd64`. Docker Desktop runs it natively on Intel hosts and through its compatibility layer on Apple silicon, so the pinned NDLOCR-Lite stack has one known runtime. The first emulated build can take longer. A non-x86 Linux host may opt into a verified native build with `ZENBUKKO_DOCKER_PLATFORM=linux/arm64`; return to the default if the native OCR dependencies are unavailable.
 
 Both Web services publish the UI on host `0.0.0.0:8787` so another machine on the reachable network can open `http://<host-ip>:8787/`.
 
@@ -30,7 +33,7 @@ docker compose --profile cpu run --rm --entrypoint /bin/sh zenbukko-api -c 'comm
 docker compose --profile cpu run --rm --entrypoint npm zenbukko-api run smoke:local-ocr
 ```
 
-CPU services run local OCR and local whisper.cpp in the container.
+CPU services run local OCR and local whisper.cpp in the container. The image installs the pinned `ndlocr-lite` command, Poppler, and its Python environment during build, so no host OCR installation or model-provider credentials are required.
 
 ## GPU Verification
 
@@ -42,7 +45,7 @@ docker compose --profile gpu build zenbukko-api-gpu zenbukko-web-gpu
 docker compose --profile gpu run --rm --entrypoint npm zenbukko-api-gpu run smoke:local-ocr
 ```
 
-macOS and Windows operators should use native local setup or CPU containers. Do not expect Docker GPU acceleration outside the Linux NVIDIA CUDA profile.
+macOS and Windows operators should use the CPU containers. Windows users should prefer WSL2 with Docker Desktop integration; macOS Apple-silicon users use the CPU profile's AMD64 compatibility layer. Do not expect Docker GPU acceleration outside the Linux NVIDIA CUDA profile.
 
 ## Build Cache
 
@@ -67,19 +70,15 @@ Create the host data directory before running Compose:
 mkdir -p data data/web-ui
 ```
 
-The API image runs as the container `node` user. On hosts where the local user is not UID `1000`, make the bind mount writable by that container user before starting the API:
+The API and Web entrypoints create their configured data directories, repair ownership for the supported `/data` and `/web-data` bind mounts when they start as root, then drop to the unprivileged `node` user. A normal `mkdir -p data data/web-ui` is enough; no manual `chown` is required for the supported Compose flow.
 
-```sh
-sudo chown -R 1000:1000 data
-```
-
-The Web image repairs `/web-data` ownership at startup before dropping to the `node` user, so an auto-created `data/web-ui` bind mount is still writable by the Web process.
-
-If local CLI runs need to write `data/session.json` after Docker use, restore host ownership:
+If a locked-down host forbids ownership changes on bind mounts, use a writable project checkout or a Docker-managed volume instead. If you later switch from Compose to a native Linux CLI, restore local ownership first:
 
 ```sh
 sudo chown -R "$(id -u):$(id -g)" data
 ```
+
+Do not run the API process itself as root.
 
 ## Failure Behavior
 

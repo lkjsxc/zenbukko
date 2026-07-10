@@ -58,6 +58,7 @@ RUN git clone https://github.com/ndl-lab/ndlocr-lite /opt/ndlocr-lite \
   && python3 -m venv /opt/ndlocr-lite-venv \
   && /opt/ndlocr-lite-venv/bin/pip install --upgrade pip \
   && /opt/ndlocr-lite-venv/bin/pip install /opt/ndlocr-lite \
+  && /opt/ndlocr-lite-venv/bin/ndlocr-lite --help >/dev/null \
   && rm -rf /root/.cache/pip
 
 # Install Node.js from official tarball (keeps us on CUDA base images)
@@ -98,6 +99,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
     poppler-utils \
     ffmpeg \
+    gosu \
   && install -d -m 0755 /etc/apt/keyrings \
   && curl -fsSL https://dl.google.com/linux/linux_signing_key.pub \
     | gpg --dearmor -o /etc/apt/keyrings/google-linux-signing-key.gpg \
@@ -120,10 +122,10 @@ ENV ZENBUKKO_NDLOCR_CMD=ndlocr-lite
 COPY --from=build /app /app
 COPY --from=build /opt/ndlocr-lite /opt/ndlocr-lite
 COPY --from=build /opt/ndlocr-lite-venv /opt/ndlocr-lite-venv
+COPY docker/api-entrypoint.sh /usr/local/bin/api-entrypoint.sh
 
 RUN useradd -m -u 1000 node \
-  && chown -R node:node /app
+  && chown -R node:node /app \
+  && chmod +x /usr/local/bin/api-entrypoint.sh
 
-USER node
-
-ENTRYPOINT ["node", "dist/index.js"]
+ENTRYPOINT ["api-entrypoint.sh"]

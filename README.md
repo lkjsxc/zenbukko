@@ -4,28 +4,32 @@ Zenbukko is a local course archive and study-material processing toolkit. It dow
 
 Documentation lives in [`docs/`](docs/README.md). Start there for architecture, usage, feature behavior, API contracts, and development rules.
 
-## Native Quick Start
+## Recommended Quick Start
 
-Install both workspaces with either package manager. Build scripts do not invoke npm or pnpm internally.
+Use Docker Compose for the simplest local setup. It installs the pinned NDLOCR-Lite OCR stack, Poppler, Chromium, ffmpeg, and whisper.cpp inside the CPU image. It defaults to AMD64, which Docker Desktop runs through its compatibility layer on Apple silicon.
 
 ```sh
-# npm (lockfile-backed)
+mkdir -p data data/web-ui
+docker compose --profile cpu up --build
+```
+
+Open `http://127.0.0.1:8787/`. The Dashboard sends operators without an NNN session to **Set up NNN session** before course actions become available. Native or WSL2 users can run `zenbukko auth` in a real browser; Docker-only users import private session JSON through that screen. Never share or commit session JSON.
+
+Windows users should prefer WSL2 with Docker Desktop integration. Linux NVIDIA GPU acceleration is optional; run `docker compose --profile gpu up --build` only on a supported Linux x86_64 host. See [`docs/usage/ai-assisted-setup.md`](docs/usage/ai-assisted-setup.md) for safe AI collaboration, platform guidance, and authentication details.
+
+## Native Quick Start
+
+Use native setup for development or when host tools are required. Install both workspaces with either package manager; Node.js 22 or newer is required.
+
+```sh
 npm ci
 npm --prefix web-ui ci
 npm run build
 node dist/index.js doctor
-
-# or pnpm when npm is unavailable
-pnpm install --no-lockfile  # installs the web-ui workspace too
-pnpm run build
-node dist/index.js doctor
+node dist/index.js auth
 ```
 
-Node.js 22 or newer is required. See [`docs/usage/native-setup.md`](docs/usage/native-setup.md) for Windows, browser, OCR, transcription, and server setup.
-
-## Normal Use
-
-Run `node dist/index.js doctor` to inspect native dependencies, then `node dist/index.js auth` to log in to NNN and save a local session. Course listing, downloads, and browser-created archive jobs expect that saved session unless you import a valid session JSON through the Web UI. Session JSON contains private cookies and must not be shared or committed.
+`pnpm install --no-lockfile` installs both workspaces when npm is unavailable. See [`docs/usage/native-setup.md`](docs/usage/native-setup.md) for Windows, browser, OCR, transcription, and server setup.
 
 ## Main Entrypoints
 

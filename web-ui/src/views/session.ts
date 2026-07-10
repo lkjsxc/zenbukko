@@ -3,6 +3,7 @@ import type { Dispatch } from '../app.js';
 import { apiFetch } from '../api/client.js';
 import { card, button, field, loadingState } from '../components/primitives.js';
 import { el } from '../utils/html.js';
+import { navigate } from '../router/hash.js';
 
 export const renderSession = (state: AppState, dispatch: Dispatch): HTMLElement => {
   const body = el('div', { className: 'stack' });
@@ -14,8 +15,9 @@ export const renderSession = (state: AppState, dispatch: Dispatch): HTMLElement 
     className: `notice ${state.sessionExists ? 'notice-ready' : 'notice-missing'}`,
     text: state.sessionExists
       ? 'Saved session loaded. Course and archive jobs will use it.'
-      : 'No saved session. Paste session JSON once, then save.',
+      : 'No saved session. Complete the guided sign-in or import private session JSON.',
   }));
+  if (!state.sessionExists) body.append(authGuide());
 
   const textarea = el('textarea', {
     className: 'code-input', spellcheck: 'false', autocomplete: 'off', 'aria-describedby': 'session-error',
@@ -77,7 +79,7 @@ export const renderSession = (state: AppState, dispatch: Dispatch): HTMLElement 
       });
       dispatch({ type: 'SET_SESSION', text: textarea.value, exists: true });
       dispatch({ type: 'REFRESH_STATUS' });
-      dispatch({ type: 'SHOW_TOAST', message: 'Session saved.', kind: 'success' });
+      dispatch({ type: 'SHOW_TOAST', message: 'Session saved. Browse courses when you are ready.', kind: 'success' });
     } catch (caught) {
       const message = textarea.hasAttribute('aria-invalid')
         ? 'Fix the highlighted JSON error.'
@@ -91,6 +93,21 @@ export const renderSession = (state: AppState, dispatch: Dispatch): HTMLElement 
   });
 
   row.append(saveBtn, prettyBtn, validateBtn);
+  if (state.sessionExists) {
+    const courses = button('Browse courses', { variant: 'secondary' });
+    courses.addEventListener('click', () => navigate({ name: 'courses' }));
+    row.append(courses);
+  }
   body.append(inputField, row);
   return card('Session', body);
 };
+
+const authGuide = (): HTMLElement => el('section', { className: 'stack', 'aria-labelledby': 'session-auth-title' },
+  el('h2', { id: 'session-auth-title', text: 'Sign in to NNN' }),
+  el('p', {},
+    document.createTextNode('For a native or WSL2 setup, run '),
+    el('code', { text: 'zenbukko auth' }),
+    document.createTextNode(' in a terminal that can open your browser, then return here.'),
+  ),
+  el('p', { text: 'For a Docker-only setup, complete sign-in outside the headless container and paste your privately exported session JSON below. Do not share it.' }),
+);

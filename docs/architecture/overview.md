@@ -20,7 +20,7 @@ Describe the stable runtime boundaries for maintainers and LLM agents.
 
 - Browser session JSON saved at `ZENBUKKO_SESSION_PATH` or `/data/session.json`.
 - NNN course IDs, chapter IDs, lesson IDs, or one-based chapter ranges.
-- OCR settings and optional cloud API key from Core API settings or environment.
+- Local OCR settings for the NDLOCR-Lite command, device, and PDF rasterization from Core API settings or environment.
 - Whisper model name and optional backend selection.
 
 ## Outputs

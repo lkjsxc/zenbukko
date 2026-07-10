@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     python3 \
     python3-venv \
+    gosu \
     make \
     g++ \
     cmake \
@@ -68,6 +69,7 @@ RUN git clone https://github.com/ndl-lab/ndlocr-lite /opt/ndlocr-lite \
   && python3 -m venv /opt/ndlocr-lite-venv \
   && /opt/ndlocr-lite-venv/bin/pip install --upgrade pip \
   && /opt/ndlocr-lite-venv/bin/pip install /opt/ndlocr-lite \
+  && /opt/ndlocr-lite-venv/bin/ndlocr-lite --help >/dev/null \
   && rm -rf /root/.cache/pip
 
 ENV PATH="/opt/ndlocr-lite-venv/bin:${PATH}"
@@ -90,9 +92,9 @@ COPY eslint.config.js ./
 COPY scripts ./scripts
 COPY tests ./tests
 COPY docs ./docs
+COPY docker/api-entrypoint.sh /usr/local/bin/api-entrypoint.sh
 
+RUN chmod +x /usr/local/bin/api-entrypoint.sh
 
-# Avoid creating root-owned files in bind mounts (e.g. ./new/downloads)
-USER node
-
-ENTRYPOINT ["node", "dist/index.js"]
+# Repair only mounted data directories, then drop to the unprivileged node user.
+ENTRYPOINT ["api-entrypoint.sh"]

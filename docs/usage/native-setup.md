@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Run Zenbukko without Docker. Windows, macOS, and Linux use the same built JavaScript entrypoint; OCR and transcription stay on the local machine.
+Run Zenbukko without Docker. This is the development or host-tools path; use the Docker Compose CPU profile first for the simplest supported setup because it installs NDLOCR-Lite and the other local OCR tools automatically. Windows, macOS, and Linux use the same built JavaScript entrypoint; OCR and transcription stay on the local machine.
 
 ## Install JavaScript Dependencies
 
@@ -40,7 +40,9 @@ The diagnostic reports Node, package managers, browser, ffmpeg, Poppler, NDLOCR-
 
 Browser precedence is explicit `PUPPETEER_EXECUTABLE_PATH`, Puppeteer's downloaded browser, then common system Edge/Chrome/Chromium locations and `PATH`.
 
-## Windows PowerShell
+## Windows And WSL2
+
+Prefer WSL2 plus Docker Desktop integration for a new Windows setup. Keep the checkout in the Linux filesystem, enable the distribution in Docker Desktop, and follow [`docker-compose.md`](docker-compose.md). This avoids manual Windows OCR and Whisper installation.
 
 Native Windows is supported for auth, course listing, API/Web, downloads, material PDF rendering, and OCR when required executables are installed. Example with an explicit bundled Node:
 
@@ -64,6 +66,8 @@ $env:ZENBUKKO_NDLOCR_CMD = "C:\path\to\ndlocr-lite.exe"
 `setup-whisper` currently requires Git, CMake, and Unix-compatible build/download tooling. On native Windows, install whisper.cpp manually under `whisper.cpp`, including `whisper-cli.exe` and `models\ggml-<model>.bin`, or use WSL2 for that setup step. The runtime recognizes Windows `.exe` binaries.
 
 ## macOS
+
+On Intel and Apple-silicon Macs, prefer Docker Desktop and the CPU Compose profile. It defaults to the AMD64 compatibility layer so the pinned OCR stack starts without a host NDLOCR-Lite installation. Use the following native path only when you need host tools:
 
 ```sh
 brew install node ffmpeg poppler

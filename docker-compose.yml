@@ -1,6 +1,7 @@
 services:
   zenbukko-api:
     profiles: ["cpu"]
+    platform: ${ZENBUKKO_DOCKER_PLATFORM:-linux/amd64}
     build:
       context: .
       dockerfile: Dockerfile
@@ -25,6 +26,7 @@ services:
 
   zenbukko-web:
     profiles: ["cpu"]
+    platform: ${ZENBUKKO_DOCKER_PLATFORM:-linux/amd64}
     build:
       context: .
       dockerfile: Dockerfile.web
@@ -71,8 +73,8 @@ services:
       NVIDIA_DRIVER_CAPABILITIES: compute,utility,video
       ZENBUKKO_WHISPER_CUDA: "1"
       ZENBUKKO_WHISPER_BACKEND: auto
-      ZENBUKKO_CMAKE_CUDA_ARCHITECTURES: "86"
-      ZENBUKKO_CMAKE_BUILD_PARALLEL_LEVEL: "2"
+      ZENBUKKO_CMAKE_CUDA_ARCHITECTURES: ${ZENBUKKO_CMAKE_CUDA_ARCHITECTURES:-86}
+      ZENBUKKO_CMAKE_BUILD_PARALLEL_LEVEL: ${ZENBUKKO_CMAKE_BUILD_PARALLEL_LEVEL:-2}
     gpus: all
     deploy:
       resources:

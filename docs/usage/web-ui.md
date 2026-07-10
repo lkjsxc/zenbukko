@@ -19,7 +19,7 @@ Docker Compose publishes Web on `0.0.0.0:8787` for trusted-network access. Zenbu
 
 ## Authentication
 
-Course browsing and archive jobs require a saved NNN session. Use `zenbukko auth` before opening the Web UI, or paste a valid session JSON on the Session screen when no saved session exists.
+Course browsing and archive jobs require a saved NNN session. When none exists, the Dashboard action **Set up NNN session** leads to Session before course actions can start. Use `zenbukko auth` on a native or WSL2 installation that can open a browser, or paste a valid session JSON on the Session screen for a Docker-only setup. Interactive browser auth is not run inside the headless API container.
 
 ## Build
 
@@ -40,6 +40,7 @@ Navigate via hash routes: Dashboard, Session, Courses, Archive, Jobs, Outputs, S
 ## Inputs
 
 - Existing `session.json` is read automatically when the page opens.
+- The Session screen explains the native/WSL2 `zenbukko auth` path and the Docker-only private JSON-import path.
 - Session JSON only needs to be pasted when no saved session exists or the operator wants to replace it.
 - Courses and archive jobs should be treated as unavailable until a valid session is saved.
 - OCR settings are stored by Core API under API-owned state.
