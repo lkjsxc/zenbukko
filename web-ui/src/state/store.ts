@@ -1,3 +1,4 @@
+import { appendLogText } from '../utils/logText.js';
 import type { AppEvent, AppState } from './types.js';
 
 export const initialState = (): AppState => ({
@@ -48,7 +49,7 @@ export const reduce = (state: AppState, event: AppEvent): AppState => {
       return event.jobId === state.selectedJobId
         ? state
         : { ...state, selectedJobId: event.jobId, logText: '' };
-    case 'APPEND_LOG': return { ...state, logText: `${state.logText}${event.line}\n` };
+    case 'APPEND_LOG': return { ...state, logText: appendLogText(state.logText, event.line) };
     case 'CLEAR_LOG': return { ...state, logText: '' };
     case 'SET_LOG_PAUSED': return { ...state, logPaused: event.paused };
     case 'SET_STREAM_STATUS': return { ...state, streamStatus: event.status };

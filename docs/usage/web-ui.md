@@ -53,7 +53,7 @@ Navigate via hash routes: Dashboard, Session, Courses, Archive, Jobs, Outputs, S
 - Jobs and logs are persisted by Core API under `/data/api/jobs` in Compose.
 - Downloads and derived artifacts are written under `/data/downloads` by default.
 - Outputs screen lists recent Markdown, transcript, HTML, JSON, and PDF files with preview and download.
-- Long log lines wrap inside the log panel instead of widening the page.
+- Long log lines wrap inside the log panel instead of widening the page. The browser shows a bounded recent tail; inspect `/data/api/jobs/*.log` for older persisted output.
 
 ## Failure Behavior
 

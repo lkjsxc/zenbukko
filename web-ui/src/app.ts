@@ -35,7 +35,7 @@ const dispatch: Dispatch = (event) => {
   state = reduce(state, event);
   if (event.type === 'APPEND_LOG') {
     const content = document.getElementById('main-content');
-    if (content) appendLogLine(content, event.line, state.logPaused);
+    if (content) appendLogLine(content, event.line, state.logText, state.logPaused);
     return;
   }
   if (event.type === 'SET_COURSE_QUERY') return;
@@ -146,7 +146,10 @@ const syncJobStream = (): void => {
   stream = openJobStream(jobId, {
     onLine: (line) => { dispatch({ type: 'APPEND_LOG', line }); scheduleJobRefresh(); },
     onOpen: () => dispatch({ type: 'SET_STREAM_STATUS', status: 'connected' }),
-    onReconnecting: () => dispatch({ type: 'SET_STREAM_STATUS', status: 'reconnecting' }),
+    onReconnecting: () => {
+      dispatch({ type: 'CLEAR_LOG' });
+      dispatch({ type: 'SET_STREAM_STATUS', status: 'reconnecting' });
+    },
   });
 };
 

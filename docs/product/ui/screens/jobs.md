@@ -17,7 +17,7 @@ List jobs and stream live logs.
 
 ## Invariants
 
-One SSE connection per selected job. Pending reconnects are cancelled when changing jobs or leaving Jobs. Log lines append without rerendering the screen. Event delegation is used on the table body.
+One SSE connection per selected job. Pending reconnects are cancelled when changing jobs or leaving Jobs. Log lines append without rerendering the screen. The browser retains bounded recent output, and a reconnect replaces it with the server's recent tail. Event delegation is used on the table body.
 
 ## Failure Behavior
 

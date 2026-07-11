@@ -1,5 +1,6 @@
 import type { StreamStatus } from '../state/types.js';
 import { el } from '../utils/html.js';
+import { retainLogText } from '../utils/logText.js';
 import { emptyState } from './primitives.js';
 
 export const renderLogViewer = (
@@ -31,7 +32,9 @@ export const renderLogViewer = (
     'aria-relevant': 'additions',
     'aria-label': `Live log for job ${selectedJobId}`,
   });
-  pre.textContent = text;
+  const retainedText = retainLogText(text);
+  pre.append(document.createTextNode(retainedText));
+  pre.dataset.logLength = String(retainedText.length);
   root.append(toolbar, pre);
   requestAnimationFrame(() => { if (!paused) pre.scrollTop = pre.scrollHeight; });
   return root;
@@ -45,9 +48,17 @@ const connectionBanner = (status: StreamStatus): HTMLElement => {
   return el('span', { className: 'stream-status', role: 'status', text: 'Connecting…' });
 };
 
-export const appendLogLine = (root: ParentNode, line: string, paused: boolean): void => {
+export const appendLogLine = (root: ParentNode, line: string, text: string, paused: boolean): void => {
   const pre = root.querySelector('.log-pre');
   if (!(pre instanceof HTMLElement)) return;
-  pre.append(document.createTextNode(`${line}\n`));
+  const appended = `${line}\n`;
+  const renderedLength = Number(pre.dataset.logLength ?? '0');
+  const textNode = pre.firstChild;
+  if (text.length === renderedLength + appended.length && textNode instanceof Text && pre.childNodes.length === 1) {
+    textNode.appendData(appended);
+  } else {
+    pre.textContent = text;
+  }
+  pre.dataset.logLength = String(text.length);
   if (!paused) pre.scrollTop = pre.scrollHeight;
 };

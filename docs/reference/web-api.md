@@ -37,6 +37,10 @@ Local OCR fields are `ndlocrCommand`, `ndlocrDevice`, `ocrPageDpi`, `ocrKeepInte
 
 Download jobs that run OCR rebuild chapter OCR aggregates after lesson OCR finishes. Standalone OCR jobs rebuild chapter OCR aggregates when their input is inside the standard downloads layout.
 
+## Job Log Limits
+
+`GET /api/jobs/:id` and the initial `GET /api/jobs/:id/events` replay include at most the newest 64 KiB or 500 log lines. Each SSE event is capped at 8 KiB after serialization. Omitted history and oversized lines include a visible truncation notice. Live streams may close for a slow client; reconnecting receives the bounded recent tail.
+
 ## Failure Behavior
 
 Validation failures return HTTP 400. Missing resources return HTTP 404. Unexpected server failures return HTTP 500 with an error message.

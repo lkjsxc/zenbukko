@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { initialState, reduce } from '../web-ui/src/state/store.ts';
+import { LOG_HISTORY_TRUNCATED, MAX_LOG_TEXT_CHARACTERS } from '../web-ui/src/utils/logText.ts';
 
 test('toast queue preserves notifications and dismisses one', () => {
   const first = reduce(initialState(), { type: 'SHOW_TOAST', message: 'Saved', kind: 'success' });
@@ -27,6 +28,18 @@ test('selecting a different job clears only its log', () => {
 
   assert.equal(selected.logText, '');
   assert.equal(selected.selectedJobId, 'job-2');
+});
+
+test('log output keeps a bounded recent tail', () => {
+  let state = initialState();
+  for (let index = 0; index < 5; index += 1) {
+    state = reduce(state, { type: 'APPEND_LOG', line: `old-${index}:${'x'.repeat(7000)}` });
+  }
+  const next = reduce(state, { type: 'APPEND_LOG', line: 'latest line' });
+
+  assert.ok(next.logText.length <= MAX_LOG_TEXT_CHARACTERS);
+  assert.ok(next.logText.startsWith(LOG_HISTORY_TRUNCATED));
+  assert.match(next.logText, /latest line/);
 });
 
 test('stream status updates preserve loaded resources', () => {

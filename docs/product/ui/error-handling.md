@@ -24,7 +24,7 @@ LogViewer shows a persistent reconnect banner on `EventSource` error. Exponentia
 
 ## Job Failures
 
-Failed jobs display `error` field in job table. Log panel retains full log text.
+Failed jobs display `error` field in job table. Log panel retains the most recent bounded log text.
 
 ## Failure Behavior
 

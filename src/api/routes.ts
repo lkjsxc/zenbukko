@@ -3,7 +3,7 @@ import type { Request, Response } from 'express';
 import type { AppConfig } from '../config.js';
 import { scrapeMyCoursesDetailed } from '../services/courseScraper.js';
 import { buildSessionPrefill, parseStoredSession, SessionStore } from '../session/sessionStore.js';
-import { fileExists, readTextFileIfExists } from '../utils/fs.js';
+import { fileExists } from '../utils/fs.js';
 import type { Logger } from '../utils/log.js';
 import { registerCourseRoutes } from './courseRoutes.js';
 import { registerOutputRoutes } from './outputRoutes.js';
@@ -11,6 +11,7 @@ import { normalizeJobRequest } from './requests.js';
 import { preflightLocalOcr } from '../services/ocr/preflight.js';
 import type { ApiJobQueue } from './queue.js';
 import { getEffectiveApiSettings, saveApiSettings } from './settings.js';
+import { readJobLogTail, serializeJobLogEvent } from './jobLogs.js';
 import type { JobKind, JobRecord, PublicJob } from './types.js';
 
 type RouteParams = { config: AppConfig; logger: Logger; queue: ApiJobQueue; stateDir: string };
@@ -97,7 +98,7 @@ async function sendJob(queue: ApiJobQueue, req: Request, res: Response): Promise
     res.status(404).json({ error: 'Job not found.' });
     return;
   }
-  res.json({ job: publicJob(job), log: (await readTextFileIfExists(job.logPath)) ?? '' });
+  res.json({ job: publicJob(job), log: (await readJobLogTail(job.logPath)).lines.join('\n') });
 }
 
 async function streamJob(queue: ApiJobQueue, req: Request, res: Response): Promise<void> {
@@ -107,11 +108,23 @@ async function streamJob(queue: ApiJobQueue, req: Request, res: Response): Promi
     return;
   }
   res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache, no-transform', Connection: 'keep-alive' });
-  for (const line of ((await readTextFileIfExists(job.logPath)) ?? '').split('\n').filter(Boolean)) {
-    res.write(`data: ${JSON.stringify(line)}\n\n`);
-  }
-  const unsub = queue.subscribe(job.id, (line) => res.write(`data: ${JSON.stringify(line)}\n\n`));
-  req.on('close', unsub);
+  let closed = false;
+  let unsub: (() => void) | null = null;
+  const close = (): void => {
+    if (closed) return;
+    closed = true;
+    unsub?.();
+    if (!res.writableEnded) res.end();
+  };
+  req.once('close', close);
+
+  const replay = (await readJobLogTail(job.logPath)).lines.map((line) => `data: ${serializeJobLogEvent(line)}\n\n`).join('');
+  if (closed) return;
+  if (replay) res.write(replay);
+  if (closed) return;
+  unsub = queue.subscribe(job.id, (line) => {
+    if (!res.write(`data: ${serializeJobLogEvent(line)}\n\n`)) close();
+  });
 }
 
 async function enqueueJob(queue: ApiJobQueue, req: Request, res: Response): Promise<void> {
