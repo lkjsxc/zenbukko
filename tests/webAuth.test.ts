@@ -63,6 +63,22 @@ test('job event stream works without a token query parameter', async () => {
   });
 });
 
+test('web proxy retries a failed initial GET', async () => {
+  await withProxy(async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/retry`);
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), { retried: true });
+  });
+});
+
+test('web proxy survives an aborted upstream body', async () => {
+  await withProxy(async (baseUrl) => {
+    await fetch(`${baseUrl}/api/abort`).then((res) => res.text()).catch(() => undefined);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    assert.equal((await fetch(`${baseUrl}/api/status`)).status, 200);
+  });
+});
+
 async function withProxy(run: (baseUrl: string) => Promise<void>): Promise<void> {
   const api = express();
   api.use(express.json());
@@ -73,6 +89,19 @@ async function withProxy(run: (baseUrl: string) => Promise<void>): Promise<void>
   api.get('/api/jobs/job-1/events', (_req, res) => {
     res.writeHead(200, { 'Content-Type': 'text/event-stream' });
     res.end('data: "line one"\n\n');
+  });
+  let retryAttempts = 0;
+  api.get('/api/retry', (_req, res) => {
+    if (retryAttempts++ === 0) {
+      res.destroy();
+      return;
+    }
+    res.json({ retried: true });
+  });
+  api.get('/api/abort', (_req, res) => {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.write('partial body');
+    setImmediate(() => res.destroy());
   });
 
   await withServer(api, async (apiUrl) => {
