@@ -7,7 +7,7 @@ import { el } from '../utils/html.js';
 import { navigate } from '../router/hash.js';
 
 export const renderJobs = (state: AppState, dispatch: Dispatch): HTMLElement => {
-  const body = el('div', { className: 'split-view' });
+  const body = el('div', { className: 'split-view jobs-split-view' });
   const left = el('section', { className: 'split-pane stack', 'aria-label': 'Jobs list' });
   const right = el('section', { className: 'split-pane', 'aria-label': 'Selected job log' });
 

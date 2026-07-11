@@ -17,4 +17,4 @@
 
 ## Usage
 
-Headings use lg/xl. Form labels sm with semibold. Log panel uses code stack at sm.
+Headings use lg/xl. Form labels sm with semibold. Log panel uses code stack at xs for compact operational output.
