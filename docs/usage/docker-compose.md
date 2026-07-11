@@ -37,15 +37,16 @@ CPU services run local OCR and local whisper.cpp in the container. The image ins
 
 ## GPU Verification
 
-GPU services are Linux NVIDIA CUDA only. Run these only on a host with NVIDIA Container Toolkit and compatible hardware:
+GPU services require a Linux NVIDIA CUDA container runtime. On native Linux, install NVIDIA Container Toolkit. Windows Docker Desktop can run this profile when its WSL2 backend, WSL integration, and NVIDIA GPU support are enabled; the API container must successfully run `nvidia-smi -L`.
 
 ```sh
 docker compose --profile gpu config
 docker compose --profile gpu build zenbukko-api-gpu zenbukko-web-gpu
+docker compose --profile gpu run --rm --entrypoint /bin/sh zenbukko-api-gpu -c 'nvidia-smi -L; command -v ndlocr-lite; command -v pdftoppm'
 docker compose --profile gpu run --rm --entrypoint npm zenbukko-api-gpu run smoke:local-ocr
 ```
 
-macOS and Windows operators should use the CPU containers. Windows users should prefer WSL2 with Docker Desktop integration; macOS Apple-silicon users use the CPU profile's AMD64 compatibility layer. Do not expect Docker GPU acceleration outside the Linux NVIDIA CUDA profile.
+Native Windows without WSL2 container GPU support and macOS should use the CPU containers. macOS Apple-silicon users use the CPU profile's AMD64 compatibility layer. Do not expect Docker GPU acceleration outside a Linux NVIDIA runtime.
 
 ## Build Cache
 

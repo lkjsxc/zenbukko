@@ -29,6 +29,7 @@ Describe the on-machine OCR path used by every OCR job.
 ## Failure Behavior
 
 - Missing `pdftoppm` or OCR command fails preflight with an actionable diagnostic.
+- CUDA preflight requires a Linux runtime, an available `nvidia-smi`, and successful `nvidia-smi -L` output.
 - Unreadable PDFs are reported as file-processing failures.
 - Empty OCR output is a failed result, not invented content.
 - OCR failures are captured in manifest status and do not delete other outputs.

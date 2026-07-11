@@ -1,13 +1,23 @@
+import { spawn } from 'node:child_process';
 import { constants } from 'node:fs';
 import { access } from 'node:fs/promises';
 import path from 'node:path';
 import { which } from '../../utils/which.js';
 import type { LocalOcrPreflight, LocalOcrSettings, OcrDiagnostic } from './types.js';
 
-export async function preflightLocalOcr(settings: LocalOcrSettings): Promise<LocalOcrPreflight> {
+export type PreflightRuntime = {
+  platform: NodeJS.Platform;
+  resolveCommand: (command: string) => Promise<string | undefined>;
+  run: (command: string, args: string[]) => Promise<boolean>;
+};
+
+export async function preflightLocalOcr(
+  settings: LocalOcrSettings,
+  runtime: PreflightRuntime = localRuntime(),
+): Promise<LocalOcrPreflight> {
   const [pdftoppmPath, ocrCommandPath] = await Promise.all([
-    resolveCommand('pdftoppm'),
-    resolveCommand(settings.command),
+    runtime.resolveCommand('pdftoppm'),
+    runtime.resolveCommand(settings.command),
   ]);
   const diagnostics: OcrDiagnostic[] = [];
   if (!pdftoppmPath) {
@@ -22,18 +32,25 @@ export async function preflightLocalOcr(settings: LocalOcrSettings): Promise<Loc
       message: `Local OCR command not found: ${settings.command}. Install NDLOCR-Lite or set ZENBUKKO_NDLOCR_CMD.`,
     });
   }
-  if (settings.device === 'cuda' && ocrCommandPath) {
-    diagnostics.push({
-      code: 'unexpected-local-ocr-error',
-      message: 'CUDA OCR requires a Linux NVIDIA host and a CUDA-capable local OCR command.',
-    });
-  }
+  if (settings.device === 'cuda') diagnostics.push(...await cudaDiagnostics(runtime));
   return {
-    ok: diagnostics.filter((d) => d.code !== 'unexpected-local-ocr-error').length === 0,
+    ok: diagnostics.length === 0,
     ...(pdftoppmPath ? { pdftoppmPath } : {}),
     ...(ocrCommandPath ? { ocrCommandPath } : {}),
     diagnostics,
   };
+}
+
+export async function cudaDiagnostics(runtime: PreflightRuntime): Promise<OcrDiagnostic[]> {
+  if (runtime.platform !== 'linux') return [cudaDiagnostic('CUDA OCR requires a Linux runtime.')];
+  const nvidiaSmiPath = await runtime.resolveCommand('nvidia-smi');
+  if (!nvidiaSmiPath) {
+    return [cudaDiagnostic('CUDA OCR requires nvidia-smi. Enable NVIDIA GPU support for the container and retry.')];
+  }
+  if (!await runtime.run(nvidiaSmiPath, ['-L'])) {
+    return [cudaDiagnostic('CUDA OCR could not verify an NVIDIA GPU with nvidia-smi -L.')];
+  }
+  return [];
 }
 
 export async function resolveCommand(command: string): Promise<string | undefined> {
@@ -44,6 +61,24 @@ export async function resolveCommand(command: string): Promise<string | undefine
   }
   return (await which(trimmed)) ?? undefined;
 }
+
+const localRuntime = (): PreflightRuntime => ({
+  platform: process.platform,
+  resolveCommand,
+  run: runCommand,
+});
+
+const cudaDiagnostic = (message: string): OcrDiagnostic => ({ code: 'unexpected-local-ocr-error', message });
+
+const runCommand = async (command: string, args: string[]): Promise<boolean> => new Promise((resolve) => {
+  try {
+    const child = spawn(command, args, { stdio: 'ignore', timeout: 5_000 });
+    child.once('error', () => resolve(false));
+    child.once('close', (code) => resolve(code === 0));
+  } catch {
+    resolve(false);
+  }
+});
 
 async function canExecute(filePath: string): Promise<boolean> {
   const mode = process.platform === 'win32' ? constants.F_OK : constants.X_OK;

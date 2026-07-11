@@ -88,6 +88,46 @@ test('preflight reports missing and found local commands', async () => {
   }
 });
 
+test('CUDA preflight validates the Linux NVIDIA runtime', async () => {
+  const settings = { command: 'ocr-tool', device: 'cuda' as const, pageDpi: 300, keepIntermediates: false, enableTcy: true };
+  let invocation: string[] | undefined;
+  const valid = await preflightLocalOcr(settings, {
+    platform: 'linux',
+    resolveCommand: async (command) => command === 'nvidia-smi' ? '/usr/bin/nvidia-smi' : `/usr/bin/${command}`,
+    run: async (command, args) => {
+      invocation = [command, ...args];
+      return true;
+    },
+  });
+  assert.equal(valid.ok, true);
+  assert.deepEqual(valid.diagnostics, []);
+  assert.deepEqual(invocation, ['/usr/bin/nvidia-smi', '-L']);
+
+  const notLinux = await preflightLocalOcr(settings, {
+    platform: 'win32',
+    resolveCommand: async (command) => `/usr/bin/${command}`,
+    run: async () => true,
+  });
+  assert.equal(notLinux.ok, false);
+  assert.match(notLinux.diagnostics[0]?.message ?? '', /Linux runtime/);
+
+  const missingNvidiaSmi = await preflightLocalOcr(settings, {
+    platform: 'linux',
+    resolveCommand: async (command) => command === 'nvidia-smi' ? undefined : `/usr/bin/${command}`,
+    run: async () => true,
+  });
+  assert.equal(missingNvidiaSmi.ok, false);
+  assert.match(missingNvidiaSmi.diagnostics[0]?.message ?? '', /nvidia-smi/);
+
+  const failedNvidiaSmi = await preflightLocalOcr(settings, {
+    platform: 'linux',
+    resolveCommand: async (command) => `/usr/bin/${command}`,
+    run: async () => false,
+  });
+  assert.equal(failedNvidiaSmi.ok, false);
+  assert.match(failedNvidiaSmi.diagnostics[0]?.message ?? '', /could not verify/);
+});
+
 test('local OCR options default to 300 DPI with TCY enabled', () => {
   const opts = localOptions({});
   assert.equal(opts.pageDpi, 300);
