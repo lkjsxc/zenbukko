@@ -15,7 +15,15 @@ docker compose --profile cpu up --build
 
 Open `http://127.0.0.1:8787/`. The Dashboard sends operators without an NNN session to **Set up NNN session** before course actions become available. Native or WSL2 users can run `zenbukko auth` in a real browser; Docker-only users import private session JSON through that screen. Never share or commit session JSON.
 
-Windows users should prefer WSL2 with Docker Desktop integration. Linux NVIDIA GPU acceleration is optional; run `docker compose --profile gpu up --build` only on a supported Linux x86_64 host. See [`docs/usage/ai-assisted-setup.md`](docs/usage/ai-assisted-setup.md) for safe AI collaboration, platform guidance, and authentication details.
+Choose one explicit Compose profile:
+
+```sh
+docker compose --profile cpu up --build
+docker compose --profile cuda up --build
+docker compose --profile vulkan up --build
+```
+
+CUDA requires a Linux NVIDIA Container Toolkit runtime. Vulkan targets Linux x86_64 AMD GPUs, primarily Radeon 780M, through amdgpu and Mesa RADV—not ROCm. It requires a host `/dev/dri/renderD*` node and working Vulkan driver. See [`docs/usage/docker-compose.md`](docs/usage/docker-compose.md) and [`docs/usage/ai-assisted-setup.md`](docs/usage/ai-assisted-setup.md) for safe platform guidance.
 
 ## Native Quick Start
 
@@ -33,7 +41,7 @@ node dist/index.js auth
 
 ## Main Entrypoints
 
-- CLI: `zenbukko auth`, `zenbukko list-courses`, `zenbukko download`, `zenbukko download-all`, `zenbukko ocr-materials`, `zenbukko build-report-prompt`, `zenbukko setup-whisper`, `zenbukko transcribe`.
+- CLI: `zenbukko auth`, `zenbukko list-courses`, `zenbukko download`, `zenbukko download-all`, `zenbukko ocr-materials`, `zenbukko build-report-prompt`, `zenbukko setup-whisper`, `zenbukko probe-whisper`, `zenbukko transcribe`, `zenbukko benchmark-whisper`.
 - Servers: `zenbukko api` for Core API and `zenbukko web` for static UI/proxy.
 - Web UI: run `zenbukko api` and `zenbukko web`, or `docker compose --profile cpu up zenbukko-web`.
 - Docker data: bind `./data` to `/data`; session defaults to `/data/session.json`; downloads default to `/data/downloads`.

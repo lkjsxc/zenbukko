@@ -17,9 +17,10 @@ Ask the assistant to stop before authentication. You complete NNN login yourself
 | macOS, including Apple silicon | Docker Desktop CPU profile | Uses the AMD64 compatibility layer by default, so the pinned OCR stack runs consistently. |
 | Windows | WSL2 + Docker Desktop integration | Linux tooling, paths, and container behavior match the supported CPU setup. |
 | Linux x86_64 | Docker Compose CPU profile | Runs the same local-only stack without emulation. |
+| Linux x86_64 + Radeon 780M | Docker Compose Vulkan profile | Uses amdgpu, Mesa RADV, and a mapped DRM render node. |
 | Native development | Native setup | Use only when you need host-installed tools or are developing Zenbukko. |
 
-The GPU profile remains Linux x86_64 with NVIDIA Container Toolkit only. It is not an Apple silicon or Windows GPU path.
+CUDA is Linux x86_64 with NVIDIA Container Toolkit. Vulkan is Linux x86_64 with `/dev/dri/renderD*`; neither is an Apple-silicon or unsupported Docker Desktop GPU path.
 
 ## Start The CPU Stack
 
@@ -39,6 +40,16 @@ ZENBUKKO_DOCKER_PLATFORM=linux/arm64 docker compose --profile cpu up --build
 ```
 
 Use the default `linux/amd64` again if the native build is unavailable or fails.
+
+## Start Vulkan Deliberately
+
+Only on a Linux host where `vulkaninfo --summary` can enumerate the intended GPU and `/dev/dri/renderD*` exists:
+
+```sh
+docker compose --profile vulkan up --build
+```
+
+Do not ask an assistant to work around missing DRM access by using `privileged`, mounting host drivers, changing device permissions, or installing ROCm. Explicit Vulkan reports an actionable failure; `ZENBUKKO_WHISPER_BACKEND=auto` is the deliberate CPU-fallback choice. NDLOCR-Lite stays CPU-only.
 
 ## Authenticate Deliberately
 

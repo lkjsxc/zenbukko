@@ -17,11 +17,13 @@ zenbukko rebuild-chapter-ocr --input /data/downloads
 zenbukko build-report-prompt --input /data/downloads/course-12345/01 --course-name "Mathematics History"
 zenbukko api --host 127.0.0.1 --port 8788
 zenbukko web --host 127.0.0.1 --port 8787 --api-url http://127.0.0.1:8788
-zenbukko setup-whisper --backend auto --model large-v3-turbo
-zenbukko transcribe --input lesson.ts --format txt
+zenbukko setup-whisper --backend vulkan --model large-v3-turbo
+zenbukko probe-whisper --backend auto
+zenbukko transcribe --input lesson.ts --backend auto --format txt
+zenbukko benchmark-whisper --input sample.wav --backend vulkan --json
 ```
 
-`doctor` checks native dependencies and paths without reading session contents or starting jobs. Use `doctor --json` for structured output.
+`doctor` checks native dependencies and paths without reading session contents or starting jobs. It uses bounded accelerator discovery but does not load a Whisper model. Use `doctor --json` for structured output. `probe-whisper` resolves the configured backend before a job. `benchmark-whisper` runs one real transcription against an explicitly supplied input and reports wall time and real-time factor; it is not a synthetic performance claim.
 
 `auth` opens the interactive NNN login page in a larger `1280x900` browser window so the login button is visible without manual zooming. It disables Puppeteer's fixed default viewport and does not use Chromium device-scale launch flags. After confirmation it closes the browser, releases terminal input, saves the session atomically, and exits. Run it before course listing or download commands unless `ZENBUKKO_SESSION_PATH` already points to a valid saved session.
 

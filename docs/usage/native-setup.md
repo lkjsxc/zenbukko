@@ -28,7 +28,7 @@ node dist/index.js doctor
 node dist/index.js doctor --json
 ```
 
-The diagnostic reports Node, package managers, browser, ffmpeg, Poppler, NDLOCR-Lite, whisper.cpp/model, session, writable paths, and built Web assets. It never reads or prints session cookie contents.
+The diagnostic reports Node, package managers, browser, ffmpeg, Poppler, NDLOCR-Lite, Whisper request/resolution, compiled backend executables, model state, session, writable paths, and built Web assets. On Linux it also reports Vulkan render-node, loader, ICD, and physical-device capability without loading a model. It never reads or prints session cookie contents.
 
 ## Shared Requirements
 
@@ -63,7 +63,7 @@ Install ffmpeg and Poppler with a trusted Windows package source and ensure `ffm
 $env:ZENBUKKO_NDLOCR_CMD = "C:\path\to\ndlocr-lite.exe"
 ```
 
-`setup-whisper` currently requires Git, CMake, and Unix-compatible build/download tooling. On native Windows, install whisper.cpp manually under `whisper.cpp`, including `whisper-cli.exe` and `models\ggml-<model>.bin`, or use WSL2 for that setup step. The runtime recognizes Windows `.exe` binaries.
+`setup-whisper` requires Git, CMake, and Unix-compatible build/download tooling. Native Vulkan setup is Linux-only; on native Windows install a compatible `whisper-cli.exe` and verified model manually, or use WSL2. The runtime keeps Windows executable paths native and reports unsupported Vulkan setup clearly instead of attempting Linux DRM probes.
 
 ## macOS
 
@@ -88,7 +88,15 @@ npm run build
 node dist/index.js setup-whisper --backend cpu --model large-v3-turbo
 ```
 
-Linux NVIDIA hosts may select CUDA only when their local OCR and whisper.cpp builds support it.
+Linux NVIDIA hosts may select CUDA when their whisper.cpp build and NVIDIA runtime support it. OCR remains CPU-based. Linux Vulkan hosts install upstream-required Vulkan build dependencies and use a distinct build root:
+
+```sh
+sudo apt-get install -y cmake glslc libvulkan-dev spirv-headers vulkan-tools mesa-vulkan-drivers
+node dist/index.js setup-whisper --backend vulkan --model large-v3-turbo
+ZENBUKKO_WHISPER_BACKEND=vulkan node dist/index.js probe-whisper
+```
+
+`setup-whisper --backend both` retains its CPU-plus-CUDA meaning. Use `--backend all` to build CPU, CUDA, and Vulkan. Whisper source is pinned to the exact commit in `docker/whisper.cpp.ref`; set `WHISPER_CPP_REF` only to an explicit 40-character upstream commit when deliberately overriding it.
 
 ## Native Verification
 
@@ -99,5 +107,7 @@ npm run lint         # or: pnpm run lint
 npm test             # or: pnpm test
 npm run build        # or: pnpm run build
 ```
+
+Native models default to `data/models/whisper` (override with `ZENBUKKO_WHISPER_MODEL_DIR`) so replacing a Whisper source checkout does not delete them. Setup downloads supported upstream models atomically and validates their published SHA-1.
 
 Do not run downloads, OCR, or transcription as a smoke check unless the intended input and workload have been explicitly selected.

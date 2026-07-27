@@ -50,7 +50,19 @@ If CUDA is selected, confirm the local NDLOCR-Lite install supports the host GPU
 
 ## Whisper Fails
 
-Check ffmpeg, the whisper binary, and the selected model independently in `doctor`. Native Windows recognizes `whisper-cli.exe`, but `setup-whisper` still requires Unix-compatible build/download tooling; install manually or use WSL2 for setup.
+Check `doctor` and `probe-whisper` for requested backend, resolved backend, executable, and model separately. An explicit CUDA or Vulkan request does not fall back to CPU: fix the reported runtime issue or deliberately choose `auto`/`cpu`. Native Windows recognizes `whisper-cli.exe`; Vulkan native setup is Linux-only, so use CPU/CUDA where supported or WSL2 for the Linux path.
+
+## Vulkan Is Unavailable
+
+On Linux, verify the host before starting Compose:
+
+```sh
+ls -l /dev/dri/renderD*
+vulkaninfo --summary
+docker compose --profile vulkan run --rm zenbukko-api-vulkan probe-whisper
+```
+
+Radeon 780M requires the normal amdgpu driver and Mesa RADV. Do not add ROCm, `/dev/kfd`, `privileged`, host Vulkan-library mounts, or world-writable device permissions. The container maps only `/dev/dri`, discovers the render group, and runs Whisper as `node`. If Docker Desktop cannot expose a render node, use CPU. `vulkaninfo` reporting lavapipe/llvmpipe is software rendering and is rejected as acceleration.
 
 ## Port Already in Use
 
@@ -58,4 +70,4 @@ Keep native defaults on loopback: API `127.0.0.1:8788`, Web `127.0.0.1:8787`. St
 
 ## GPU Not Used
 
-Check `ZENBUKKO_WHISPER_BACKEND`, Docker GPU profile, NVIDIA Container Toolkit, and CUDA build artifacts. Docker GPU services are Linux NVIDIA CUDA only.
+Use an explicit profile and inspect `probe-whisper` output. CUDA requires `docker compose --profile cuda`, NVIDIA Container Toolkit, and `nvidia-smi`. Vulkan requires `docker compose --profile vulkan`, an accessible DRM render node, loader, ICD, and physical device. OCR remains CPU-only in both accelerated profiles.
