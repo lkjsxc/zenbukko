@@ -1,3 +1,22 @@
+x-whisper-build-args: &whisper-build-args
+  WHISPER_CPP_REF: ${WHISPER_CPP_REF:-080bbbe85230f624f0b52127f1ae1218247989f9}
+
+x-api-environment: &api-environment
+  ZENBUKKO_SESSION_PATH: /data/session.json
+  OUTPUT_DIR: /data/downloads
+  ZENBUKKO_WHISPER_MODEL_DIR: /data/models/whisper
+  WHISPER_MODEL: ${WHISPER_MODEL:-large-v3-turbo}
+  PUPPETEER_HEADLESS: "true"
+  ZENBUKKO_API_PORT: "8788"
+  ZENBUKKO_NDLOCR_CMD: ${ZENBUKKO_NDLOCR_CMD:-ndlocr-lite}
+  ZENBUKKO_NDLOCR_DEVICE: cpu
+  ZENBUKKO_OCR_PAGE_DPI: ${ZENBUKKO_OCR_PAGE_DPI:-300}
+  ZENBUKKO_NDLOCR_ENABLE_TCY: ${ZENBUKKO_NDLOCR_ENABLE_TCY:-true}
+
+x-api-volumes: &api-volumes
+  - ./data:/data
+  - whisper-models:/data/models/whisper
+
 services:
   zenbukko-api:
     profiles: ["cpu"]
@@ -5,100 +24,96 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        WHISPER_MODEL: ${WHISPER_MODEL:-large-v3-turbo}
-    image: zenbukko:local
+      target: api-cpu
+      args: *whisper-build-args
+    image: zenbukko:local-cpu
     working_dir: /app
     command: ["api", "--host", "0.0.0.0", "--port", "8788"]
-    expose:
-      - "8788"
-    volumes:
-      - ./data:/data
+    expose: ["8788"]
+    volumes: *api-volumes
     environment:
-      ZENBUKKO_SESSION_PATH: /data/session.json
-      OUTPUT_DIR: /data/downloads
-      PUPPETEER_HEADLESS: "true"
-      ZENBUKKO_API_PORT: "8788"
-      ZENBUKKO_NDLOCR_CMD: ${ZENBUKKO_NDLOCR_CMD:-ndlocr-lite}
-      ZENBUKKO_NDLOCR_DEVICE: ${ZENBUKKO_NDLOCR_DEVICE:-cpu}
-      ZENBUKKO_OCR_PAGE_DPI: ${ZENBUKKO_OCR_PAGE_DPI:-300}
-      ZENBUKKO_NDLOCR_ENABLE_TCY: ${ZENBUKKO_NDLOCR_ENABLE_TCY:-true}
+      <<: *api-environment
+      ZENBUKKO_WHISPER_BACKEND: cpu
 
   zenbukko-web:
     profiles: ["cpu"]
     platform: ${ZENBUKKO_DOCKER_PLATFORM:-linux/amd64}
-    build:
-      context: .
-      dockerfile: Dockerfile.web
-    image: zenbukko-web:local
+    build: { context: ., dockerfile: Dockerfile.web }
+    image: zenbukko-web:local-cpu
     working_dir: /app
     command: ["web", "--host", "0.0.0.0", "--port", "8787", "--api-url", "http://zenbukko-api:8788"]
-    depends_on:
-      - zenbukko-api
-    ports:
-      - "0.0.0.0:8787:8787"
-    volumes:
-      - ./data/web-ui:/web-data
-    environment:
-      ZENBUKKO_WEB_DATA_DIR: /web-data
-      ZENBUKKO_API_URL: http://zenbukko-api:8788
-      WEB_PORT: "8787"
+    depends_on: [zenbukko-api]
+    ports: ["0.0.0.0:8787:8787"]
+    volumes: ["./data/web-ui:/web-data"]
+    environment: { ZENBUKKO_WEB_DATA_DIR: /web-data, ZENBUKKO_API_URL: http://zenbukko-api:8788, WEB_PORT: "8787" }
 
-  zenbukko-api-gpu:
-    profiles: ["gpu"]
+  zenbukko-api-cuda:
+    profiles: ["cuda"]
+    platform: linux/amd64
     build:
       context: .
-      dockerfile: Dockerfile.gpu
+      dockerfile: Dockerfile.cuda
       args:
-        WHISPER_MODEL: ${WHISPER_MODEL:-large-v3-turbo}
+        <<: *whisper-build-args
         CMAKE_CUDA_ARCHITECTURES: ${ZENBUKKO_CMAKE_CUDA_ARCHITECTURES:-86}
         CMAKE_BUILD_PARALLEL_LEVEL: ${ZENBUKKO_CMAKE_BUILD_PARALLEL_LEVEL:-2}
-    image: zenbukko:local-gpu
+    image: zenbukko:local-cuda
     working_dir: /app
     command: ["api", "--host", "0.0.0.0", "--port", "8788"]
-    expose:
-      - "8788"
-    volumes:
-      - ./data:/data
+    expose: ["8788"]
+    volumes: *api-volumes
     environment:
-      ZENBUKKO_SESSION_PATH: /data/session.json
-      OUTPUT_DIR: /data/downloads
-      PUPPETEER_HEADLESS: "true"
-      ZENBUKKO_API_PORT: "8788"
-      ZENBUKKO_NDLOCR_CMD: ${ZENBUKKO_NDLOCR_CMD:-ndlocr-lite}
-      ZENBUKKO_NDLOCR_DEVICE: ${ZENBUKKO_NDLOCR_DEVICE:-cuda}
-      ZENBUKKO_OCR_PAGE_DPI: ${ZENBUKKO_OCR_PAGE_DPI:-300}
-      ZENBUKKO_NDLOCR_ENABLE_TCY: ${ZENBUKKO_NDLOCR_ENABLE_TCY:-true}
+      <<: *api-environment
+      ZENBUKKO_WHISPER_BACKEND: ${ZENBUKKO_WHISPER_BACKEND:-cuda}
       NVIDIA_VISIBLE_DEVICES: all
-      NVIDIA_DRIVER_CAPABILITIES: compute,utility,video
-      ZENBUKKO_WHISPER_CUDA: "1"
-      ZENBUKKO_WHISPER_BACKEND: auto
-      ZENBUKKO_CMAKE_CUDA_ARCHITECTURES: ${ZENBUKKO_CMAKE_CUDA_ARCHITECTURES:-86}
-      ZENBUKKO_CMAKE_BUILD_PARALLEL_LEVEL: ${ZENBUKKO_CMAKE_BUILD_PARALLEL_LEVEL:-2}
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
     gpus: all
     deploy:
       resources:
         reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+          devices: [{ driver: nvidia, count: all, capabilities: [gpu] }]
 
-  zenbukko-web-gpu:
-    profiles: ["gpu"]
+  zenbukko-web-cuda:
+    profiles: ["cuda"]
+    platform: linux/amd64
+    build: { context: ., dockerfile: Dockerfile.web }
+    image: zenbukko-web:local-cuda
+    working_dir: /app
+    command: ["web", "--host", "0.0.0.0", "--port", "8787", "--api-url", "http://zenbukko-api-cuda:8788"]
+    depends_on: [zenbukko-api-cuda]
+    ports: ["0.0.0.0:8787:8787"]
+    volumes: ["./data/web-ui:/web-data"]
+    environment: { ZENBUKKO_WEB_DATA_DIR: /web-data, ZENBUKKO_API_URL: http://zenbukko-api-cuda:8788, WEB_PORT: "8787" }
+
+  zenbukko-api-vulkan:
+    profiles: ["vulkan"]
+    platform: linux/amd64
     build:
       context: .
-      dockerfile: Dockerfile.web
-    image: zenbukko-web:local
+      dockerfile: Dockerfile
+      target: api-vulkan
+      args: *whisper-build-args
+    image: zenbukko:local-vulkan
     working_dir: /app
-    command: ["web", "--host", "0.0.0.0", "--port", "8787", "--api-url", "http://zenbukko-api-gpu:8788"]
-    depends_on:
-      - zenbukko-api-gpu
-    ports:
-      - "0.0.0.0:8787:8787"
-    volumes:
-      - ./data/web-ui:/web-data
+    command: ["api", "--host", "0.0.0.0", "--port", "8788"]
+    expose: ["8788"]
+    volumes: *api-volumes
+    devices: ["/dev/dri:/dev/dri"]
     environment:
-      ZENBUKKO_WEB_DATA_DIR: /web-data
-      ZENBUKKO_API_URL: http://zenbukko-api-gpu:8788
-      WEB_PORT: "8787"
+      <<: *api-environment
+      ZENBUKKO_WHISPER_BACKEND: ${ZENBUKKO_WHISPER_BACKEND:-vulkan}
+
+  zenbukko-web-vulkan:
+    profiles: ["vulkan"]
+    platform: linux/amd64
+    build: { context: ., dockerfile: Dockerfile.web }
+    image: zenbukko-web:local-vulkan
+    working_dir: /app
+    command: ["web", "--host", "0.0.0.0", "--port", "8787", "--api-url", "http://zenbukko-api-vulkan:8788"]
+    depends_on: [zenbukko-api-vulkan]
+    ports: ["0.0.0.0:8787:8787"]
+    volumes: ["./data/web-ui:/web-data"]
+    environment: { ZENBUKKO_WEB_DATA_DIR: /web-data, ZENBUKKO_API_URL: http://zenbukko-api-vulkan:8788, WEB_PORT: "8787" }
+
+volumes:
+  whisper-models:

@@ -12,6 +12,7 @@ Identify persistent and generated paths.
 /data/api/jobs/*.json
 /data/api/jobs/*.log
 /data/web-ui/
+/data/models/whisper/          # Docker-managed named volume
 /data/downloads/
   course-<courseId>/
     <chapterOrdinal>/
@@ -26,9 +27,10 @@ Identify persistent and generated paths.
 src/
 docs/
 data/
-Dockerfile
-Dockerfile.gpu
+Dockerfile                     # shared CPU/Vulkan targets
+Dockerfile.cuda
 Dockerfile.web
+docker/whisper.cpp.ref          # pinned upstream commit
 docker-compose.yml
 ```
 

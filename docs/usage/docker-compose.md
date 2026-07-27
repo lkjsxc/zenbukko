@@ -2,85 +2,72 @@
 
 ## Purpose
 
-Run Zenbukko with repeatable local volumes, automatic local OCR installation, AMD64 compatibility for non-x86 Docker Desktop hosts, and optional Linux NVIDIA CUDA support.
+Run Zenbukko’s local API and Web UI with a single, explicit Whisper backend profile.
 
-## Services
-
-- `zenbukko-api`: CPU Core API and CLI-capable service under the `cpu` profile.
-- `zenbukko-web`: CPU lightweight Web UI and `/api/*` proxy under the `cpu` profile.
-- `zenbukko-api-gpu`: Linux NVIDIA CUDA Core API service behind the `gpu` profile.
-- `zenbukko-web-gpu`: Web proxy for the GPU API on `0.0.0.0:8787` behind the `gpu` profile.
-
-Use exactly one runtime profile for `up`:
+## Start One Profile
 
 ```sh
 mkdir -p data data/web-ui
 docker compose --profile cpu up --build
-docker compose --profile gpu up --build
+docker compose --profile cuda up --build
+docker compose --profile vulkan up --build
 ```
 
-The CPU profile defaults to `linux/amd64`. Docker Desktop runs it natively on Intel hosts and through its compatibility layer on Apple silicon, so the pinned NDLOCR-Lite stack has one known runtime. The first emulated build can take longer. A non-x86 Linux host may opt into a verified native build with `ZENBUKKO_DOCKER_PLATFORM=linux/arm64`; return to the default if the native OCR dependencies are unavailable.
+Use exactly one profile at a time. The UI is published at `http://127.0.0.1:8787/` (or the host address allowed by the port mapping).
 
-Both Web services publish the UI on host `0.0.0.0:8787` so another machine on the reachable network can open `http://<host-ip>:8787/`.
+- `cpu`: `zenbukko-api` and `zenbukko-web`.
+- `cuda`: `zenbukko-api-cuda` and `zenbukko-web-cuda`.
+- `vulkan`: `zenbukko-api-vulkan` and `zenbukko-web-vulkan`.
 
-## CPU Verification
+`gpu` was an ambiguous legacy profile name and is not a Compose profile. CUDA and Vulkan are separate installations and diagnostics.
+
+## Vulkan: Radeon 780M
+
+Vulkan is the primary Docker path for an AMD Radeon 780M on Linux x86_64. It uses the normal amdgpu kernel driver and Mesa RADV userspace; it does **not** use ROCm, HIP, OpenCL, or `/dev/kfd`.
+
+The host must provide all of the following:
+
+- Linux x86_64, a Vulkan-capable GPU, and a working amdgpu driver.
+- A usable `/dev/dri/renderD*` node.
+- Docker permission to map `/dev/dri`.
+- A host Vulkan ICD that can enumerate the GPU.
+
+The Vulkan API maps only `/dev/dri`, not privileged mode, host networking, `/dev/kfd`, host Vulkan libraries, or broad host mounts. Its entrypoint discovers each mapped render-node GID, adds only the unprivileged `node` user to matching supplementary groups, then drops privileges. It never changes host device permissions.
+
+The image contains both Vulkan and CPU Whisper executables. Its default is explicit `vulkan`, so a missing or inaccessible device makes startup fail with an actionable `probe-whisper` error. Set `ZENBUKKO_WHISPER_BACKEND=auto` deliberately to permit `vulkan -> cpu` fallback; the warning identifies the unavailable capability. Docker Desktop platforms that cannot expose DRM render nodes should use CPU.
+
+NDLOCR-Lite remains CPU-only in every profile (`ZENBUKKO_NDLOCR_DEVICE=cpu`).
+
+## CUDA
+
+CUDA needs Linux x86_64, NVIDIA Container Toolkit, and a visible NVIDIA GPU. It uses an explicit `cuda` backend by default and also keeps a CPU Whisper executable for deliberate `auto` fallback. CUDA does not change the OCR device contract.
+
+## Models And Rebuilds
+
+Whisper models live in the Docker-managed `whisper-models` volume mounted at `/data/models/whisper`; they are not baked into CPU, CUDA, or Vulkan image layers. Startup downloads the requested `WHISPER_MODEL` once to a temporary file, verifies the upstream published SHA-1, then atomically installs it. An interrupted, empty, or checksum-mismatched file fails clearly and is not accepted.
+
+Application TypeScript, Web UI, and documentation changes do not invalidate the Whisper C++ or model layers. `WHISPER_CPP_REF` may override the pinned build commit explicitly; its default is recorded in [`../../docker/whisper.cpp.ref`](../../docker/whisper.cpp.ref).
+
+## Verification
 
 ```sh
 docker compose config
-docker compose --profile cpu config --services
-docker compose --profile cpu build zenbukko-api zenbukko-web
-docker compose --profile cpu run --rm --entrypoint /bin/sh zenbukko-api -c 'command -v ndlocr-lite; command -v pdftoppm'
-docker compose --profile cpu run --rm --entrypoint npm zenbukko-api run smoke:local-ocr
+docker compose --profile cpu config
+docker compose --profile cuda config
+docker compose --profile vulkan config
+docker compose --profile cpu build
+docker compose --profile vulkan build
 ```
 
-CPU services run local OCR and local whisper.cpp in the container. The image installs the pinned `ndlocr-lite` command, Poppler, and its Python environment during build, so no host OCR installation or model-provider credentials are required.
-
-## GPU Verification
-
-GPU services require a Linux NVIDIA CUDA container runtime. On native Linux, install NVIDIA Container Toolkit. Windows Docker Desktop can run this profile when its WSL2 backend, WSL integration, and NVIDIA GPU support are enabled; the API container must successfully run `nvidia-smi -L`.
+On a Vulkan host, also run as the container’s normal user:
 
 ```sh
-docker compose --profile gpu config
-docker compose --profile gpu build zenbukko-api-gpu zenbukko-web-gpu
-docker compose --profile gpu run --rm --entrypoint /bin/sh zenbukko-api-gpu -c 'nvidia-smi -L; command -v ndlocr-lite; command -v pdftoppm'
-docker compose --profile gpu run --rm --entrypoint npm zenbukko-api-gpu run smoke:local-ocr
+docker compose --profile vulkan run --rm --entrypoint /bin/sh zenbukko-api-vulkan -c 'id; vulkaninfo --summary'
+docker compose --profile vulkan run --rm zenbukko-api-vulkan probe-whisper
 ```
 
-Native Windows without WSL2 container GPU support and macOS should use the CPU containers. macOS Apple-silicon users use the CPU profile's AMD64 compatibility layer. Do not expect Docker GPU acceleration outside a Linux NVIDIA runtime.
-
-## Build Cache
-
-Dockerfiles build and download whisper.cpp before copying application source. Normal TypeScript, docs, and test edits should reuse the whisper layer.
-
-Whisper rebuilds are expected only when these inputs change:
-
-- `WHISPER_MODEL`
-- CPU/GPU Dockerfile commands before the whisper layer
-- GPU build args such as `ZENBUKKO_CMAKE_CUDA_ARCHITECTURES`
-- Docker cache pruning or `--no-cache`
+Use the OCR smoke command in each API image. A real transcription or benchmark requires an explicitly selected non-private input file.
 
 ## Data
 
-The API service mounts `./data` at `/data`. Session, settings, jobs, and downloads should be considered local private data.
-
-The Web service mounts only `./data/web-ui` at `/web-data` for its lightweight runtime state. It does not receive `/data/downloads`, Chromium, OCR binaries, or Whisper.
-
-Create the host data directory before running Compose:
-
-```sh
-mkdir -p data data/web-ui
-```
-
-The API and Web entrypoints create their configured data directories, repair ownership for the supported `/data` and `/web-data` bind mounts when they start as root, then drop to the unprivileged `node` user. A normal `mkdir -p data data/web-ui` is enough; no manual `chown` is required for the supported Compose flow.
-
-If a locked-down host forbids ownership changes on bind mounts, use a writable project checkout or a Docker-managed volume instead. If you later switch from Compose to a native Linux CLI, restore local ownership first:
-
-```sh
-sudo chown -R "$(id -u):$(id -g)" data
-```
-
-Do not run the API process itself as root.
-
-## Failure Behavior
-
-GPU image build verification does not prove local CUDA OCR execution unless a compatible NVIDIA runtime is available.
+The API bind-mounts `./data` at `/data`; sessions, downloads, and jobs remain local private data. The Web service receives only `./data/web-ui`. Do not run the API process as root or share session JSON in logs.

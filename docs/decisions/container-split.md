@@ -7,7 +7,7 @@ Zenbukko runs as two cooperating server modes:
 - `zenbukko api`: Core API on port `8788`.
 - `zenbukko web`: static browser UI and same-origin proxy on port `8787`.
 
-Docker Compose mirrors that split with `zenbukko-api` and `zenbukko-web`. The GPU profile uses `zenbukko-api-gpu` for CUDA-capable OCR/Whisper work and `zenbukko-web-gpu` for the lightweight proxy.
+Docker Compose mirrors that split with `zenbukko-api`/`zenbukko-web`, `zenbukko-api-cuda`/`zenbukko-web-cuda`, and `zenbukko-api-vulkan`/`zenbukko-web-vulkan`. Accelerators belong only to Core API; all profiles keep NDLOCR-Lite CPU-based.
 
 ## Rationale
 
@@ -19,3 +19,4 @@ The browser container should not need downloads, session state, Chromium automat
 - `GET /api/status` reports `authRequired: false`.
 - Core API has no token by default and is bound to loopback locally or an internal Compose network.
 - Compose publishes only Web ports to the host.
+- Vulkan maps only Core API DRM render devices and keeps the Web proxy unprivileged and GPU-free.
