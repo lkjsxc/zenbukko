@@ -2,101 +2,69 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import type { Logger } from '../utils/log.js';
 import { ensureDir, fileExists } from '../utils/fs.js';
-import { runProcess } from '../utils/process.js';
-import { getWhisperDir, resolveModelPath } from '../whisper/whisperPaths.js';
+import { runCapturedProcess, runProcess } from '../utils/process.js';
 import { which } from '../utils/which.js';
+import { buildTargets, cmakeArgsFor, parseWhisperSetupBackend } from '../whisper/backends.js';
+import { downloadWhisperModel } from '../whisper/models.js';
+import type { WhisperRuntimeBackend, WhisperSetupBackend } from '../whisper/types.js';
+import { getProjectRoot, getWhisperDir, readWhisperCppRef } from '../whisper/whisperPaths.js';
 
-export async function setupWhisperCommand(params: {
-  logger: Logger;
-  model: string;
-  backend?: 'auto' | 'cpu' | 'cuda' | 'both';
-  force: boolean;
-}): Promise<void> {
+export async function setupWhisperCommand(params: { logger: Logger; model: string; backend?: WhisperSetupBackend; force: boolean }): Promise<void> {
   const whisperDir = getWhisperDir();
-  const projectRoot = path.dirname(whisperDir);
+  const projectRoot = getProjectRoot();
+  const ref = await readWhisperCppRef();
+  const backend = params.backend ?? parseWhisperSetupBackend(process.env.ZENBUKKO_WHISPER_BACKEND);
+  const builds = buildTargets(backend);
+  if (builds.includes('vulkan') && process.platform !== 'linux') throw new Error('Native Vulkan whisper setup is supported on Linux only. Use CPU or CUDA on this platform.');
+  if (params.force && await fileExists(whisperDir)) await removeWhisperCheckout(whisperDir, params.logger);
+  await ensurePinnedCheckout(whisperDir, ref, params.logger);
   const cmakeBinDir = path.join(projectRoot, '.tools', 'cmake', 'bin');
-  const env: NodeJS.ProcessEnv = {
-    PATH: `${cmakeBinDir}:${process.env.PATH ?? ''}`,
-  };
-
-  const backend = params.backend ?? backendFromEnv();
-  const cudaArch = (process.env.ZENBUKKO_CMAKE_CUDA_ARCHITECTURES ?? '').trim();
-  const buildJobs = normalizeBuildJobs(process.env.ZENBUKKO_CMAKE_BUILD_PARALLEL_LEVEL);
-
-  if (params.force && (await fileExists(whisperDir))) {
-    params.logger.warn(`Removing existing whisper.cpp at ${whisperDir}`);
-    await fs.rm(whisperDir, { recursive: true, force: true });
-  }
-
-  if (!(await fileExists(whisperDir))) {
-    await ensureDir(path.dirname(whisperDir));
-    params.logger.info('Cloning whisper.cpp…');
-    await runProcess('git', ['clone', 'https://github.com/ggerganov/whisper.cpp', whisperDir]);
-  }
-
-  const cmakeFromTools = path.join(cmakeBinDir, 'cmake');
-  const hasCmake = (await fileExists(cmakeFromTools)) || (await which('cmake'));
-  if (!hasCmake) {
-    params.logger.warn(
-      `CMake not found. Falling back to 'make'. (Tip: install cmake, or place a portable cmake at ${cmakeFromTools})`,
-    );
-  }
-
-  const builds = backend === 'both' ? ['cpu', 'cuda'] as const : [backend === 'auto' ? 'cpu' : backend] as const;
-  if (hasCmake) {
-    for (const build of builds) {
-      await buildWithCmake({ whisperDir, env, build, buildJobs, cudaArch, logger: params.logger });
-    }
-  } else {
-    if (backend === 'cuda' || backend === 'both') params.logger.warn('CMake is required for CUDA whisper build; falling back to CPU make build.');
-    params.logger.info(`Building whisper.cpp (make, CPU${buildJobs ? `, ${buildJobs} job(s)` : ''})…`);
-    await runProcess('make', [buildJobs ? `-j${buildJobs}` : '-j'], { cwd: whisperDir, env });
-  }
-
-  const modelPath = resolveModelPath(params.model);
-  if (!(await fileExists(modelPath))) {
-    params.logger.info(`Downloading model: ${params.model}`);
-    await runProcess('bash', ['models/download-ggml-model.sh', params.model], { cwd: whisperDir, env });
-  } else {
-    params.logger.info(`Model already present: ${modelPath}`);
-  }
-
-  params.logger.info('Whisper setup complete.');
+  const env = { PATH: `${cmakeBinDir}:${process.env.PATH ?? ''}` };
+  const hasCmake = Boolean(await which('cmake') || await fileExists(path.join(cmakeBinDir, 'cmake')));
+  if (!hasCmake && builds.some((build) => build !== 'cpu')) throw new Error('CMake is required for CUDA and Vulkan Whisper builds. Install CMake and Vulkan glslc when building Vulkan.');
+  const jobs = normalizeBuildJobs(process.env.ZENBUKKO_CMAKE_BUILD_PARALLEL_LEVEL);
+  if (hasCmake) for (const build of builds) await buildWithCmake(whisperDir, build, env, jobs, params.logger);
+  else await buildCpuWithMake(whisperDir, env, jobs, params.logger);
+  const modelPath = await downloadWhisperModel(params.model);
+  params.logger.info(`Whisper model ready: ${modelPath}`);
+  params.logger.info(`Whisper setup complete at upstream revision ${ref}.`);
 }
 
-async function buildWithCmake(params: {
-  whisperDir: string;
-  env: NodeJS.ProcessEnv;
-  build: 'cpu' | 'cuda';
-  buildJobs: string | undefined;
-  cudaArch: string;
-  logger: Logger;
-}): Promise<void> {
-  const buildDir = params.build === 'cuda' ? 'build-cuda' : 'build-cpu';
-  const cmakeArgs = ['-B', buildDir, '-DCMAKE_BUILD_TYPE=Release'];
-  if (params.build === 'cuda') {
-    cmakeArgs.push('-DGGML_CUDA=1');
-    if (params.cudaArch) cmakeArgs.push(`-DCMAKE_CUDA_ARCHITECTURES=${params.cudaArch}`);
+async function ensurePinnedCheckout(directory: string, ref: string, logger: Logger): Promise<void> {
+  if (await fileExists(directory)) {
+    const result = await runCapturedProcess('git', ['-C', directory, 'rev-parse', 'HEAD'], { timeoutMs: 5_000, maxOutputBytes: 4_096 });
+    if (result.code === 0 && result.stdout.trim() === ref) return;
+    throw new Error(`Existing whisper.cpp checkout is not pinned to ${ref}. Run setup-whisper --force to replace only the source checkout; models are kept separately.`);
   }
-  params.logger.info(`Configuring whisper.cpp (${params.build})…`);
-  await runProcess('cmake', cmakeArgs, { cwd: params.whisperDir, env: params.env });
-  params.logger.info(`Building whisper.cpp (${params.build}${params.buildJobs ? `, ${params.buildJobs} job(s)` : ''})…`);
-  await runProcess('cmake', ['--build', buildDir, ...(params.buildJobs ? ['--parallel', params.buildJobs] : ['-j']), '--config', 'Release'], {
-    cwd: params.whisperDir,
-    env: params.env,
-  });
+  await ensureDir(path.dirname(directory));
+  logger.info(`Fetching whisper.cpp at ${ref}…`);
+  await runProcess('git', ['init', directory]);
+  await runProcess('git', ['-C', directory, 'remote', 'add', 'origin', 'https://github.com/ggml-org/whisper.cpp']);
+  await runProcess('git', ['-C', directory, 'fetch', '--depth', '1', 'origin', ref]);
+  await runProcess('git', ['-C', directory, 'checkout', '--detach', 'FETCH_HEAD']);
 }
 
-function backendFromEnv(): 'auto' | 'cpu' | 'cuda' | 'both' {
-  const value = (process.env.ZENBUKKO_WHISPER_BACKEND ?? '').trim();
-  if (value === 'cpu' || value === 'cuda' || value === 'both') return value;
-  if ((process.env.ZENBUKKO_WHISPER_CUDA ?? '').trim() === '1') return 'cuda';
-  return 'auto';
+async function removeWhisperCheckout(directory: string, logger: Logger): Promise<void> {
+  logger.warn(`Removing whisper.cpp source checkout at ${directory}; model storage is preserved.`);
+  await fs.rm(directory, { recursive: true, force: true });
+}
+
+async function buildWithCmake(directory: string, backend: WhisperRuntimeBackend, env: NodeJS.ProcessEnv, jobs: string | undefined, logger: Logger): Promise<void> {
+  const buildDir = backend === 'cpu' ? 'build-cpu' : `build-${backend}`;
+  const args = ['-S', '.', '-B', buildDir, '-DCMAKE_BUILD_TYPE=Release', ...cmakeArgsFor(backend)];
+  if (backend === 'cuda' && process.env.ZENBUKKO_CMAKE_CUDA_ARCHITECTURES?.trim()) args.push(`-DCMAKE_CUDA_ARCHITECTURES=${process.env.ZENBUKKO_CMAKE_CUDA_ARCHITECTURES.trim()}`);
+  logger.info(`Configuring whisper.cpp (${backend})…`);
+  await runProcess('cmake', args, { cwd: directory, env });
+  logger.info(`Building whisper.cpp (${backend}${jobs ? `, ${jobs} job(s)` : ''})…`);
+  await runProcess('cmake', ['--build', buildDir, '--config', 'Release', ...(jobs ? ['--parallel', jobs] : ['-j'])], { cwd: directory, env });
+}
+
+async function buildCpuWithMake(directory: string, env: NodeJS.ProcessEnv, jobs: string | undefined, logger: Logger): Promise<void> {
+  logger.warn('CMake not found; building CPU-only whisper.cpp with make.');
+  await runProcess('make', [jobs ? `-j${jobs}` : '-j'], { cwd: directory, env });
 }
 
 function normalizeBuildJobs(value: string | undefined): string | undefined {
-  if (!value) return undefined;
-  const n = Number(value.trim());
-  if (!Number.isFinite(n) || n < 1) return undefined;
-  return String(Math.trunc(n));
+  const count = Number(value?.trim());
+  return Number.isFinite(count) && count >= 1 ? String(Math.trunc(count)) : undefined;
 }

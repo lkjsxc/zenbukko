@@ -14,7 +14,7 @@ export type LineLimitOptions = {
   sourceLimit: number;
 };
 
-const SOURCE_EXTS = new Set(['.ts', '.tsx', '.js', '.jsx', '.css', '.html']);
+const SOURCE_EXTS = new Set(['.ts', '.tsx', '.js', '.jsx', '.css', '.html', '.sh', '.yml']);
 const SKIP_DIRS = new Set(['.git', 'node_modules', 'dist', 'data', 'whisper.cpp']);
 
 export async function checkLineLimits(options: LineLimitOptions): Promise<LineLimitViolation[]> {
@@ -43,6 +43,8 @@ function classify(relPath: string): 'docs' | 'source' | undefined {
   if (relPath.startsWith(`src${path.sep}`) && SOURCE_EXTS.has(ext)) return 'source';
   if (relPath.startsWith(`web-ui${path.sep}`) && SOURCE_EXTS.has(ext)) return 'source';
   if (relPath.startsWith(`scripts${path.sep}`) && SOURCE_EXTS.has(ext)) return 'source';
+  if (relPath.startsWith(`docker${path.sep}`) && SOURCE_EXTS.has(ext)) return 'source';
+  if (relPath === 'docker-compose.yml' || relPath === 'Dockerfile' || relPath.startsWith('Dockerfile.')) return 'source';
   return undefined;
 }
 

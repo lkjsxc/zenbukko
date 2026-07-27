@@ -10,7 +10,9 @@ Define ownership for source modules so refactors stay narrow.
 - `src/commands/download.ts`: single-course workflow orchestration.
 - `src/commands/downloadAll.ts`: authenticated course discovery and repeated single-course downloads.
 - `src/commands/setupWhisper.ts`: whisper.cpp clone/build/model installation.
-- `src/commands/transcribe.ts`: local media-to-transcript workflow.
+- `src/commands/transcribe.ts`: local media-to-transcript workflow using a resolved Whisper runtime.
+- `src/commands/benchmarkWhisper.ts`: explicit-input transcription timing.
+- `src/whisper/`: pinned source, model integrity, backend registry, capability probes, and strict runtime resolution.
 
 ## Core API
 

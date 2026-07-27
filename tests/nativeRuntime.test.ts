@@ -9,6 +9,7 @@ import { waitForEnter } from '../src/services/auth.js';
 import { isAllowedPdfResourceUrl } from '../src/services/materials/pdfRender.js';
 import { which } from '../src/utils/which.js';
 import { resolveModelPath, whisperBinaryCandidates } from '../src/whisper/whisperPaths.js';
+import { executableCandidates } from '../src/whisper/backends.js';
 
 test('Windows browser candidates include installed Edge channels', () => {
   const candidates = browserSystemCandidates('win32', {
@@ -85,8 +86,11 @@ test('PDF renderer blocks network resources and scripts by policy', () => {
   assert.equal(isAllowedPdfResourceUrl('javascript:alert(1)'), false);
 });
 
-test('whisper paths support Windows executables and safe model names', () => {
+test('whisper paths support Windows executables, CPU/CUDA candidates, and safe model names', () => {
   const candidates = whisperBinaryCandidates('C:\\whisper.cpp', 'auto', 'win32');
   assert.ok(candidates.some((candidate) => candidate.endsWith('whisper-cli.exe')));
+  assert.ok(candidates.every((candidate) => candidate.includes('\\')));
+  assert.ok(executableCandidates('/whisper', 'cpu').some((candidate) => candidate.path?.includes('/build-cpu/bin/')));
+  assert.ok(executableCandidates('/whisper', 'cuda').some((candidate) => candidate.path?.includes('/build-cuda/bin/')));
   assert.throws(() => resolveModelPath('../private'), /model name/);
 });

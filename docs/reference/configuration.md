@@ -15,7 +15,10 @@ Document environment variables and browser settings precedence.
 - `ZENBUKKO_API_PORT`: default Core API port, `8788`.
 - `ZENBUKKO_API_URL`: Web proxy target, default `http://127.0.0.1:8788`.
 - `ZENBUKKO_WEB_DATA_DIR`: Web runtime data directory, default `data/web-ui`.
-- `ZENBUKKO_WHISPER_BACKEND`: `auto|cpu|cuda`.
+- `ZENBUKKO_WHISPER_BACKEND`: `auto|cpu|cuda|vulkan`. Explicit GPU requests fail if unavailable; `auto` prefers CUDA, then Vulkan, then CPU.
+- `ZENBUKKO_WHISPER_MODEL_DIR`: model directory; defaults to `data/models/whisper` natively and `/data/models/whisper` in Compose.
+- `WHISPER_MODEL`: Compose startup model, default `large-v3-turbo`.
+- `WHISPER_CPP_REF`: explicit 40-character upstream whisper.cpp commit override for native setup and Docker builds; the default is `docker/whisper.cpp.ref`.
 - `ZENBUKKO_NDLOCR_CMD`: OCR executable, default `ndlocr-lite`.
 - `ZENBUKKO_NDLOCR_DEVICE`: `cpu|cuda`, default `cpu`.
 - `ZENBUKKO_OCR_PAGE_DPI`: PDF rasterization DPI, default `300`.
@@ -41,4 +44,4 @@ API settings override environment values for browser-created jobs. Environment v
 
 Only documented local settings are persisted or returned. Unsupported OCR provider fields are rejected by job requests and ignored when old settings files are read.
 
-`doctor` reports resolved executable paths without executing them. It reports missing browser, OCR, Poppler, ffmpeg, whisper, model, or built Web assets with the setting or install step needed next.
+`doctor` reports resolved Whisper backend/executable and compiled candidates. It performs bounded CUDA/Vulkan capability discovery but no model load or transcription: Vulkan output includes render-node permission, loader/ICD status, and physical device when available. Use `probe-whisper` for the same startup preflight only; use `benchmark-whisper` with explicit media for actual inference.

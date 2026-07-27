@@ -21,6 +21,7 @@ Cover shared parsing and planning behavior without requiring external services.
 - Browser resolution covers explicit paths and common Windows Edge/Chrome installations.
 - Auth terminal confirmation removes listeners and restores paused stdin.
 - Native diagnostics use synthetic probes and never require private session contents.
+- Whisper backend parsing, candidate paths, strict explicit GPU failure, auto CPU fallback, Vulkan render-node permission discovery, and accelerator doctor status use synthetic probes rather than hardware.
 
 ## Commands
 
