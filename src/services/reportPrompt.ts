@@ -5,7 +5,7 @@ import { toPortableRelativePath } from '../utils/portablePath.js';
 
 export type ReportPromptSource = {
   path: string;
-  kind: 'ocr' | 'transcript';
+  kind: 'ocr' | 'transcript' | 'assignment';
   text: string;
 };
 
@@ -25,7 +25,7 @@ export async function buildReportPrompt(params: BuildReportPromptParams): Promis
   const inputDir = path.resolve(params.inputDir);
   const outputPath = path.resolve(params.outputPath ?? path.join(inputDir, 'report_prompt.md'));
   const sources = await collectReportPromptSources(inputDir);
-  if (sources.length === 0) throw new Error(`No OCR or transcript sources found under ${inputDir}.`);
+  if (sources.length === 0) throw new Error(`No OCR, transcript, or report-assignment sources found under ${inputDir}.`);
   const prompt = renderReportPrompt({
     courseName: cleanPlaceholder(params.courseName, '{{COURSE_NAME}}'),
     topic: cleanPlaceholder(params.topic, '{{REPORT_TOPIC}}'),
@@ -41,9 +41,11 @@ export async function collectReportPromptSources(inputDir: string): Promise<Repo
   const files = await discoverFiles(root);
   const ocr = preferChapterFiles(files, /^chapter-\d+_ocr\.md$/, 'materials_ocr.md');
   const transcripts = preferChapterFiles(files, /^chapter-\d+_transcription\.md$/, '_transcription.txt');
+  const assignments = files.filter((file) => /^chapter-\d+_report_assignments\.md$/.test(path.basename(file))).sort(comparePaths);
   const sources = await Promise.all([
     ...ocr.map((file) => readSource(root, file, 'ocr' as const)),
     ...transcripts.map((file) => readSource(root, file, 'transcript' as const)),
+    ...assignments.map((file) => readSource(root, file, 'assignment' as const)),
   ]);
   return sources.filter((source): source is ReportPromptSource => Boolean(source?.text.trim()));
 }
@@ -51,6 +53,7 @@ export async function collectReportPromptSources(inputDir: string): Promise<Repo
 export function renderReportPrompt(params: { courseName: string; topic: string; sources: ReportPromptSource[] }): string {
   const ocrText = sourceBlock(params.sources.filter((s) => s.kind === 'ocr'));
   const transcriptText = sourceBlock(params.sources.filter((s) => s.kind === 'transcript'));
+  const assignmentText = sourceBlock(params.sources.filter((s) => s.kind === 'assignment'));
   const sourceList = params.sources.map((s) => `- ${s.kind}: ${s.path}`).join('\n');
   return `<prompt>
 あなたは大学の受講生として、オンデマンド講義の確認レポートを書きます。
@@ -75,9 +78,13 @@ ${ocrText || '(OCR material is not available.)'}
 ${transcriptText || '(Voice transcript is not available.)'}
 </voice-transcripts>
 
+<report-assignments>
+${assignmentText || '(Report assignment is not available.)'}
+</report-assignments>
+
 <requirements>
-- レポートのお題は report-topic を最優先してください。
-- ocr-materials と voice-transcripts にない具体例、固有名詞、事実、講義内容は追加しないでください。
+- report-assignments にある課題、設問、文字数、段落数、文体などの指定を最優先してください。report-assignments がない場合は report-topic を最優先してください。
+- ocr-materials、voice-transcripts、report-assignments にない具体例、固有名詞、事実、講義内容は追加しないでください。
 - voice-transcripts は誤認識があり得るため、OCR資料と矛盾する場合はOCR資料を優先し、断定を避けてください。
 - 文字数、段落数、文体などの指定が report-topic に含まれる場合は必ず従ってください。
 - 指定がない場合は、400字から600字程度、2段落以内の丁寧語で書いてください。

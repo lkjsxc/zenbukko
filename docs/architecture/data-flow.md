@@ -12,8 +12,9 @@ Show how requests move through Zenbukko and where persistent artifacts are writt
 4. Workflow functions load session data through `SessionStore`.
 5. NNN clients resolve course structure and signed media/material URLs.
 6. The downloader builds a full in-memory lesson work list before slow per-lesson work starts.
-7. If materials are enabled, all selected lesson materials are fetched and normalized first.
-8. Media download, transcription, cleanup, and OCR run only after the material capture phase.
+7. Report-assignment pages for selected chapters are captured as local Markdown.
+8. If materials are enabled, all selected lesson materials are fetched and normalized first.
+9. Media download, transcription, cleanup, and OCR run only after the material capture phase.
 
 ## Web/Core Flow
 
@@ -40,6 +41,7 @@ Show how requests move through Zenbukko and where persistent artifacts are writt
 10. Each runnable PDF is rasterized locally and processed by NDLOCR-Lite.
 11. Markdown and `materials_ocr_manifest.json` are written next to source materials.
 12. Chapter OCR aggregates concatenate lesson `materials_ocr.md` files under each chapter directory.
+13. Captured report-assignment Markdown remains separate from lesson materials and is available to report prompt generation.
 
 ## Invariants
 

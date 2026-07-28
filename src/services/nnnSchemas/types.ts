@@ -8,7 +8,8 @@ export type NormalizedChapterDetails = {
   sections: Array<{
     id: number;
     title?: string;
-    kind: 'lesson' | 'movie' | 'other';
+    kind: 'lesson' | 'movie' | 'report' | 'other';
+    contentUrl?: string;
   }>;
 };
 

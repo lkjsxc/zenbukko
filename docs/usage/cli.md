@@ -63,7 +63,7 @@ Local OCR flags are available on `download`, `download-all`, and `ocr-materials`
 
 ## Report Prompts
 
-`build-report-prompt` scans existing OCR and transcript artifacts and writes a prompt that leaves the report topic as `{{REPORT_TOPIC}}` unless `--topic` is provided. It does not generate the final report body.
+`download` and `download-all` capture available report-assignment pages as chapter Markdown without submitting a response. `build-report-prompt` scans those local artifacts alongside OCR and transcripts, and leaves the report topic as `{{REPORT_TOPIC}}` unless `--topic` is provided. It does not generate the final report body.
 
 ## Failure Behavior
 

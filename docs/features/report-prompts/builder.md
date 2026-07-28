@@ -7,6 +7,8 @@
   `materials_ocr.md` fallback files.
 - Existing transcript inputs are `chapter-<chapterId>_transcription.md` first,
   then lesson-level `*_transcription.txt` fallback files.
+- Existing assignment inputs are chapter-level
+  `chapter-<chapterId>_report_assignments.md` files.
 - The user may pass `--topic`; otherwise the prompt keeps `{{REPORT_TOPIC}}`.
 
 ## Output
@@ -14,12 +16,12 @@
 - The default output is `report_prompt.md` inside the input directory.
 - `--output` may write to another path.
 - The output prompt includes source paths, OCR material text, transcript text,
-  and report-writing rules.
+  report-assignment text, and report-writing rules.
 - Source paths are portable relative identifiers using `/`, even when generated on Windows.
 - The returned output file path is an OS-native absolute filesystem path.
 
 ## Failure Behavior
 
-- The command fails when no OCR or transcript sources are found.
+- The command fails when no OCR, transcript, or report-assignment sources are found.
 - The command fails before writing if the output path cannot be created.
 - The command does not run OCR, transcription, download, or an LLM.

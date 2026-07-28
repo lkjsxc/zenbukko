@@ -44,11 +44,20 @@ export type CourseLesson = {
   }>;
 };
 
+export type CourseReportAssignment = {
+  chapterId: number;
+  assignmentId: number;
+  chapterTitle?: string;
+  title?: string;
+  contentUrl: string;
+};
+
 export type CourseStructure = {
   courseId: number;
   courseTitle?: string;
   chapters: CourseChapter[];
   lessons: CourseLesson[];
+  reportAssignments: CourseReportAssignment[];
   skippedLessons?: Array<{ chapterId: number; lessonId: number; reason: string }>;
 };
 

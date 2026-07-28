@@ -38,6 +38,19 @@ test('buildReportPrompt writes a topic-placeholder prompt from fallback sources'
   assert.match(prompt, /レポート本文のみを出力してください/);
 });
 
+test('buildReportPrompt accepts a captured assignment without OCR or transcript sources', async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'zenbukko-report-assignment-prompt-'));
+  await fs.mkdir(path.join(root, '01'), { recursive: true });
+  await fs.writeFile(path.join(root, '01', 'chapter-111_report_assignments.md'), '500字以内で書く。\n', 'utf8');
+
+  const result = await buildReportPrompt({ inputDir: root });
+  const prompt = await fs.readFile(result.outputPath, 'utf8');
+
+  assert.deepEqual(result.sources.map((source) => source.kind), ['assignment']);
+  assert.match(prompt, /<report-assignments>/);
+  assert.match(prompt, /500字以内で書く。/);
+});
+
 test('renderReportPrompt omits missing source blocks without inventing content', () => {
   const prompt = renderReportPrompt({
     courseName: '{{COURSE_NAME}}',
@@ -47,5 +60,6 @@ test('renderReportPrompt omits missing source blocks without inventing content',
 
   assert.match(prompt, /only ocr/);
   assert.match(prompt, /\(Voice transcript is not available\.\)/);
+  assert.match(prompt, /\(Report assignment is not available\.\)/);
   assert.doesNotMatch(prompt, /undefined/);
 });

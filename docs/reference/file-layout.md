@@ -18,6 +18,7 @@ Identify persistent and generated paths.
     <chapterOrdinal>/
       chapter-<chapterId>_ocr.md
       chapter-<chapterId>_transcription.md
+      chapter-<chapterId>_report_assignments.md
       report_prompt.md
 ```
 
@@ -49,6 +50,7 @@ materials_ocr.md
 materials_ocr_manifest.json
 chapter-<chapterId>_ocr.md
 chapter-<chapterId>_transcription.md
+chapter-<chapterId>_report_assignments.md
 report_prompt.md
 ```
 

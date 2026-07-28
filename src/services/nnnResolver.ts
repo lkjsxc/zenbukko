@@ -1,4 +1,4 @@
-import type { NnnClient, CourseChapter, CourseLesson, CourseStructure, ResolvedLecture } from './nnnClient.js';
+import type { NnnClient, CourseChapter, CourseLesson, CourseReportAssignment, CourseStructure, ResolvedLecture } from './nnnClient.js';
 
 type LectureItem = {
   chapter: CourseChapter;
@@ -48,38 +48,61 @@ export async function resolveCourseLessonsForClient(
   const selectedChapters = chapters.filter((c) => new Set(params.chapterIds ?? chapters.map((x) => x.id)).has(c.id));
   if (selectedChapters.length === 0) throw new Error('No chapters selected (check --chapters filter).');
 
-  const queue = await buildLectureQueue(client, params.courseId, selectedChapters, params.limitLessons);
+  const { lectures, reportAssignments } = await buildLectureQueue(client, params.courseId, selectedChapters, params.limitLessons);
   const maxConcurrency = Math.max(1, Math.floor(params.maxConcurrency));
   const lessons: CourseLesson[] = [];
   const skippedLessons: Array<{ chapterId: number; lessonId: number; reason: string }> = [];
 
-  for (let i = 0; i < queue.length; i += maxConcurrency) {
-    const batch = queue.slice(i, i + maxConcurrency);
+  for (let i = 0; i < lectures.length; i += maxConcurrency) {
+    const batch = lectures.slice(i, i + maxConcurrency);
     const resolved = await Promise.all(batch.map((item) => resolveLectureItem(client, params.courseId, item, skippedLessons)));
     lessons.push(...resolved.filter((x): x is CourseLesson => Boolean(x)));
   }
 
-  const result: CourseStructure = { courseId: params.courseId, ...(courseTitle ? { courseTitle } : {}), chapters: selectedChapters, lessons };
+  const result: CourseStructure = {
+    courseId: params.courseId,
+    ...(courseTitle ? { courseTitle } : {}),
+    chapters: selectedChapters,
+    lessons,
+    reportAssignments,
+  };
   if (skippedLessons.length > 0) result.skippedLessons = skippedLessons;
   return result;
 }
 
-async function buildLectureQueue(client: NnnClient, courseId: number, chapters: CourseChapter[], limitLessons?: number): Promise<LectureItem[]> {
-  const queue: LectureItem[] = [];
+async function buildLectureQueue(
+  client: NnnClient,
+  courseId: number,
+  chapters: CourseChapter[],
+  limitLessons?: number,
+): Promise<{ lectures: LectureItem[]; reportAssignments: CourseReportAssignment[] }> {
+  const lectures: LectureItem[] = [];
+  const reportAssignments: CourseReportAssignment[] = [];
   for (const chapter of chapters) {
     const details = await client.getChapterDetails(courseId, chapter.id);
     const merged = mergeChapter(chapter, details.title);
-    const lectureSections = details.sections.filter(
-      (s): s is { id: number; title?: string; kind: 'lesson' | 'movie' } => s.kind === 'lesson' || s.kind === 'movie',
-    );
-    for (const section of lectureSections) {
-      if (typeof limitLessons === 'number' && queue.length >= Math.max(0, Math.floor(limitLessons))) return queue;
+    for (const section of details.sections) {
+      const report = toReportAssignment(merged, section);
+      if (report) reportAssignments.push(report);
+      if (section.kind !== 'lesson' && section.kind !== 'movie') continue;
+      if (typeof limitLessons === 'number' && lectures.length >= Math.max(0, Math.floor(limitLessons))) continue;
       const item: LectureItem = { chapter: merged, lessonId: section.id, kind: section.kind };
       if (section.title) item.lessonTitle = section.title;
-      queue.push(item);
+      lectures.push(item);
     }
   }
-  return queue;
+  return { lectures, reportAssignments };
+}
+
+function toReportAssignment(
+  chapter: CourseChapter,
+  section: { id: number; title?: string; kind: 'lesson' | 'movie' | 'report' | 'other'; contentUrl?: string },
+): CourseReportAssignment | undefined {
+  if (section.kind !== 'report' || !section.contentUrl) return undefined;
+  const result: CourseReportAssignment = { chapterId: chapter.id, assignmentId: section.id, contentUrl: section.contentUrl };
+  if (chapter.title) result.chapterTitle = chapter.title;
+  if (section.title) result.title = section.title;
+  return result;
 }
 
 async function resolveLectureItem(

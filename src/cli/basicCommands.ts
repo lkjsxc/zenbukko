@@ -62,7 +62,7 @@ export function registerBasicCommands(program: Command): void {
     });
 
   program.command('build-report-prompt')
-    .description('Build a report prompt from existing OCR and transcript artifacts')
+    .description('Build a report prompt from existing OCR, transcript, and report-assignment artifacts')
     .requiredOption('--input <path>', 'Downloads, course, chapter, lesson, or materials directory to scan')
     .option('--output <path>', 'Output prompt path')
     .option('--course-name <name>', 'Course name to embed in the prompt')

@@ -9,11 +9,12 @@ The generated prompt contains:
 - Source path list.
 - `<ocr-materials>` block when OCR text exists.
 - `<voice-transcripts>` block when transcript text exists.
+- `<report-assignments>` block when captured assignment text exists.
 - Output rules that require a report body only.
 
 ## Writing Contract
 
-- The report topic from the submission page is the highest priority.
+- Captured report-assignment instructions take priority over a supplied topic.
 - The generated report must not add facts outside the prompt sources.
 - If sources are too thin for the topic, the model should say that the report
   cannot be written from the available information.
