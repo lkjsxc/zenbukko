@@ -1,4 +1,15 @@
-import type { NnnClient, CourseChapter, CourseLesson, CourseReportAssignment, CourseStructure, ResolvedLecture } from './nnnClient.js';
+import type {
+  NnnClient,
+  CourseChapter,
+  CourseConfirmationTest,
+  CourseLesson,
+  CourseReportAssignment,
+  CourseStructure,
+  ResolvedLecture,
+} from './nnnClient.js';
+import type { NormalizedChapterDetails } from './nnnSchemas.js';
+
+type ChapterSection = NormalizedChapterDetails['sections'][number];
 
 type LectureItem = {
   chapter: CourseChapter;
@@ -48,7 +59,12 @@ export async function resolveCourseLessonsForClient(
   const selectedChapters = chapters.filter((c) => new Set(params.chapterIds ?? chapters.map((x) => x.id)).has(c.id));
   if (selectedChapters.length === 0) throw new Error('No chapters selected (check --chapters filter).');
 
-  const { lectures, reportAssignments } = await buildLectureQueue(client, params.courseId, selectedChapters, params.limitLessons);
+  const { lectures, confirmationTests, reportAssignments } = await buildLectureQueue(
+    client,
+    params.courseId,
+    selectedChapters,
+    params.limitLessons,
+  );
   const maxConcurrency = Math.max(1, Math.floor(params.maxConcurrency));
   const lessons: CourseLesson[] = [];
   const skippedLessons: Array<{ chapterId: number; lessonId: number; reason: string }> = [];
@@ -64,6 +80,7 @@ export async function resolveCourseLessonsForClient(
     ...(courseTitle ? { courseTitle } : {}),
     chapters: selectedChapters,
     lessons,
+    confirmationTests,
     reportAssignments,
   };
   if (skippedLessons.length > 0) result.skippedLessons = skippedLessons;
@@ -75,13 +92,20 @@ async function buildLectureQueue(
   courseId: number,
   chapters: CourseChapter[],
   limitLessons?: number,
-): Promise<{ lectures: LectureItem[]; reportAssignments: CourseReportAssignment[] }> {
+): Promise<{
+  lectures: LectureItem[];
+  confirmationTests: CourseConfirmationTest[];
+  reportAssignments: CourseReportAssignment[];
+}> {
   const lectures: LectureItem[] = [];
+  const confirmationTests: CourseConfirmationTest[] = [];
   const reportAssignments: CourseReportAssignment[] = [];
   for (const chapter of chapters) {
     const details = await client.getChapterDetails(courseId, chapter.id);
     const merged = mergeChapter(chapter, details.title);
     for (const section of details.sections) {
+      const confirmationTest = toConfirmationTest(merged, section);
+      if (confirmationTest) confirmationTests.push(confirmationTest);
       const report = toReportAssignment(merged, section);
       if (report) reportAssignments.push(report);
       if (section.kind !== 'lesson' && section.kind !== 'movie') continue;
@@ -91,12 +115,24 @@ async function buildLectureQueue(
       lectures.push(item);
     }
   }
-  return { lectures, reportAssignments };
+  return { lectures, confirmationTests, reportAssignments };
+}
+
+function toConfirmationTest(
+  chapter: CourseChapter,
+  section: ChapterSection,
+): CourseConfirmationTest | undefined {
+  if (section.kind !== 'exercise') return undefined;
+  const result: CourseConfirmationTest = { chapterId: chapter.id, testId: section.id };
+  if (chapter.title) result.chapterTitle = chapter.title;
+  if (section.title) result.title = section.title;
+  if (section.contentUrl) result.contentUrl = section.contentUrl;
+  return result;
 }
 
 function toReportAssignment(
   chapter: CourseChapter,
-  section: { id: number; title?: string; kind: 'lesson' | 'movie' | 'report' | 'other'; contentUrl?: string },
+  section: ChapterSection,
 ): CourseReportAssignment | undefined {
   if (section.kind !== 'report' || !section.contentUrl) return undefined;
   const result: CourseReportAssignment = { chapterId: chapter.id, assignmentId: section.id, contentUrl: section.contentUrl };

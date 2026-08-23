@@ -26,7 +26,8 @@ Describe the stable runtime boundaries for maintainers and LLM agents.
 ## Outputs
 
 - Course folders under `OUTPUT_DIR` or `/data/downloads`.
-- Lesson media, materials, transcripts, OCR Markdown, chapter Markdown, manifests, and API job logs.
+- Lesson media, materials, confirmation-test JSON, transcripts, OCR Markdown,
+  chapter Markdown, manifests, and API job logs.
 
 ## Failure Behavior
 

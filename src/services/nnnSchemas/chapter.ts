@@ -73,8 +73,12 @@ function normalizeSection(params: {
 }
 
 function sectionKind(resourceType: string | undefined, title: string | undefined): NormalizedChapterDetails['sections'][number]['kind'] {
-  if (resourceType === 'lesson') return 'lesson';
-  if (resourceType === 'movie') return 'movie';
-  if (/(?:report|assignment)/i.test(resourceType ?? '') || /(?:レポート|課題)/.test(title ?? '')) return 'report';
+  const normalizedType = resourceType?.trim().toLowerCase();
+  if (normalizedType === 'lesson') return 'lesson';
+  if (normalizedType === 'movie') return 'movie';
+  if (normalizedType === 'exercise') return 'exercise';
+  if (/(?:report|assignment)/i.test(normalizedType ?? '')) return 'report';
+  if (/(?:確認|小)テスト/.test(title ?? '')) return 'exercise';
+  if (/(?:レポート|課題)/.test(title ?? '')) return 'report';
   return 'other';
 }

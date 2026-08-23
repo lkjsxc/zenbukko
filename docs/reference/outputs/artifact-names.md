@@ -14,6 +14,7 @@
 - `materials_manifest.json`: material capture and conversion state.
 - `index.html`: offline material browser entrypoint.
 - `chapter-<chapterId>_transcription.md`: chapter-level transcript aggregate.
+- `chapter-<chapterId>_confirmation_tests.json`: chapter confirmation-test capture.
 - `chapter-<chapterId>_report_assignments.md`: captured report-assignment text.
 
 ## Report Prompts

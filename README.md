@@ -1,6 +1,6 @@
 # Zenbukko
 
-Zenbukko is a local course archive and study-material processing toolkit. It downloads accessible NNN course lessons and materials, can transcribe media with whisper.cpp, and can extract text from PDFs into Markdown.
+Zenbukko is a local course archive and study-material processing toolkit. It downloads accessible NNN course lessons, materials, and confirmation tests, can transcribe media with whisper.cpp, and can extract text from PDFs into Markdown.
 
 Documentation lives in [`docs/`](docs/README.md). Start there for architecture, usage, feature behavior, API contracts, and development rules.
 
@@ -51,7 +51,7 @@ node dist/index.js auth
 - [`docs/architecture/`](docs/architecture/README.md): module layout and data flow.
 - [`docs/llm/`](docs/llm/README.md): LLM-friendly index for cross-references and schema contracts.
 - [`docs/usage/`](docs/usage/README.md): CLI, web UI, Docker Compose, and outputs.
-- [`docs/features/`](docs/features/README.md): sessions, chapter selection, materials, OCR, transcription, and report prompts.
+- [`docs/features/`](docs/features/README.md): sessions, chapter selection, confirmation tests, materials, OCR, transcription, and report prompts.
 - [`docs/decisions/`](docs/decisions/README.md): accepted behavior decisions.
 - [`docs/reference/`](docs/reference/README.md): configuration, API, file layout, troubleshooting.
 - [`docs/development/`](docs/development/README.md): coding rules, tests, commits, verification.

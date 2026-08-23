@@ -52,11 +52,20 @@ export type CourseReportAssignment = {
   contentUrl: string;
 };
 
+export type CourseConfirmationTest = {
+  chapterId: number;
+  testId: number;
+  chapterTitle?: string;
+  title?: string;
+  contentUrl?: string;
+};
+
 export type CourseStructure = {
   courseId: number;
   courseTitle?: string;
   chapters: CourseChapter[];
   lessons: CourseLesson[];
+  confirmationTests: CourseConfirmationTest[];
   reportAssignments: CourseReportAssignment[];
   skippedLessons?: Array<{ chapterId: number; lessonId: number; reason: string }>;
 };

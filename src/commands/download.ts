@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import { buildCookieHeader, SessionStore } from '../session/sessionStore.js';
 import { safeBasename } from '../utils/fs.js';
 import { NnnClient, type CourseLesson } from '../services/nnnClient.js';
+import { downloadConfirmationTests } from '../services/confirmationTests.js';
 import { downloadReportAssignments } from '../services/reportAssignments.js';
 import { preflightTranscription } from './transcribe.js';
 import { createChapterDirNamer } from './download/chapterDirs.js';
@@ -37,8 +38,11 @@ export async function downloadCommand(
 
   const structure = await client.resolveCourseLessons(resolveArgs);
   const lessons = selectLessons(structure, params);
+  const confirmationTests = structure.confirmationTests;
   const reportAssignments = structure.reportAssignments;
-  if (lessons.length === 0 && reportAssignments.length === 0) throw new Error('No lessons or report assignments resolved to download.');
+  if (lessons.length === 0 && confirmationTests.length === 0 && reportAssignments.length === 0) {
+    throw new Error('No lessons, confirmation tests, or report assignments resolved to download.');
+  }
 
   if ((structure.skippedLessons ?? []).length > 0) {
     params.logger.warn(`Skipped ${(structure.skippedLessons ?? []).length} lesson(s) that could not be resolved (no video URL, etc).`);
@@ -47,7 +51,7 @@ export async function downloadCommand(
 
   const selectedChapterIds = new Set<number>(structure.chapters.map((c) => c.id));
   params.logger.info(
-    `Resolved ${lessons.length} lesson(s) and ${reportAssignments.length} report assignment(s) across ${selectedChapterIds.size} selected chapter(s) (${courseChapters.chapters.length} total chapter(s) in course).`,
+    `Resolved ${lessons.length} lesson(s), ${confirmationTests.length} confirmation test(s), and ${reportAssignments.length} report assignment(s) across ${selectedChapterIds.size} selected chapter(s) (${courseChapters.chapters.length} total chapter(s) in course).`,
   );
 
   const headers: Record<string, string> = {
@@ -61,6 +65,13 @@ export async function downloadCommand(
   await fs.mkdir(courseDir, { recursive: true });
   const namer = createChapterDirNamer(courseChapters.chapters, params.logger);
   const chapterMarkdown = new ChapterMarkdown(namer.chapterDirNameForId);
+  await downloadConfirmationTests({
+    tests: confirmationTests,
+    courseDir,
+    chapterDirNameForId: namer.chapterDirNameForId,
+    headers,
+    logger: params.logger,
+  });
   await downloadReportAssignments({
     assignments: reportAssignments,
     courseDir,

@@ -65,6 +65,13 @@ Local OCR flags are available on `download`, `download-all`, and `ocr-materials`
 
 `download` and `download-all` capture available report-assignment pages as chapter Markdown without submitting a response. `build-report-prompt` scans those local artifacts alongside OCR and transcripts, and leaves the report topic as `{{REPORT_TOPIC}}` unless `--topic` is provided. It does not generate the final report body.
 
+## Confirmation Tests
+
+`download` and `download-all` automatically capture every confirmation test in
+the selected chapters as chapter JSON. Available questions, choices, submitted
+answers, correctness, explanations, and attempt history are preserved without
+submitting an answer or changing course progress.
+
 ## Failure Behavior
 
 Commands exit non-zero when required session data, course data, local binaries, or output writes fail. Run `zenbukko doctor` for actionable native dependency diagnostics. If a course-aware command reports a missing or expired session, run `zenbukko auth` and retry.

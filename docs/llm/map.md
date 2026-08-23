@@ -19,6 +19,7 @@
 - Web UI: [`../product/ui/`](../product/ui/README.md)
 - Sessions: [`../features/sessions/`](../features/sessions/README.md)
 - Chapter selection: [`../features/chapter-selection/`](../features/chapter-selection/README.md)
+- Confirmation tests: [`../features/confirmation-tests/`](../features/confirmation-tests/README.md)
 - Materials: [`../features/materials/`](../features/materials/README.md)
 - OCR: [`../features/ocr/`](../features/ocr/README.md)
 - Transcription: [`../features/transcription/`](../features/transcription/README.md)

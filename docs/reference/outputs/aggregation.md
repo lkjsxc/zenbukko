@@ -6,7 +6,10 @@
 
 ## Chapter Aggregates
 
-`chapter-<chapterId>_ocr.md` concatenates lesson OCR aggregates in lesson order. `chapter-<chapterId>_transcription.md` does the same for lesson transcripts.
+`chapter-<chapterId>_ocr.md` concatenates lesson OCR aggregates in lesson order.
+`chapter-<chapterId>_transcription.md` does the same for lesson transcripts.
+`chapter-<chapterId>_confirmation_tests.json` preserves discovered test order
+and separates captured content from per-test failures.
 
 ## Invariants
 

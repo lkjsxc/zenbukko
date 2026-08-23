@@ -1,21 +1,27 @@
 # Verification Results
 
-## Date
+## Latest Change
 
-July 27, 2026.
+August 23, 2026.
 
-## Local
+Confirmation-test capture verification:
 
 - `npm ci`: passed (npm reported existing dependency advisories).
-- `npm --prefix web-ui ci`: passed (npm reported an existing advisory).
+- `npm --prefix web-ui ci`: passed (npm reported existing dependency advisories).
 - `npm run type-check`: passed.
 - `npm run lint`: passed.
-- `npm test`: passed, 88 tests.
+- `npm test`: passed, 94 tests.
 - `npm run check:lines`: passed.
 - `npm run build`: passed.
-- `node dist/index.js doctor`: ran and correctly reported missing local Poppler, NDLOCR-Lite, Whisper build/model, output directory, and `/dev/dri`; exit 1 is expected on this incomplete native host.
+- Docker Compose verification was attempted but could not run because this host
+  does not provide the `docker` command.
 
-## Compose And Images
+No private course page or media was accessed during verification. Confirmation
+test coverage uses synthetic HTML and responses only.
+
+## Previous Compose Baseline
+
+July 27, 2026:
 
 - `docker compose config`, CPU, CUDA, and Vulkan profile configuration: passed.
 - `docker compose --profile cpu build`: passed.

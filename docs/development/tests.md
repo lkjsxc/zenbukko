@@ -7,6 +7,7 @@ Cover shared parsing and planning behavior without requiring external services.
 ## Required Coverage
 
 - Chapter range parsing.
+- Confirmation-test discovery, content parsing, result capture, and failure recording.
 - Ordinal-to-NNN chapter ID mapping.
 - Session parsing and prefill payloads.
 - Web settings precedence.
