@@ -2,12 +2,15 @@ export type Choice = {
   value?: string;
   text?: string;
   html?: string;
+  selected: boolean;
 };
 
 export type Question = {
   id?: string;
   type?: string;
   badge?: string;
+  statementText?: string;
+  statementHtml?: string;
   choices: Choice[];
   userAnswer?: unknown;
   isCorrect?: boolean | null;

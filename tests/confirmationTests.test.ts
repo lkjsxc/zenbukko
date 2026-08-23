@@ -54,8 +54,8 @@ test('parseConfirmationTestPage captures questions, answers, correctness, and ex
     type: 'normal',
     badge: 'shoumon-badge-correct',
     choices: [
-      { value: '1', text: '誤り', html: '<b>誤り</b>' },
-      { value: '3', text: '正解', html: '正解' },
+      { value: '1', text: '誤り', html: '<b>誤り</b>', selected: false },
+      { value: '3', text: '正解', html: '正解', selected: true },
     ],
     userAnswer: '3',
     isCorrect: true,
@@ -66,6 +66,57 @@ test('parseConfirmationTestPage captures questions, answers, correctness, and ex
   assert.equal(captured.questions[1]?.explanationText, '0.48 が答えです。');
   assert.equal(captured.questions[2]?.id, 'unanswered-id');
   assert.equal(captured.questions[2]?.userAnswer, undefined);
+});
+
+test('parseConfirmationTestPage captures semantic radio, checkbox, and select questions', () => {
+  const html = `<!doctype html><html><body>
+  <script id="kokuban-init" type="application/json">${JSON.stringify({ userContext: { answers: {
+    radio: { answering: 'b', isCorrect: true },
+    checks: { answering: ['x', 'z'], isCorrect: true },
+    menu: { answering: '2', isCorrect: false },
+  } } })}</script>
+  <section class="exercise">
+    <fieldset data-question-id="radio">
+      <legend>Pick <strong>one</strong>.</legend>
+      <input type="radio" id="radio-a" name="radio" value="a"><label for="radio-a"><span>Alpha</span></label>
+      <label><input type="radio" name="radio" value="b" checked><em>Beta</em></label>
+    </fieldset>
+    <div role="group" data-question-id="checks">
+      <div class="question-statement">Pick every match.</div>
+      <label><input type="checkbox" name="checks" value="x" checked>First</label>
+      <label><input type="checkbox" name="checks" value="y">Second</label>
+      <label><input type="checkbox" name="checks" value="z">Third</label>
+    </div>
+    <fieldset data-question-id="menu">
+      <legend>Choose from the menu.</legend>
+      <select name="menu"><option value="1">One</option><option value="2" selected>Two</option></select>
+    </fieldset>
+  </section></body></html>`;
+  const captured = parseConfirmationTestPage({
+    chapterId: 123,
+    testId: 789,
+    contentUrl: 'https://www.nnn.ed.nico/contents/exercises/789/result',
+  }, html);
+
+  assert.equal(captured.questions.length, 3);
+  assert.deepEqual(captured.questions[0], {
+    id: 'radio',
+    type: 'single-choice',
+    statementText: 'Pick one.',
+    statementHtml: 'Pick <strong>one</strong>.',
+    choices: [
+      { value: 'a', text: 'Alpha', html: '<span>Alpha</span>', selected: false },
+      { value: 'b', text: 'Beta', html: '<em>Beta</em>', selected: true },
+    ],
+    userAnswer: 'b',
+    isCorrect: true,
+  });
+  assert.equal(captured.questions[1]?.type, 'multiple-choice');
+  assert.deepEqual(captured.questions[1]?.choices.map((choice) => choice.selected), [true, false, true]);
+  assert.deepEqual(captured.questions[1]?.userAnswer, ['x', 'z']);
+  assert.equal(captured.questions[2]?.type, 'select');
+  assert.deepEqual(captured.questions[2]?.choices.map((choice) => choice.selected), [false, true]);
+  assert.equal(captured.questions[2]?.userAnswer, '2');
 });
 
 test('downloadConfirmationTests writes every chapter with captured tests and explicit failures', async () => {

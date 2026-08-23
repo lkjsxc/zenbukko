@@ -19,8 +19,16 @@ server-rendered exercise data:
 - material type and learning-material code when exposed;
 - pass state and attempt history when exposed to the current user;
 - statement text and HTML;
-- question ID, type, status badge, choices, submitted answer, correctness, and
-  explanation text and HTML.
+- question ID, type, rendered prompt text and HTML, status badge, choices,
+  submitted answer, correctness, and explanation text and HTML.
+
+Choice capture recognizes rendered radio buttons, checkboxes, and select
+options in addition to the known NNN choice wrappers. Every choice records its
+value, rendered label when available, and whether it is selected. Selection is
+recovered from the rendered control state and the authenticated answer data.
+Question containers are discovered from exercise items and rendered form
+groups so a changed presentation class does not silently omit an entire
+selection question.
 
 The downloader does not call answer or progress mutation endpoints.
 Authenticated capture accepts only HTTPS content URLs on `nnn.ed.nico`.

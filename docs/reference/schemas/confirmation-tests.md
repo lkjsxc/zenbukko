@@ -23,7 +23,10 @@ discovered in one selected chapter.
 ## Question Record
 
 - `id`, `type`, `badge`: optional rendered question identity and state.
-- `choices`: ordered `value`, `text`, and `html` records.
+- `statementText`, `statementHtml`: optional per-question rendered prompt.
+- `choices`: ordered `value`, `text`, `html`, and required Boolean `selected`
+  records. Choices may originate from radio buttons, checkboxes, or select
+  options.
 - `userAnswer`: optional submitted answer in its source JSON shape.
 - `isCorrect`: `true`, `false`, or `null` when exposed.
 - `explanationText`, `explanationHtml`: optional rendered explanation.
