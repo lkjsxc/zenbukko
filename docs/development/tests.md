@@ -9,8 +9,9 @@ Cover shared parsing and planning behavior without requiring external services.
 - Chapter range parsing.
 - Archive media/material/test option order, defaults, dependencies, and request
   propagation.
-- Confirmation-test discovery, radio/checkbox/select parsing, per-question
-  prompts, selected choices, result capture, and failure recording.
+- Confirmation-test discovery, NNN answer-list and radio/checkbox/select
+  parsing, per-question prompts, correct and selected choices, result capture,
+  and failure recording.
 - Ordinal-to-NNN chapter ID mapping.
 - Session parsing and prefill payloads.
 - Web settings precedence.

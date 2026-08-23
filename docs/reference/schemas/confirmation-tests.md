@@ -18,15 +18,18 @@ discovered in one selected chapter.
 - `materialType`, `learningMaterialCode`: optional page metadata.
 - `passed`, `history`: optional result data exposed to the current user.
 - `statementText`, `statementHtml`: optional rendered statement forms.
+- `explanationText`, `explanationHtml`: optional exercise-level explanation.
 - `questions`: ordered question records.
 
 ## Question Record
 
-- `id`, `type`, `badge`: optional rendered question identity and state.
+- `id`, `type`, `badge`, `answerMode`: optional rendered question identity,
+  kind, and answer-list mode.
 - `statementText`, `statementHtml`: optional per-question rendered prompt.
-- `choices`: ordered `value`, `text`, `html`, and required Boolean `selected`
-  records. Choices may originate from radio buttons, checkboxes, or select
-  options.
+- `choices`: ordered `value`, `text`, `html`, optional Boolean `selected`, and
+  optional Boolean `correct` records. Choices may originate from server-rendered
+  answer lists, radio buttons, checkboxes, or select options. An absent
+  `selected` means the static page did not expose selection state.
 - `userAnswer`: optional submitted answer in its source JSON shape.
 - `isCorrect`: `true`, `false`, or `null` when exposed.
 - `explanationText`, `explanationHtml`: optional rendered explanation.

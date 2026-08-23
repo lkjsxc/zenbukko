@@ -2,13 +2,15 @@ export type Choice = {
   value?: string;
   text?: string;
   html?: string;
-  selected: boolean;
+  selected?: boolean;
+  correct?: boolean;
 };
 
 export type Question = {
   id?: string;
   type?: string;
   badge?: string;
+  answerMode?: string;
   statementText?: string;
   statementHtml?: string;
   choices: Choice[];
@@ -29,6 +31,8 @@ export type CapturedConfirmationTest = {
   history?: unknown;
   statementText?: string;
   statementHtml?: string;
+  explanationText?: string;
+  explanationHtml?: string;
   questions: Question[];
 };
 

@@ -38,6 +38,7 @@ Define ownership for source modules so refactors stay narrow.
 - `src/services/nnnSchemas.ts`: response normalization.
 - `src/services/confirmationTests.ts`: read-only confirmation-test fetch and chapter JSON output.
 - `src/services/confirmationTestParser.ts`: pure rendered exercise and choice parsing.
+- `src/services/confirmationTestChoices.ts`: answer-list and form-control choice normalization.
 - `src/services/materials.ts`: material page fetch, asset extraction, and offline index writing.
 - `src/services/reportAssignments.ts`: report-assignment page capture and Markdown writing.
 - `src/services/ocr/`: local OCR discovery, planning, execution, aggregation, and manifest writing.

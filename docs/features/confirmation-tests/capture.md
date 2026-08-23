@@ -23,12 +23,15 @@ server-rendered exercise data:
   submitted answer, correctness, and explanation text and HTML.
 
 Choice capture recognizes rendered radio buttons, checkboxes, and select
-options in addition to the known NNN choice wrappers. Every choice records its
-value, rendered label when available, and whether it is selected. Selection is
-recovered from the rendered control state and the authenticated answer data.
-Question containers are discovered from exercise items and rendered form
-groups so a changed presentation class does not silently omit an entire
-selection question.
+options in addition to NNN's server-rendered `ul.answers > li` lists and known
+choice wrappers. Every choice records its value and rendered label when
+available, plus selected and correct-answer flags when the page exposes them.
+Selection is recovered from the rendered control state and authenticated answer
+data; a static answer list does not invent a selection state. Question
+containers are discovered from exercise items, typed list items, and rendered
+form groups so presentation variants do not silently omit an entire selection
+question. Exercise-level explanations are preserved when the page does not
+attach an explanation to each question.
 
 The downloader does not call answer or progress mutation endpoints.
 Authenticated capture accepts only HTTPS content URLs on `nnn.ed.nico`.
