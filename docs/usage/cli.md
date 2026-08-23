@@ -73,6 +73,14 @@ page requests and JSON writes for that run. Available questions, choices,
 submitted answers, correctness, explanations, and attempt history are preserved
 without submitting an answer or changing course progress.
 
+## Download Selection
+
+Lesson media is downloaded by default. Pass `--no-media` to capture only the
+other selected outputs. `--materials` independently enables lesson materials;
+`--ocr-materials` also enables materials. `--transcribe` always enables media
+because the transcript consumes the downloaded file. Confirmation tests remain
+controlled independently by `--no-confirmation-tests`.
+
 ## Failure Behavior
 
 Commands exit non-zero when required session data, course data, local binaries, or output writes fail. Run `zenbukko doctor` for actionable native dependency diagnostics. If a course-aware command reports a missing or expired session, run `zenbukko auth` and retry.

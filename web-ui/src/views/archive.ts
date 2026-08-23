@@ -5,16 +5,9 @@ import { button, card, emptyState, field, inlineError, loadingState } from '../c
 import { renderChapterPicker, type ChapterPickerValue } from '../components/ChapterPicker.js';
 import { el } from '../utils/html.js';
 import { navigate } from '../router/hash.js';
+import { archiveOptionRequest, createArchiveOptionControls } from './archiveOptions.js';
 
 const NNN_BASE = 'https://www.nnn.ed.nico/courses/';
-export const ARCHIVE_OPTION_LABELS = [
-  'Transcribe media',
-  'Download materials',
-  'Download confirmation tests',
-  'Run PDF OCR (includes materials)',
-  'Delete media after transcript',
-];
-export const DEFAULT_CONFIRMATION_TESTS = true;
 let chapterRequestId = 0;
 
 export const renderArchive = (state: AppState, dispatch: Dispatch): HTMLElement => {
@@ -29,12 +22,7 @@ export const renderArchive = (state: AppState, dispatch: Dispatch): HTMLElement 
   }) as HTMLInputElement;
   const concurrency = el('input', { className: 'input', type: 'number', value: '6', min: '1', max: '32' }) as HTMLInputElement;
   const advancedIds = el('input', { className: 'input', placeholder: '101, 205, 309' }) as HTMLInputElement;
-  const transcribe = checkbox(false);
-  const materials = checkbox(false);
-  const confirmationTests = checkbox(DEFAULT_CONFIRMATION_TESTS);
-  const ocrMaterials = checkbox(false);
-  const cleanup = checkbox(true);
-  cleanup.disabled = true;
+  const archiveOptions = createArchiveOptionControls();
 
   let pickerValue: ChapterPickerValue = { mode: 'range', chapterRange: '', chapters: '' };
   const pickerHost = el('div');
@@ -89,11 +77,6 @@ export const renderArchive = (state: AppState, dispatch: Dispatch): HTMLElement 
 
   advancedIds.addEventListener('input', syncChapterMode);
   urlInput.addEventListener('change', () => { void loadChapters(); });
-  transcribe.addEventListener('change', () => { cleanup.disabled = !transcribe.checked; });
-  ocrMaterials.addEventListener('change', () => {
-    if (ocrMaterials.checked) materials.checked = true;
-    materials.disabled = ocrMaterials.checked;
-  });
 
   const startJob = async (kind: 'download' | 'download-all'): Promise<void> => {
     const error = validate(kind, urlInput.value, concurrency.value, advancedIds.value);
@@ -114,11 +97,7 @@ export const renderArchive = (state: AppState, dispatch: Dispatch): HTMLElement 
           chapterRange: explicit ? '' : pickerValue.chapterRange,
           chapters: explicit,
           maxConcurrency: Number(concurrency.value),
-          transcribe: transcribe.checked,
-          materials: materials.checked || ocrMaterials.checked,
-          confirmationTests: confirmationTests.checked,
-          ocrMaterials: ocrMaterials.checked,
-          deleteMediaAfterTranscribe: transcribe.checked && cleanup.checked,
+          ...archiveOptionRequest(archiveOptions),
           ndlocrCommand: state.settings?.ndlocrCommand ?? 'ndlocr-lite',
           ndlocrDevice: state.settings?.ndlocrDevice ?? 'cpu',
           ocrPageDpi: state.settings?.ocrPageDpi ?? 300,
@@ -143,26 +122,13 @@ export const renderArchive = (state: AppState, dispatch: Dispatch): HTMLElement 
     pickerHost,
     field('Explicit chapter IDs (advanced)', advancedIds, { hint: 'Entering IDs disables the visual chapter selection.' }),
     field('Concurrency', concurrency, { hint: 'Number of simultaneous requests (1–32).' }),
-    optionFields(transcribe, materials, confirmationTests, ocrMaterials, cleanup),
+    archiveOptions.root,
     validation,
     startBtn,
     bulkAction(allBtn),
   );
   void loadChapters();
   return card('Archive', body);
-};
-
-const checkbox = (checked: boolean): HTMLInputElement => {
-  const input = el('input', { type: 'checkbox' }) as HTMLInputElement;
-  input.checked = checked;
-  return input;
-};
-
-const optionFields = (...inputs: HTMLInputElement[]): HTMLElement => {
-  const root = el('fieldset', { className: 'option-group' });
-  root.append(el('legend', { className: 'field-label', text: 'Processing options' }));
-  inputs.forEach((input, index) => root.append(el('label', { className: 'check' }, input, document.createTextNode(ARCHIVE_OPTION_LABELS[index]))));
-  return root;
 };
 
 const bulkAction = (action: HTMLButtonElement): HTMLElement => el('section', { className: 'bulk-action stack' },

@@ -17,14 +17,26 @@ export async function downloadResolvedLessons(ctx: {
   chapterMarkdown: ChapterMarkdown;
 }): Promise<Array<{ lesson: CourseLesson; outFilePath: string }>> {
   const downloaded: Array<{ lesson: CourseLesson; outFilePath: string }> = [];
-  const workItems = await buildWorkItems(ctx);
-  const materialsDirs = ctx.params.materials ? await downloadAllMaterials(workItems) : [];
-  for (const item of workItems) {
-    await processMediaItem(item);
-    downloaded.push({ lesson: item.lesson, outFilePath: item.outFilePath });
+  const { media, materials } = resolveLessonCaptureModes(ctx.params);
+  const workItems = media || materials ? await buildWorkItems(ctx) : [];
+  const materialsDirs = materials ? await downloadAllMaterials(workItems) : [];
+  if (media) {
+    for (const item of workItems) {
+      await processMediaItem(item);
+      downloaded.push({ lesson: item.lesson, outFilePath: item.outFilePath });
+    }
   }
   if (ctx.params.ocrMaterials) await ocrAllMaterials(ctx.params, materialsDirs, ctx.courseDir);
   return downloaded;
+}
+
+export function resolveLessonCaptureModes(
+  params: Pick<DownloadCommandParams, 'media' | 'transcribe' | 'materials' | 'ocrMaterials'>,
+): { media: boolean; materials: boolean } {
+  return {
+    media: params.media || params.transcribe,
+    materials: params.materials || params.ocrMaterials,
+  };
 }
 
 async function buildWorkItems(ctx: {

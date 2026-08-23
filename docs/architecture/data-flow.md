@@ -15,7 +15,8 @@ Show how requests move through Zenbukko and where persistent artifacts are writt
 7. When enabled, confirmation tests for selected chapters are captured as structured JSON.
 8. Report-assignment pages for selected chapters are captured as local Markdown.
 9. If materials are enabled, all selected lesson materials are fetched and normalized first.
-10. Media download, transcription, cleanup, and OCR run only after the material capture phase.
+10. When enabled, media download and its transcription or cleanup run after the
+    material capture phase. OCR then runs against enabled material capture.
 
 ## Web/Core Flow
 
@@ -34,7 +35,8 @@ Show how requests move through Zenbukko and where persistent artifacts are writt
 2. Linked assets are downloaded under `assets/`.
 3. Supported saved sources are normalized into PDFs under `pdf/`.
 4. `materials_manifest.json` records source files, PDF files, conversion status, and OCR eligibility.
-5. After all selected material directories exist, media and transcription may run.
+5. After all selected material directories exist, enabled media download and
+   transcription may run. A materials-only job never requests lesson media.
 6. OCR runs against the collected material directories after material capture has completed.
 7. PDF discovery prefers manifest asset PDF entries and avoids duplicate reference-page PDFs when per-asset PDFs exist.
 8. Planning skips existing Markdown unless `force` is set.

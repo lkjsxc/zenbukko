@@ -4,20 +4,21 @@
 
 August 23, 2026.
 
-Confirmation-test capture and processing-option verification:
+Selection-question capture and independent media/material/test controls:
 
 - `npm ci`: passed (npm reported existing dependency advisories).
 - `npm --prefix web-ui ci`: passed (npm reported existing dependency advisories).
 - `npm run type-check`: passed.
 - `npm run lint`: passed.
-- `npm test`: passed, 98 tests.
+- `npm test`: passed, 101 tests.
 - `npm run check:lines`: passed.
 - `npm run build`: passed.
 - Docker Compose verification was attempted but could not run because this host
   does not provide the `docker` command.
 
 No private course page or media was accessed during verification. Confirmation
-test coverage uses synthetic HTML and responses only.
+test coverage uses synthetic radio, checkbox, select, HTML, and response data
+only.
 
 ## Previous Compose Baseline
 

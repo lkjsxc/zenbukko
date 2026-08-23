@@ -22,18 +22,21 @@ export async function runJob(job: JobRecord, cfg: AppConfig, stateDir: string, l
     return;
   }
 
+  const transcribe = booleanFrom(job.request.transcribe, false);
+  const ocrMaterials = booleanFrom(job.request.ocrMaterials, false);
   const common = {
     sessionPath: cfg.sessionPath,
     outputDir: cfg.outputDir,
     maxConcurrency: numberFrom(job.request.maxConcurrency, 6),
-    transcribe: booleanFrom(job.request.transcribe, false),
+    transcribe,
     transcribeModel: stringFrom(job.request.transcribeModel, 'large-v3-turbo'),
     transcribeFormat: stringFrom(job.request.transcribeFormat, 'txt') as 'txt' | 'srt' | 'vtt',
     transcribeLanguage: stringFrom(job.request.transcribeLanguage, 'ja'),
     deleteMediaAfterTranscribe: booleanFrom(job.request.deleteMediaAfterTranscribe, true),
-    materials: booleanFrom(job.request.materials, false) || booleanFrom(job.request.ocrMaterials, false),
+    media: booleanFrom(job.request.media, true) || transcribe,
+    materials: booleanFrom(job.request.materials, false) || ocrMaterials,
     confirmationTests: booleanFrom(job.request.confirmationTests, true),
-    ocrMaterials: booleanFrom(job.request.ocrMaterials, false),
+    ocrMaterials,
     ocrForce: booleanFrom(job.request.ocrForce, false),
     ...localOcrFromRequest(job.request, settings),
     logger,

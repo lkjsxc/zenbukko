@@ -16,6 +16,7 @@ export type DownloadCommandParams = {
   transcribeLanguage?: string;
   noSpeechThreshold?: number;
   maxSeconds?: number;
+  media: boolean;
   materials: boolean;
   confirmationTests: boolean;
   deleteMediaAfterTranscribe: boolean;

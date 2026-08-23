@@ -32,9 +32,11 @@ Web exposes these endpoints at same origin and proxies them to Core API. Default
 ## Job Request Fields
 
 Download requests may include `chapterRange`, `chapters`, `lessonIds`,
-transcription fields, `materials`, `confirmationTests`, and local OCR fields.
-`confirmationTests` defaults to `true`. `chapterRange` is resolved before
-downloader lesson resolution.
+transcription fields, `media`, `materials`, `confirmationTests`, and local OCR
+fields. `media` and `confirmationTests` default to `true`; `materials` defaults
+to `false`. Transcription forces `media` to `true`, and PDF OCR forces
+`materials` to `true`. `chapterRange` is resolved before downloader lesson
+resolution.
 
 Local OCR fields are `ndlocrCommand`, `ndlocrDevice`, `ocrPageDpi`, `ocrKeepIntermediates`, `ndlocrEnableTcy`, and `ocrForce`.
 

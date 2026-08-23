@@ -44,8 +44,10 @@ Navigate via hash routes: Dashboard, Session, Courses, Archive, Jobs, Outputs, S
 - Session JSON only needs to be pasted when no saved session exists or the operator wants to replace it.
 - Courses and archive jobs should be treated as unavailable until a valid session is saved.
 - OCR settings are stored by Core API under API-owned state.
-- Archive jobs accept learning URL, visual chapter selection, materials,
-  confirmation-test download, transcription, and OCR options.
+- Archive jobs accept learning URL, visual chapter selection, media, materials,
+  confirmation-test download, transcription, and OCR options. Media, materials,
+  and confirmation tests are separate checkboxes; transcription requires media
+  and PDF OCR requires materials.
 - Course detail API powers the visual chapter picker.
 - Course list loading is performed by Core API in headless mode; the Web UI should not open or control the NNN browser window directly.
 

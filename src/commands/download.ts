@@ -40,8 +40,9 @@ export async function downloadCommand(
   const lessons = selectLessons(structure, params);
   const confirmationTests = selectConfirmationTests(structure, params.confirmationTests);
   const reportAssignments = structure.reportAssignments;
-  if (lessons.length === 0 && confirmationTests.length === 0 && reportAssignments.length === 0) {
-    throw new Error('No lessons, confirmation tests, or report assignments resolved to download.');
+  const lessonOutput = params.media || params.transcribe || params.materials || params.ocrMaterials;
+  if ((!lessonOutput || lessons.length === 0) && confirmationTests.length === 0 && reportAssignments.length === 0) {
+    throw new Error('No selected lesson output, confirmation tests, or report assignments resolved to download.');
   }
 
   if ((structure.skippedLessons ?? []).length > 0) {

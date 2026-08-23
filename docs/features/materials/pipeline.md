@@ -20,7 +20,9 @@ Define how lesson material pages become durable local artifacts.
 6. Normalize supported reference pages and assets into PDFs under `pdf/`.
 7. Write `materials_manifest.json` with source files, PDF outputs, and conversion status.
 8. Write `index.html` for offline inspection.
-9. After all selected lesson material directories are present, continue with media, transcription, and local OCR.
+9. After all selected lesson material directories are present, continue with
+   enabled media download, transcription, and local OCR. Materials-only jobs do
+   not request media.
 
 ## Outputs
 

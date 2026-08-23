@@ -39,6 +39,7 @@ function addDownloadOptions(command: Command): Command {
     .option('--transcribe-language <code>', 'Language code to force during transcription', 'ja')
     .option('--no-speech-thold <n>', 'whisper.cpp no-speech threshold', (v) => Number(v))
     .option('--max-seconds <n>', 'Only transcribe the first N seconds', (v) => Number(v))
+    .option('--no-media', 'Skip lesson media downloads')
     .option('--materials', 'Download lesson materials', false)
     .option('--no-confirmation-tests', 'Skip confirmation-test downloads')
     .option('--delete-media-after-transcribe', 'Delete media after usable transcript exists', false)
@@ -47,13 +48,15 @@ function addDownloadOptions(command: Command): Command {
 }
 
 function downloadCommon(ctx: ReturnType<typeof makeContext>, cmd: Record<string, unknown>) {
+  const transcribe = Boolean(cmd.transcribe);
   const args = {
     sessionPath: ctx.sessionPath,
     outputDir: ctx.outputDir,
     maxConcurrency: Number(cmd.maxConcurrency ?? 6),
-    transcribe: Boolean(cmd.transcribe),
+    transcribe,
     transcribeModel: String(cmd.transcribeModel ?? 'base'),
     transcribeFormat: String(cmd.transcribeFormat ?? 'txt') as 'txt' | 'srt' | 'vtt',
+    media: cmd.media !== false || transcribe,
     materials: Boolean(cmd.materials) || Boolean(cmd.ocrMaterials),
     confirmationTests: cmd.confirmationTests !== false,
     deleteMediaAfterTranscribe: Boolean(cmd.deleteMediaAfterTranscribe),

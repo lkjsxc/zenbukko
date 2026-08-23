@@ -15,6 +15,7 @@ const DOWNLOAD_FIELDS = new Set([
   'transcribeModel',
   'transcribeFormat',
   'transcribeLanguage',
+  'media',
   'materials',
   'confirmationTests',
   'deleteMediaAfterTranscribe',
@@ -30,20 +31,23 @@ export function normalizeJobRequest(kind: JobKind, body: Record<string, unknown>
   }
 
   rejectUnknownFields(body, DOWNLOAD_FIELDS);
+  const transcribe = booleanFrom(body.transcribe, false);
+  const ocrMaterials = booleanFrom(body.ocrMaterials, false);
   const common = {
     chapters: csvNumbers(body.chapters),
     chapterRange: stringFrom(body.chapterRange, ''),
     lessonIds: csvNumbers(body.lessonIds),
     firstLectureOnly: booleanFrom(body.firstLectureOnly, false),
     maxConcurrency: integerInRange(body.maxConcurrency, 6, 1, 32, 'maxConcurrency'),
-    transcribe: booleanFrom(body.transcribe, false),
+    transcribe,
     transcribeModel: stringFrom(body.transcribeModel, 'large-v3-turbo'),
     transcribeFormat: transcriptFormat(body.transcribeFormat),
     transcribeLanguage: stringFrom(body.transcribeLanguage, 'ja'),
-    materials: booleanFrom(body.materials, false),
+    media: booleanFrom(body.media, true) || transcribe,
+    materials: booleanFrom(body.materials, false) || ocrMaterials,
     confirmationTests: booleanFrom(body.confirmationTests, true),
     deleteMediaAfterTranscribe: booleanFrom(body.deleteMediaAfterTranscribe, true),
-    ocrMaterials: booleanFrom(body.ocrMaterials, false),
+    ocrMaterials,
     ocrForce: booleanFrom(body.ocrForce, false),
     ...localOcrFields(body),
   };

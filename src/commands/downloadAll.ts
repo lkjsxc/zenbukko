@@ -15,6 +15,7 @@ export type DownloadAllCommandParams = {
   transcribeLanguage?: string;
   noSpeechThreshold?: number;
   maxSeconds?: number;
+  media: boolean;
   materials: boolean;
   confirmationTests: boolean;
   chapterRange?: string;
