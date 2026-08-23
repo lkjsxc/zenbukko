@@ -19,3 +19,10 @@ export function selectLessons(structure: CourseStructure, params: DownloadComman
   if (params.firstLectureOnly) return structure.lessons.slice(0, 1);
   return structure.lessons;
 }
+
+export function selectConfirmationTests(
+  structure: Pick<CourseStructure, 'confirmationTests'>,
+  enabled: boolean,
+): CourseStructure['confirmationTests'] {
+  return enabled ? structure.confirmationTests : [];
+}

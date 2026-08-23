@@ -67,10 +67,11 @@ Local OCR flags are available on `download`, `download-all`, and `ocr-materials`
 
 ## Confirmation Tests
 
-`download` and `download-all` automatically capture every confirmation test in
-the selected chapters as chapter JSON. Available questions, choices, submitted
-answers, correctness, explanations, and attempt history are preserved without
-submitting an answer or changing course progress.
+`download` and `download-all` capture every confirmation test in the selected
+chapters as chapter JSON by default. Pass `--no-confirmation-tests` to skip test
+page requests and JSON writes for that run. Available questions, choices,
+submitted answers, correctness, explanations, and attempt history are preserved
+without submitting an answer or changing course progress.
 
 ## Failure Behavior
 

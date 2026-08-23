@@ -16,6 +16,7 @@ export type DownloadAllCommandParams = {
   noSpeechThreshold?: number;
   maxSeconds?: number;
   materials: boolean;
+  confirmationTests: boolean;
   chapterRange?: string;
   deleteMediaAfterTranscribe: boolean;
   ocrMaterials: boolean;

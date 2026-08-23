@@ -32,6 +32,7 @@ export async function runJob(job: JobRecord, cfg: AppConfig, stateDir: string, l
     transcribeLanguage: stringFrom(job.request.transcribeLanguage, 'ja'),
     deleteMediaAfterTranscribe: booleanFrom(job.request.deleteMediaAfterTranscribe, true),
     materials: booleanFrom(job.request.materials, false) || booleanFrom(job.request.ocrMaterials, false),
+    confirmationTests: booleanFrom(job.request.confirmationTests, true),
     ocrMaterials: booleanFrom(job.request.ocrMaterials, false),
     ocrForce: booleanFrom(job.request.ocrForce, false),
     ...localOcrFromRequest(job.request, settings),

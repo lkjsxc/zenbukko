@@ -7,6 +7,14 @@ import { el } from '../utils/html.js';
 import { navigate } from '../router/hash.js';
 
 const NNN_BASE = 'https://www.nnn.ed.nico/courses/';
+export const ARCHIVE_OPTION_LABELS = [
+  'Transcribe media',
+  'Download materials',
+  'Download confirmation tests',
+  'Run PDF OCR (includes materials)',
+  'Delete media after transcript',
+];
+export const DEFAULT_CONFIRMATION_TESTS = true;
 let chapterRequestId = 0;
 
 export const renderArchive = (state: AppState, dispatch: Dispatch): HTMLElement => {
@@ -23,6 +31,7 @@ export const renderArchive = (state: AppState, dispatch: Dispatch): HTMLElement 
   const advancedIds = el('input', { className: 'input', placeholder: '101, 205, 309' }) as HTMLInputElement;
   const transcribe = checkbox(false);
   const materials = checkbox(false);
+  const confirmationTests = checkbox(DEFAULT_CONFIRMATION_TESTS);
   const ocrMaterials = checkbox(false);
   const cleanup = checkbox(true);
   cleanup.disabled = true;
@@ -107,6 +116,7 @@ export const renderArchive = (state: AppState, dispatch: Dispatch): HTMLElement 
           maxConcurrency: Number(concurrency.value),
           transcribe: transcribe.checked,
           materials: materials.checked || ocrMaterials.checked,
+          confirmationTests: confirmationTests.checked,
           ocrMaterials: ocrMaterials.checked,
           deleteMediaAfterTranscribe: transcribe.checked && cleanup.checked,
           ndlocrCommand: state.settings?.ndlocrCommand ?? 'ndlocr-lite',
@@ -133,7 +143,7 @@ export const renderArchive = (state: AppState, dispatch: Dispatch): HTMLElement 
     pickerHost,
     field('Explicit chapter IDs (advanced)', advancedIds, { hint: 'Entering IDs disables the visual chapter selection.' }),
     field('Concurrency', concurrency, { hint: 'Number of simultaneous requests (1–32).' }),
-    optionFields(transcribe, materials, ocrMaterials, cleanup),
+    optionFields(transcribe, materials, confirmationTests, ocrMaterials, cleanup),
     validation,
     startBtn,
     bulkAction(allBtn),
@@ -149,10 +159,9 @@ const checkbox = (checked: boolean): HTMLInputElement => {
 };
 
 const optionFields = (...inputs: HTMLInputElement[]): HTMLElement => {
-  const labels = ['Transcribe media', 'Download materials', 'Run PDF OCR (includes materials)', 'Delete media after transcript'];
   const root = el('fieldset', { className: 'option-group' });
   root.append(el('legend', { className: 'field-label', text: 'Processing options' }));
-  inputs.forEach((input, index) => root.append(el('label', { className: 'check' }, input, document.createTextNode(labels[index]))));
+  inputs.forEach((input, index) => root.append(el('label', { className: 'check' }, input, document.createTextNode(ARCHIVE_OPTION_LABELS[index]))));
   return root;
 };
 

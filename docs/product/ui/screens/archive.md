@@ -8,7 +8,8 @@ Configure and start download or download-all jobs.
 
 - Learning URL (prefilled from `?courseId=`).
 - Visual chapter picker with a select-all action, or advanced explicit IDs.
-- Toggles: transcribe, materials, PDF OCR, delete media after transcript.
+- Processing options in order: transcribe media, download materials, download
+  confirmation tests, PDF OCR, delete media after transcript.
 - Concurrency number input.
 - Local OCR settings inherited from Settings and overridable by job payload when exposed.
 
@@ -21,11 +22,12 @@ Configure and start download or download-all jobs.
 
 `chapterRange` and explicit `chapters` are mutually exclusive. An empty selection explicitly means the entire course. Job-local chapter selection is not loaded from saved settings.
 
-PDF OCR enables material capture because OCR consumes downloaded PDFs. Media cleanup is available only when transcription is enabled. No remote provider settings are included in the payload.
+Confirmation-test download is enabled by default and can be disabled for each
+job. PDF OCR enables material capture because OCR consumes downloaded PDFs.
+Media cleanup is available only when transcription is enabled. No remote
+provider settings are included in the payload.
 
 The download-all action is separated and described as a bulk operation.
-Every archive job captures confirmation tests from the selected chapters; this
-read-only behavior does not require a separate toggle.
 
 ## Failure Behavior
 

@@ -6,6 +6,9 @@ Zenbukko recognizes chapter sections whose resource type is `exercise` as
 confirmation tests. Title matching for `確認テスト` and `小テスト` supports
 compatible chapter payloads that omit a useful resource type. Discovery is
 limited to the selected chapters and is independent of lesson media selection.
+When confirmation-test download is disabled, Zenbukko does not fetch test
+content pages or write chapter confirmation-test JSON. Existing artifacts are
+left untouched.
 
 ## Capture
 

@@ -7,7 +7,7 @@ import { downloadConfirmationTests } from '../services/confirmationTests.js';
 import { downloadReportAssignments } from '../services/reportAssignments.js';
 import { preflightTranscription } from './transcribe.js';
 import { createChapterDirNamer } from './download/chapterDirs.js';
-import { selectLessons } from './download/lessonSelection.js';
+import { selectConfirmationTests, selectLessons } from './download/lessonSelection.js';
 import { downloadResolvedLessons } from './download/lessonRunner.js';
 import { ChapterMarkdown } from './download/chapterMarkdown.js';
 import type { DownloadCommandParams } from './download/types.js';
@@ -38,7 +38,7 @@ export async function downloadCommand(
 
   const structure = await client.resolveCourseLessons(resolveArgs);
   const lessons = selectLessons(structure, params);
-  const confirmationTests = structure.confirmationTests;
+  const confirmationTests = selectConfirmationTests(structure, params.confirmationTests);
   const reportAssignments = structure.reportAssignments;
   if (lessons.length === 0 && confirmationTests.length === 0 && reportAssignments.length === 0) {
     throw new Error('No lessons, confirmation tests, or report assignments resolved to download.');

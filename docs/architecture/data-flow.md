@@ -12,7 +12,7 @@ Show how requests move through Zenbukko and where persistent artifacts are writt
 4. Workflow functions load session data through `SessionStore`.
 5. NNN clients resolve course structure and signed media/material URLs.
 6. The downloader builds a full in-memory lesson work list before slow per-lesson work starts.
-7. Confirmation tests for selected chapters are captured as structured JSON.
+7. When enabled, confirmation tests for selected chapters are captured as structured JSON.
 8. Report-assignment pages for selected chapters are captured as local Markdown.
 9. If materials are enabled, all selected lesson materials are fetched and normalized first.
 10. Media download, transcription, cleanup, and OCR run only after the material capture phase.

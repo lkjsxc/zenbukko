@@ -40,6 +40,7 @@ function addDownloadOptions(command: Command): Command {
     .option('--no-speech-thold <n>', 'whisper.cpp no-speech threshold', (v) => Number(v))
     .option('--max-seconds <n>', 'Only transcribe the first N seconds', (v) => Number(v))
     .option('--materials', 'Download lesson materials', false)
+    .option('--no-confirmation-tests', 'Skip confirmation-test downloads')
     .option('--delete-media-after-transcribe', 'Delete media after usable transcript exists', false)
     .option('--ocr-materials', 'Run local PDF OCR for downloaded lesson materials', false)
     .option('--ocr-force', 'Re-run local PDF OCR even when markdown output already exists', false));
@@ -54,6 +55,7 @@ function downloadCommon(ctx: ReturnType<typeof makeContext>, cmd: Record<string,
     transcribeModel: String(cmd.transcribeModel ?? 'base'),
     transcribeFormat: String(cmd.transcribeFormat ?? 'txt') as 'txt' | 'srt' | 'vtt',
     materials: Boolean(cmd.materials) || Boolean(cmd.ocrMaterials),
+    confirmationTests: cmd.confirmationTests !== false,
     deleteMediaAfterTranscribe: Boolean(cmd.deleteMediaAfterTranscribe),
     ocrMaterials: Boolean(cmd.ocrMaterials),
     ocrForce: Boolean(cmd.ocrForce),
@@ -72,4 +74,3 @@ function downloadCommon(ctx: ReturnType<typeof makeContext>, cmd: Record<string,
 function arrayOption(value: unknown): number[] | undefined {
   return Array.isArray(value) && value.length > 0 ? (value as number[]) : undefined;
 }
-

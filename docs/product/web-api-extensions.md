@@ -16,7 +16,7 @@ Returns course title and chapter list for visual chapter picker.
 
 Returns chapter sections for advanced lesson filtering.
 
-**Response:** `{ id, title?, sections: [{ id, title?, kind: 'lesson'|'movie'|'other' }] }`
+**Response:** `{ id, title?, sections: [{ id, title?, kind: 'lesson'|'movie'|'exercise'|'report'|'other' }] }`
 
 ## GET /api/outputs/content
 
@@ -40,7 +40,10 @@ The content response returns the canonical path identifier.
 
 ## Job Request Boundaries
 
-Download learning URLs must use HTTPS on `nnn.ed.nico`. Concurrency is 1–32 and OCR DPI is 72–600. API-created OCR input paths must resolve under the configured output root.
+Download learning URLs must use HTTPS on `nnn.ed.nico`. `confirmationTests`
+defaults to `true` and preserves an explicit `false`. Concurrency is 1–32 and
+OCR DPI is 72–600. API-created OCR input paths must resolve under the configured
+output root.
 
 ## Failure Behavior
 

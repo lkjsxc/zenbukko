@@ -4,13 +4,13 @@
 
 August 23, 2026.
 
-Confirmation-test capture verification:
+Confirmation-test capture and processing-option verification:
 
 - `npm ci`: passed (npm reported existing dependency advisories).
 - `npm --prefix web-ui ci`: passed (npm reported existing dependency advisories).
 - `npm run type-check`: passed.
 - `npm run lint`: passed.
-- `npm test`: passed, 94 tests.
+- `npm test`: passed, 98 tests.
 - `npm run check:lines`: passed.
 - `npm run build`: passed.
 - Docker Compose verification was attempted but could not run because this host
